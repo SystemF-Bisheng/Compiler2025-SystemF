@@ -10,6 +10,9 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Antlr intermediate files
+src/main/antlr4/org/systemf/compiler/parser/.antlr/
+
 # Package Files #
 *.jar
 *.war

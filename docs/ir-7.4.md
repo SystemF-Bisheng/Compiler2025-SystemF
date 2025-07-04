@@ -30,9 +30,9 @@
 
 `<result> = getptr arr, index`
 
-表示 `<result> = *(arr + index * size of arr element)`
+表示 `<result> = arr + index * size of arr element`
 
-类型约定为若 `arr` 为 `[? x Ty]` 类型, `index` 为 `i32` 类型, 则 `<result>` 为 `Ty` 类型.
+类型约定为若 `arr` 为 `[? x [? x Ty]]` 类型, `index` 为 `i32` 类型, 则 `<result>` 为 `Ty*` 类型.
 
 例如, `b[1] = a[2][3]` 对应翻译为
 
@@ -44,7 +44,7 @@
 store %2, %3
 ```
 
-其中, 若 `@a`, `@b` 类型依次为 `[3 x i32*]*`, `[4 x i32*]`, 则 `%0`, `%1`, `%2`, `%3` 类型依次为 `[3 x i32*]`, `i32*`, `i32`, `i32*`
+其中, 若 `@a`, `@b` 类型依次为 `[3 x i32]**`, `[4 x i32]*`, 则 `%0`, `%1`, `%2`, `%3` 类型依次为 `[3 x i32]*`, `i32*`, `i32`, `i32*`
 
 ### 指令调整
 

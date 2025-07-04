@@ -16,8 +16,7 @@ public class FunctionType extends Type {
 
   @Override
   public boolean equals(Object other) {
-    if (!(other instanceof FunctionType)) { return false; }
-    FunctionType otherFunctionType = (FunctionType) other;
+    if (!(other instanceof FunctionType otherFunctionType)) {return false;}
     return this.returnType.equals(otherFunctionType.returnType)
       && Arrays.equals(this.parameterTypes, otherFunctionType.parameterTypes);
   }

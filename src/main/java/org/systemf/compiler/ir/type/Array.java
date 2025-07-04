@@ -36,15 +36,13 @@ public class Array extends Type {
 
   @Override
   public boolean isApplicableToFormalParameter(Type formalParameterType) {
-    if (!(formalParameterType instanceof Array)) { return false; }
-    Array formalParameterTypeArray = (Array) formalParameterType;
+    if (!(formalParameterType instanceof Array formalParameterTypeArray)) {return false;}
     return this.elementType.equals(formalParameterTypeArray.elementType);
   }
 
   @Override
   public boolean equals(Object other) {
-    if (!(other instanceof Array)) { return false; }
-    Array otherArray = (Array) other;
+    if (!(other instanceof Array otherArray)) {return false;}
     return this.length == otherArray.length
       && this.elementType.equals(otherArray.elementType);
   }

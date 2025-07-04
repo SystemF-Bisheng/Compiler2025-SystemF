@@ -7,9 +7,7 @@ import org.systemf.compiler.ir.type.util.TypeId;
 public class ReturnTypeGetter {
   static public Type get(Type type) {
     if (type.typeId != TypeId.FunctionType) {
-      System.err.println(String.format(
-        "error: try to get return type of `%s`", type.toString()
-      ));
+      System.err.printf("error: try to get return type of `%s`%n", type);
     }
     return ((FunctionType) type).returnType;
   }

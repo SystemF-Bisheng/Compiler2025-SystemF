@@ -7,9 +7,7 @@ import org.systemf.compiler.ir.type.util.TypeId;
 public class ElementTypeGetter {
   static public Type get(Type type) {
     if (type.typeId != TypeId.ArrayId) {
-      System.err.println(String.format(
-        "error: try to get element type of `%s`", type.toString()
-      ));
+      System.err.printf("error: try to get element type of `%s`%n", type);
       System.exit(-1);
     }
     return ((Array) type).elementType;

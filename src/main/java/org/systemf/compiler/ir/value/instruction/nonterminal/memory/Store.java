@@ -2,9 +2,9 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.Nonterminal;
+import org.systemf.compiler.ir.value.instruction.nonterminal.NonTerminal;
 
-public class Store extends Nonterminal {
+public class Store extends NonTerminal {
   public Store(Value src, Value dest) {
     super(new Void(), "");
     this.src = src;

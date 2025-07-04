@@ -9,7 +9,7 @@ public class CondBr extends Terminal {
 	public final BasicBlock trueTarget, falseTarget;
 
 	public CondBr(Value cond, BasicBlock trueTarget, BasicBlock falseTarget) {
-		super(new Void(), "");
+		super(Void.getInstance(), "");
 		this.cond = cond;
 		this.trueTarget = trueTarget;
 		this.falseTarget = falseTarget;

@@ -10,7 +10,7 @@ public class Fcmp extends NonTerminal {
   public final Value op1, op2;
 
   public Fcmp(String name, CompareCode code, Value op1, Value op2) {
-    super(new I32(), name);
+    super(I32.getInstance(), name);
     this.code = code;
     this.op1 = op1;
     this.op2 = op2;

@@ -8,7 +8,7 @@ public class Shl extends NonTerminal {
   public final Value op1, op2;
 
   public Shl(String name, Value op1, Value op2) {
-    super(new I32(), name);
+    super(I32.getInstance(), name);
     this.op1 = op1;
     this.op2 = op2;
   }

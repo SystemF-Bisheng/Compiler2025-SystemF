@@ -8,7 +8,7 @@ public class SitoFp extends NonTerminal {
   public final Value op;
 
   public SitoFp(String name, Value op) {
-    super(new Float(), name);
+    super(Float.getInstance(), name);
     this.op = op;
   }
 }

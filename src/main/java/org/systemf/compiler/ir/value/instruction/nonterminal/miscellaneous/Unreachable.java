@@ -5,6 +5,6 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.NonTerminal;
 
 public class Unreachable extends NonTerminal {
   public Unreachable() {
-    super(new Void(), "");
+    super(Void.getInstance(), "");
   }
 }

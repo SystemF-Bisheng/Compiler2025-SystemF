@@ -6,7 +6,7 @@ public class ConstantFloat extends Constant {
 	final public double value;
 
 	public ConstantFloat(double value) {
-		super(new Float(), Double.toString(value));
+		super(Float.getInstance(), Double.toString(value));
 		this.value = value;
 	}
 

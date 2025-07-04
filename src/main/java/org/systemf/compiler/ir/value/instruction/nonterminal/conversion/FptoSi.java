@@ -8,7 +8,7 @@ public class FptoSi extends NonTerminal {
 	public final Value op;
 
 	public FptoSi(String name, Value op) {
-		super(new I32(), name);
+		super(I32.getInstance(), name);
 		this.op = op;
 	}
 }

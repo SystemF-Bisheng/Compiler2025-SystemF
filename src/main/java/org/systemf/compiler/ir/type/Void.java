@@ -2,8 +2,10 @@ package org.systemf.compiler.ir.type;
 
 import org.systemf.compiler.ir.type.util.TypeId;
 
-public class Void extends Type {
-	public Void() {
+public final class Void extends Type {
+	private static Void INSTANCE;
+
+	private Void() {
 		super(TypeId.VoidId, "void");
 	}
 
@@ -13,5 +15,10 @@ public class Void extends Type {
 	@Override
 	public boolean isApplicableToFormalParameter(Type formalParameterType) {
 		return false;
+	}
+
+	public static Void getInstance() {
+		if (INSTANCE == null) INSTANCE = new Void();
+		return INSTANCE;
 	}
 }

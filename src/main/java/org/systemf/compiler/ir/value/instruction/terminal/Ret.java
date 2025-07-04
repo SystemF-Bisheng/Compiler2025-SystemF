@@ -7,7 +7,7 @@ public class Ret extends Terminal {
   public final Value returnValue;
 
   public Ret(Value returnValue) {
-    super(new Void(), "");
+    super(Void.getInstance(), "");
     this.returnValue = returnValue;
   }
 }

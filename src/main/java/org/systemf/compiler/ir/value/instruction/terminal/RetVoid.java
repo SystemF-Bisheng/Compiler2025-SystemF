@@ -4,6 +4,6 @@ import org.systemf.compiler.ir.type.Void;
 
 public class RetVoid extends Terminal {
 	public RetVoid() {
-		super(new Void(), "");
+		super(Void.getInstance(), "");
 	}
 }

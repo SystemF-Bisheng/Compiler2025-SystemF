@@ -7,7 +7,7 @@ public class Br extends Terminal {
 	public final BasicBlock target;
 
 	public Br(BasicBlock target) {
-		super(new Void(), "");
+		super(Void.getInstance(), "");
 		this.target = target;
 	}
 }

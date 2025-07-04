@@ -8,7 +8,7 @@ public class Store extends NonTerminal {
   public final Value src, dest;
 
   public Store(Value src, Value dest) {
-    super(new Void(), "");
+    super(Void.getInstance(), "");
     this.src = src;
     this.dest = dest;
   }

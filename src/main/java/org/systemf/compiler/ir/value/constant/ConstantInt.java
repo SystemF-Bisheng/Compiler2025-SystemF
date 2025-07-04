@@ -6,7 +6,7 @@ public class ConstantInt extends Constant {
 	final public long value;
 
 	public ConstantInt(long value) {
-		super(new I32(), Long.toString(value));
+		super(I32.getInstance(), Long.toString(value));
 		this.value = value;
 	}
 

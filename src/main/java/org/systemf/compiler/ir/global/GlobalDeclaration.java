@@ -1,7 +1,24 @@
 package org.systemf.compiler.ir.global;
 
+import org.systemf.compiler.ir.INamed;
+import org.systemf.compiler.ir.global.initializer.IGlobalInitializer;
+import org.systemf.compiler.ir.type.Pointer;
+import org.systemf.compiler.ir.type.Type;
 import org.systemf.compiler.ir.value.DummyValue;
 
-public class GlobalDeclaration extends DummyValue implements IGlobal {
-	// TODO: implement Global Declaration
+public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
+	public final IGlobalInitializer initializer;
+
+	public GlobalDeclaration(String name, Type type, IGlobalInitializer initializer) {
+		super(new Pointer(type));
+		this.name = name;
+		this.initializer = initializer;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	private final String name;
 }

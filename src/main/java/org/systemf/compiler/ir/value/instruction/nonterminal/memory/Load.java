@@ -5,10 +5,10 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.NonTerminal;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.util.ElementTypeGetter;
 
 public class Load extends NonTerminal {
+  public final Value ptr;
+
   public Load(String name, Value ptr) {
     super(ElementTypeGetter.get(ptr.type), name);
     this.ptr = ptr;
   }
-
-  public final Value ptr;
 }

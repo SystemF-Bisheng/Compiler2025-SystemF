@@ -4,36 +4,36 @@ import org.systemf.compiler.ir.type.Type;
 import org.systemf.compiler.ir.value.exception.NonConstantException;
 
 public abstract class Value {
-  protected Value(Type type, String name) {
-    this.type = type;
-    this.name = name;
-  }
+	final public Type type;
+	final public String name;
 
-  /**
-   * for non-const value, `dump()` will return the definition of the value
-   * while `toString()` will only return the representation of the value
-   */
-  public String dump() {
-    return toString();
-  }
+	protected Value(Type type, String name) {
+		this.type = type;
+		this.name = name;
+	}
 
-  public boolean isConstant() {
-    return false;
-  }
+	/**
+	 * for non-const value, `dump()` will return the definition of the value
+	 * while `toString()` will only return the representation of the value
+	 */
+	public String dump() {
+		return toString();
+	}
 
-  public long getConstantIntValue() throws NonConstantException {
-    throw new NonConstantException();
-  }
+	public boolean isConstant() {
+		return false;
+	}
 
-  public double getConstantFloatValue() throws NonConstantException {
-    throw new NonConstantException();
-  }
+	public long getConstantIntValue() throws NonConstantException {
+		throw new NonConstantException();
+	}
 
-  @Override
-  public String toString() {
-    return name;
-  }
+	public double getConstantFloatValue() throws NonConstantException {
+		throw new NonConstantException();
+	}
 
-  final public Type type;
-  final public String name;
+	@Override
+	public String toString() {
+		return name;
+	}
 }

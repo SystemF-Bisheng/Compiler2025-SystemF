@@ -4,19 +4,19 @@ import org.systemf.compiler.ir.type.Type;
 import org.systemf.compiler.ir.value.Value;
 
 public abstract class Instruction extends Value {
-  protected Instruction(Type type, String name) {
-    super(type, name);
-  }
+	protected Instruction(Type type, String name) {
+		super(type, name);
+	}
 
-  public boolean isTerminal() {
-    return false;
-  }
+	public boolean isTerminal() {
+		return false;
+	}
 
-  @Override
-  public String dump() {
-    // TODO: implement `dump()` methods of all instructions
-    System.err.printf("error: dump() method of definition instruction of `%s` is not implemented%n", name);
-    System.exit(-1);
-    return "";
-  }
+	@Override
+	public String dump() {
+		// TODO: implement `dump()` methods of all instructions
+		System.err.printf("error: dump() method of definition instruction of `%s` is not implemented%n", name);
+		System.exit(-1);
+		return "";
+	}
 }

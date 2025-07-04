@@ -1,15 +1,14 @@
 package org.systemf.compiler.ir.type;
 
-import org.systemf.compiler.ir.type.util.TypeId;
-
 import java.util.Arrays;
+import java.util.Objects;
 
-public class FunctionType extends Type {
+public class FunctionType extends DummyType {
 	final public Type returnType;
 	final public Type[] parameterTypes;
 
 	public FunctionType(Type returnType, Type... parameterTypes) {
-		super(TypeId.FunctionType, typeName(returnType, parameterTypes));
+		super(typeName(returnType, parameterTypes));
 		this.returnType = returnType;
 		this.parameterTypes = parameterTypes;
 	}
@@ -18,7 +17,7 @@ public class FunctionType extends Type {
 		StringBuilder builder = new StringBuilder();
 		builder.append(returnType.toString());
 		builder.append(" (");
-		for (Type parameterType : parameterTypes) {
+		for (var parameterType : parameterTypes) {
 			builder.append(parameterType.toString());
 			builder.append(", ");
 		}
@@ -31,9 +30,13 @@ public class FunctionType extends Type {
 	}
 
 	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof FunctionType otherFunctionType)) {return false;}
-		return this.returnType.equals(otherFunctionType.returnType) &&
-		       Arrays.equals(this.parameterTypes, otherFunctionType.parameterTypes);
+	public boolean equals(Object o) {
+		if (!(o instanceof FunctionType that)) return false;
+		return Objects.equals(returnType, that.returnType) && Objects.deepEquals(parameterTypes, that.parameterTypes);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(returnType, Arrays.hashCode(parameterTypes));
 	}
 }

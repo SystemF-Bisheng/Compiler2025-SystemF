@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.global;
 
-import com.ibm.icu.impl.UResource.Value;
+import org.systemf.compiler.ir.value.DummyValue;
 
-public class GlobalDeclaration extends Value implements IGlobal {
+public class GlobalDeclaration extends DummyValue implements IGlobal {
 	// TODO: implement Global Declaration
 }

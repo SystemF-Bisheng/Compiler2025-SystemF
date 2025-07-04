@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.value;
 
 import org.systemf.compiler.ir.type.Type;
-import org.systemf.compiler.ir.value.exception.NotConstant;
+import org.systemf.compiler.ir.value.exception.NonConstantException;
 
 public abstract class Value {
   protected Value(Type type, String name) {
@@ -21,12 +21,12 @@ public abstract class Value {
     return false;
   }
 
-  public long getConstantIntValue() throws NotConstant {
-    throw new NotConstant();
+  public long getConstantIntValue() throws NonConstantException {
+    throw new NonConstantException();
   }
 
-  public double getConstantFloatValue() throws NotConstant {
-    throw new NotConstant();
+  public double getConstantFloatValue() throws NonConstantException {
+    throw new NonConstantException();
   }
 
   @Override

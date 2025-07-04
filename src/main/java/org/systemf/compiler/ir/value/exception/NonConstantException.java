@@ -2,5 +2,5 @@ package org.systemf.compiler.ir.value.exception;
 
 import org.systemf.compiler.exception.SystemFException;
 
-public class NotConstant extends SystemFException {
+public class NonConstantException extends SystemFException {
 }

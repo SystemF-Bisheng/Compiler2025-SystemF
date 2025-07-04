@@ -1,6 +1,6 @@
 package org.systemf.compiler.ir.type;
 
-import org.systemf.compiler.ir.type.exception.LengthNotAvailable;
+import org.systemf.compiler.ir.type.exception.UnavailableLengthException;
 import org.systemf.compiler.ir.type.util.TypeId;
 
 public class Array extends Type {
@@ -20,10 +20,8 @@ public class Array extends Type {
     this.elementType = elementType;
   }
 
-  public int getLength() throws LengthNotAvailable {
-    if (isPointer()) {
-      throw new LengthNotAvailable();
-    }
+  public int getLength() throws UnavailableLengthException {
+    if (isPointer()) throw new UnavailableLengthException();
     return length;
   }
 

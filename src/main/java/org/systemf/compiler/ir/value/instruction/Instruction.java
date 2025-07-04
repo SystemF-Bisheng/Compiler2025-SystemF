@@ -8,9 +8,7 @@ public abstract class Instruction extends Value {
 		super(type, name);
 	}
 
-	public boolean isTerminal() {
-		return false;
-	}
+	public abstract boolean isTerminal();
 
 	@Override
 	public String dump() {

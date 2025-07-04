@@ -7,4 +7,8 @@ public abstract class NonTerminal extends Instruction {
 	public NonTerminal(Type type, String name) {
 		super(type, name);
 	}
+
+	public boolean isTerminal() {
+		return false;
+	}
 }

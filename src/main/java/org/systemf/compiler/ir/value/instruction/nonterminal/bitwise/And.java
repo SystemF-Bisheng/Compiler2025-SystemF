@@ -2,14 +2,14 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.bitwise;
 
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.Nonterminal;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 
-public class And extends Nonterminal {
+public class And extends DummyNonTerminal {
+  public final Value op1, op2;
+
   public And(String name, Value op1, Value op2) {
-    super(new I32(), name);
+    super(I32.INSTANCE, name);
     this.op1 = op1;
     this.op2 = op2;
   }
-
-  public final Value op1, op2;
 }

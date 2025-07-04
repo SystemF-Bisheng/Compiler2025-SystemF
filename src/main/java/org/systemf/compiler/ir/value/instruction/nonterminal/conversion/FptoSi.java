@@ -2,13 +2,13 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.conversion;
 
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.Nonterminal;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 
-public class FptoSi extends Nonterminal {
-  public FptoSi(String name, Value op) {
-    super(new I32(), name);
-    this.op = op;
-  }
+public class FptoSi extends DummyNonTerminal {
+	public final Value op;
 
-  public final Value op;
+	public FptoSi(String name, Value op) {
+		super(I32.INSTANCE, name);
+		this.op = op;
+	}
 }

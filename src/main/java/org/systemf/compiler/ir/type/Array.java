@@ -1,49 +1,33 @@
 package org.systemf.compiler.ir.type;
 
-import org.systemf.compiler.ir.type.exception.LengthNotAvailable;
-import org.systemf.compiler.ir.type.util.TypeId;
+import java.util.Objects;
 
-public class Array extends Type {
-  /**
-   * construct a variable-length array (pointer)
-   */
-  public Array (Type elementType) {
-    super(TypeId.ArrayId, String.format("%s*", elementType.toString()));
-    this.length = -1;
-    this.elementType = elementType;
-  }
+public class Array extends DummyType {
+	final public Type elementType;
+	final public int length;
 
-  public Array(int length, Type elementType) {
-    super(TypeId.ArrayId, String.format("[%d x %s]", length, elementType.toString()));
-    assert length >= 0 : String.format("invalid array length `%d`", length);
-    this.length = length;
-    this.elementType = elementType;
-  }
+	public Array(int length, Type elementType) {
+		super(String.format("[%d x %s]", length, elementType.toString()));
+		assert length >= 0 : String.format("invalid array length `%d`", length);
+		this.length = length;
+		this.elementType = elementType;
+	}
 
-  public int getLength() throws LengthNotAvailable {
-    if (isPointer()) {
-      throw new LengthNotAvailable();
-    }
-    return length;
-  }
+	@Override
+	public boolean convertibleTo(Type otherType) {
+		if (super.convertibleTo(otherType)) return true;
+		if (otherType instanceof Pointer pointer) return elementType.equals(pointer.elementType);
+		return false;
+	}
 
-  public boolean isPointer() {
-    return length < 0;
-  }
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Array array)) return false;
+		return length == array.length && Objects.equals(elementType, array.elementType);
+	}
 
-  final public Type elementType;
-  final private int length;
-
-  @Override
-  public boolean isApplicableToFormalParameter(Type formalParameterType) {
-    if (!(formalParameterType instanceof Array formalParameterTypeArray)) {return false;}
-    return this.elementType.equals(formalParameterTypeArray.elementType);
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (!(other instanceof Array otherArray)) {return false;}
-    return this.length == otherArray.length
-      && this.elementType.equals(otherArray.elementType);
-  }
+	@Override
+	public int hashCode() {
+		return Objects.hash(elementType, length);
+	}
 }

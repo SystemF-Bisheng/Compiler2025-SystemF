@@ -2,16 +2,11 @@ package org.systemf.compiler.ir.value.constant;
 
 import org.systemf.compiler.ir.type.I32;
 
-public class ConstantInt extends Constant {
-  public ConstantInt(long value) {
-    super(new I32(), Long.toString(value));
-    this.value = value;
-  }
+public class ConstantInt extends DummyConstant {
+	final public long value;
 
-  @Override
-  public long getConstantIntValue() {
-    return value;
-  }
-
-  final public long value;
+	public ConstantInt(long value) {
+		super(I32.INSTANCE);
+		this.value = value;
+	}
 }

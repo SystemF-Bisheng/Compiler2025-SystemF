@@ -1,9 +1,15 @@
 package org.systemf.compiler.ir.type;
 
-import org.systemf.compiler.ir.type.util.TypeId;
+public enum Float implements Type {
+	INSTANCE;
 
-public class Float extends Type {
-  public Float() {
-    super(TypeId.FloatId, "float");
-  }
+	@Override
+	public boolean convertibleTo(Type otherType) {
+		return otherType == INSTANCE;
+	}
+
+	@Override
+	public String getName() {
+		return "float";
+	}
 }

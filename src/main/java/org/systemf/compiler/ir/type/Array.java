@@ -2,15 +2,13 @@ package org.systemf.compiler.ir.type;
 
 import java.util.Objects;
 
-public class Array extends DummyType {
-	final public Type elementType;
+public class Array extends DummyIndexableType {
 	final public int length;
 
 	public Array(int length, Type elementType) {
-		super(String.format("[%d x %s]", length, elementType.toString()));
+		super(String.format("[%d x %s]", length, elementType.toString()), elementType);
 		assert length >= 0 : String.format("invalid array length `%d`", length);
 		this.length = length;
-		this.elementType = elementType;
 	}
 
 	@Override

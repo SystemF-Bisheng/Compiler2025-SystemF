@@ -3,7 +3,7 @@ package org.systemf.compiler.ir.value;
 import org.systemf.compiler.ir.type.Type;
 
 public abstract class DummyValue implements Value {
-	final private Type type;
+	final protected Type type;
 
 	protected DummyValue(Type type) {
 		this.type = type;

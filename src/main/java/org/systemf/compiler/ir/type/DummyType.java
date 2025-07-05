@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.type;
 
 public abstract class DummyType implements Type {
-	final private String typeName;
+	protected final String typeName;
 
 	protected DummyType(String typeName) {
 		this.typeName = typeName;

@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.Value;
 
 public abstract class DummyValueInstruction extends DummyValue implements Value, Instruction, INamed {
-	private final String name;
+	protected final String name;
 
 	protected DummyValueInstruction(Type type, String name) {
 		super(type);

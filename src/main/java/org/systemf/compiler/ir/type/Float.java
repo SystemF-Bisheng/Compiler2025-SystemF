@@ -1,6 +1,9 @@
 package org.systemf.compiler.ir.type;
 
-public enum Float implements Type {
+import org.systemf.compiler.ir.type.interfaces.Sized;
+import org.systemf.compiler.ir.type.interfaces.Type;
+
+public enum Float implements Type, Sized {
 	INSTANCE;
 
 	@Override

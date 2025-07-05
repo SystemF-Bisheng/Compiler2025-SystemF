@@ -1,8 +1,8 @@
 package org.systemf.compiler.ir.type.util;
 
 import org.systemf.compiler.ir.type.FunctionType;
-import org.systemf.compiler.ir.type.Indexable;
-import org.systemf.compiler.ir.type.Type;
+import org.systemf.compiler.ir.type.interfaces.Indexable;
+import org.systemf.compiler.ir.type.interfaces.Type;
 
 public class TypeUtil {
 	static public Type getReturnType(Type type) {

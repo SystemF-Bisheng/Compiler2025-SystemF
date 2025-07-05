@@ -1,4 +1,4 @@
-package org.systemf.compiler.ir.type;
+package org.systemf.compiler.ir.type.interfaces;
 
 public abstract class DummyType implements Type {
 	protected final String typeName;

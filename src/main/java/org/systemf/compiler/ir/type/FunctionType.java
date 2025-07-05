@@ -1,5 +1,8 @@
 package org.systemf.compiler.ir.type;
 
+import org.systemf.compiler.ir.type.interfaces.DummyType;
+import org.systemf.compiler.ir.type.interfaces.Type;
+
 import java.util.Arrays;
 import java.util.Objects;
 

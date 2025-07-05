@@ -9,6 +9,8 @@ import org.systemf.compiler.ir.global.initializer.IGlobalInitializer;
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.Void;
+import org.systemf.compiler.ir.type.interfaces.Sized;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
@@ -70,7 +72,7 @@ public class IRBuilder {
 		return new Pointer(elementType);
 	}
 
-	public Array buildArrayType(int length, Type elementType) {
+	public Array buildArrayType(int length, Sized elementType) {
 		return new Array(length, elementType);
 	}
 

@@ -1,6 +1,9 @@
 package org.systemf.compiler.ir.type;
 
-public enum I32 implements Type {
+import org.systemf.compiler.ir.type.interfaces.Sized;
+import org.systemf.compiler.ir.type.interfaces.Type;
+
+public enum I32 implements Type, Sized {
 	INSTANCE;
 
 	@Override

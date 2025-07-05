@@ -3,7 +3,7 @@ package org.systemf.compiler.ir.global;
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.global.initializer.IGlobalInitializer;
 import org.systemf.compiler.ir.type.Pointer;
-import org.systemf.compiler.ir.type.Type;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.DummyValue;
 
 public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {

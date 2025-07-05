@@ -3,7 +3,7 @@ package org.systemf.compiler.ir.global;
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.FunctionType;
-import org.systemf.compiler.ir.type.Type;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.Value;
 
@@ -40,7 +40,7 @@ public class Function extends DummyValue implements IGlobal, INamed {
 	}
 
 	public BasicBlock getEntryBlock() {
-		return blocks.get(0);
+		return blocks.getFirst();
 	}
 
 	public int getBlockCount() {

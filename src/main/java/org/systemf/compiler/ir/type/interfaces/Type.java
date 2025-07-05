@@ -1,4 +1,4 @@
-package org.systemf.compiler.ir.type;
+package org.systemf.compiler.ir.type.interfaces;
 
 import org.systemf.compiler.ir.INamed;
 

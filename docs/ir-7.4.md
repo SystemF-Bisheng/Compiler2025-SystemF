@@ -1,6 +1,6 @@
 # IR 设计与进度
 
-7 月 4 日
+7 月 5 日
 
 ---
 
@@ -68,11 +68,11 @@ BasicBlock 不被视为 Value 了 (前者也不再是后者的子类).
 
 - [x] Value
 
-- [ ] BasicBlock
+- [x] BasicBlock
 
-- [ ] Global (Function & Global Decl)
+- [x] Global (Function & Global Decl)
 
-- [ ] Module
+- [x] Module
 
 - [ ] IRBuilder
 

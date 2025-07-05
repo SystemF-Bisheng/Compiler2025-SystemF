@@ -40,7 +40,7 @@ public class Function extends DummyValue implements IGlobal, INamed {
 	}
 
 	public BasicBlock getEntryBlock() {
-		return blocks.get(0);
+		return blocks.getFirst();
 	}
 
 	public int getBlockCount() {

@@ -1,8 +1,5 @@
 package org.systemf.compiler.ir;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
@@ -15,15 +12,20 @@ import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * external interface. all write operations are available with only Module and IRBuilder
  */
 public class IRBuilder {
+	private final Module module;
+	private final Set<String> occupiedNames;
+	private BasicBlock currentBlock;
+
 	public IRBuilder(Module module) {
 		if (module.isIRBuilderAttached()) {
-			System.err.println(
-				"warning: multiple IRBuilder attaching to one Module may cause unexpected behavior"
-			);
+			System.err.println("warning: multiple IRBuilder attaching to one Module may cause unexpected behavior");
 		}
 		module.attachIRBuilder();
 
@@ -71,6 +73,8 @@ public class IRBuilder {
 		// TODO
 	}
 
+	// TODO: other instruction building method ...
+
 	public ConstantInt buildConstantInt(/* ... */) {
 		// TODO
 	}
@@ -83,15 +87,9 @@ public class IRBuilder {
 		// TODO
 	}
 
-	// TODO: other instruction building method ...
-
 	public void attachToBlockTail(BasicBlock block) {
 		currentBlock = block;
 	}
-
-	private final Module module;
-	private BasicBlock currentBlock;
-	private final Set<String> occupiedNames;
 
 	private String getNonConflictName(String originalName) {
 		if (!occupiedNames.contains(originalName)) {

@@ -1,11 +1,15 @@
 package org.systemf.compiler.ir;
 
-import java.util.ArrayList;
-
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
 
+import java.util.ArrayList;
+
 public class Module {
+	private final ArrayList<GlobalDeclaration> declarations;
+	private final ArrayList<Function> functions;
+	private boolean IRBuilderAttached;
+
 	public Module() {
 		this.IRBuilderAttached = false;
 		this.declarations = new ArrayList<>();
@@ -59,9 +63,4 @@ public class Module {
 	public boolean isIRBuilderAttached() {
 		return IRBuilderAttached;
 	}
-
-	private final ArrayList<GlobalDeclaration> declarations;
-	private final ArrayList<Function> functions;
-
-	private boolean IRBuilderAttached;
 }

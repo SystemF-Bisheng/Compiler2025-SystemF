@@ -8,6 +8,7 @@ import org.systemf.compiler.ir.value.DummyValue;
 
 public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
 	public final IGlobalInitializer initializer;
+	private final String name;
 
 	public GlobalDeclaration(String name, Type type, IGlobalInitializer initializer) {
 		super(new Pointer(type));
@@ -19,6 +20,4 @@ public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
 	public String getName() {
 		return name;
 	}
-
-	private final String name;
 }

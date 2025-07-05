@@ -1,11 +1,14 @@
 package org.systemf.compiler.ir.block;
 
-import java.util.ArrayList;
-
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 
+import java.util.ArrayList;
+
 public class BasicBlock implements INamed {
+	final private String name;
+	final private ArrayList<Instruction> instructions;
+
 	public BasicBlock(String name) {
 		this.name = name;
 		this.instructions = new ArrayList<>();
@@ -39,8 +42,4 @@ public class BasicBlock implements INamed {
 	public String getName() {
 		return name;
 	}
-
-	final private String name;
-
-	final private ArrayList<Instruction> instructions;
 }

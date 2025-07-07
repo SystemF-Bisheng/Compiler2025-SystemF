@@ -70,7 +70,7 @@ public class IRBuilderTest {
 
 			builder.buildRet(mul);
 
-			module.dumpToConsole();
+			module.dump(System.out);
 		}
 	}
 }

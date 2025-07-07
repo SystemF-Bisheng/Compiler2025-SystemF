@@ -20,4 +20,9 @@ public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
 	public String getName() {
 		return name;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("@%s = global %s %s", name, type.getName(), initializer.toString());
+	}
 }

@@ -13,4 +13,9 @@ public class GetPtr extends DummyValueNonTerminal {
     this.array = array;
     this.index = index;
   }
+
+  @Override
+  public String toString() {
+    return String.format("%%%s = getptr %s, %s", name, array.getType(), index.getType());
+  }
 }

@@ -18,10 +18,10 @@ public class FunctionType extends DummyType {
 
 	static private String typeName(Type returnType, Type[] parameterTypes) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(returnType.toString());
+		builder.append(returnType.getName());
 		builder.append(" (");
 		for (var parameterType : parameterTypes) {
-			builder.append(parameterType.toString());
+			builder.append(parameterType.getName());
 			builder.append(", ");
 		}
 		if (parameterTypes.length > 0) { // remove trailing comma

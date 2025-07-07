@@ -6,6 +6,6 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 
 public class Pointer extends DummyDereferenceableType implements Sized {
 	public Pointer(Type elementType) {
-		super(String.format("%s*", elementType.toString()), elementType);
+		super(String.format("%s*", elementType.getName()), elementType);
 	}
 }

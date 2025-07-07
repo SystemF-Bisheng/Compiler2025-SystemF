@@ -3,6 +3,7 @@ package org.systemf.compiler.ir;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class Module {
@@ -62,5 +63,44 @@ public class Module {
 
 	public boolean isIRBuilderAttached() {
 		return IRBuilderAttached;
+	}
+
+	public void dumpToConsole() {
+		System.out.println("; ModuleId = '" + "" + "'");
+        System.out.println("source_filename = \"" + "" + "\"");
+        System.out.println();
+
+		for (GlobalDeclaration declaration : declarations) {
+			System.out.println(declaration);
+		}
+
+		System.out.println();
+
+		for (Function function : functions) {
+			System.out.println(function);
+		}
+
+
+	}
+
+	public void dumpToFile(String path) {
+		try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(path))) {
+			writer.println("; ModuleId = '" + "" + "'");
+			writer.println("source_filename = \"" + "" + "\"");
+			writer.println();
+
+			for (GlobalDeclaration declaration : declarations) {
+				writer.println(declaration);
+			}
+
+			writer.println();
+
+			for (Function function : functions) {
+				writer.println(function);
+			}
+
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

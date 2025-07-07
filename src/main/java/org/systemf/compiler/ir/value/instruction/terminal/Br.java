@@ -8,4 +8,9 @@ public class Br extends DummyTerminal {
 	public Br(BasicBlock target) {
 		this.target = target;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("br %%%s", target.getName());
+	}
 }

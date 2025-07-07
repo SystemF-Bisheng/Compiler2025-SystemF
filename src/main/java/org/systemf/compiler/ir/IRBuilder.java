@@ -12,6 +12,8 @@ import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.Parameter;
+import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.Instruction;
@@ -56,14 +58,17 @@ public class IRBuilder {
 		occupiedNames = new HashSet<>();
 	}
 
-		public Void buildVoidType() {
+	public Void buildVoidType() {
 		return Void.INSTANCE;
+	}
+
+	public Value buildParameter(Type type, String name) {
+		return new Parameter(type, getNonConflictName(name));
 	}
 
 	public I32 buildI32Type() {
 		return I32.INSTANCE;
 	}
-
 	public Float buildFloatType() {
 		return Float.INSTANCE;
 	}
@@ -72,7 +77,7 @@ public class IRBuilder {
 		return new Pointer(elementType);
 	}
 
-	public Array buildArrayType(int length, Sized elementType) {
+	public Array buildArrayType(Sized elementType, int length) {
 		return new Array(length, elementType);
 	}
 
@@ -85,19 +90,13 @@ public class IRBuilder {
 	}
 
 
-	public GlobalDeclaration buildGlobalDeclaration(String name, I32 type, IGlobalInitializer initializer) {
+	public GlobalDeclaration buildGlobalDeclaration(String name, Type type, IGlobalInitializer initializer) {
 		GlobalDeclaration declaration = new GlobalDeclaration(getNonConflictName(name), type, initializer);
 		module.addGlobalDeclaration(declaration);
 		return declaration;
 	}
 
-	public GlobalDeclaration buildGlobalDeclaration(String name, Array type, IGlobalInitializer initializer) {
-		GlobalDeclaration declaration = new GlobalDeclaration(getNonConflictName(name), type, initializer);
-		module.addGlobalDeclaration(declaration);
-		return declaration;
-	}
-
-	public IGlobalInitializer buildGlobalInitializer(ConstantInt value) {
+	public IGlobalInitializer buildGlobalInitializer(Constant value) {
 		return new AtomicInitializer(value);
 	}
 
@@ -105,9 +104,9 @@ public class IRBuilder {
 		return new ArrayInitializer(length, elements);
 	}
 
-	public Function buildFunction(String name, FunctionType type) {
-		Function function = new Function(getNonConflictName(name), type);
-		module.addFunction(new Function(getNonConflictName(name), type));
+	public Function buildFunction(String name, Type returnType, Value... formalArgs) {
+		Function function = new Function(getNonConflictName(name), returnType, formalArgs);
+		module.addFunction(function);
 		return function;
 	}
 
@@ -240,7 +239,7 @@ public class IRBuilder {
 		return sitoFpInst;
 	}
 
-	public Call buildCall(Function function, Value[] args, String name) {
+	public Call buildCall(Function function, String name, Value... args) {
 		Call callInst = new Call(getNonConflictName(name), function, args);
 		insertInstruction(callInst);
 		return callInst;

@@ -42,4 +42,15 @@ public class BasicBlock implements INamed {
 	public String getName() {
 		return name;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(name).append(":\n");
+		for (Instruction inst : instructions) {
+			sb.append("\t");
+			sb.append(inst.toString()).append("\n");
+		}
+		return sb.toString();
+	}
 }

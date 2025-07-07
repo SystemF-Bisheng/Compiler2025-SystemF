@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.value.Util.ValueUtil;
 import org.systemf.compiler.ir.value.Value;
 
 public class CondBr extends DummyTerminal {
@@ -11,5 +12,10 @@ public class CondBr extends DummyTerminal {
 		this.cond = cond;
 		this.trueTarget = trueTarget;
 		this.falseTarget = falseTarget;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("cond_br %%%s, %%%s, %%%s", ValueUtil.getValueName(cond), trueTarget.getName(), falseTarget.getName());
 	}
 }

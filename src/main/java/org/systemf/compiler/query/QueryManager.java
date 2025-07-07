@@ -1,7 +1,9 @@
 package org.systemf.compiler.query;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class QueryManager {
 	private final HashSet<Object> entities = new HashSet<>();
@@ -9,24 +11,23 @@ public class QueryManager {
 	private final HashSet<EntityProviderInfo> entityProviders = new HashSet<>();
 	private final HashSet<AttributeProviderInfo> attributeProviders = new HashSet<>();
 
+	private Stream<Type[]> extractParam(Class<?> clazz, Class<?> target, int len) {
+		return Arrays.stream(clazz.getGenericInterfaces()).filter(type -> type instanceof ParameterizedType)
+				.map(type -> (ParameterizedType) type).filter(type -> target == type.getRawType())
+				.map(ParameterizedType::getActualTypeArguments).filter(args -> args.length == len)
+				.filter(args -> Arrays.stream(args).allMatch(arg -> arg instanceof Class));
+	}
+
 	public void registerProvider(EntityProvider<?> provider) {
-		var entityClass = Arrays.stream(provider.getClass().getGenericInterfaces())
-				.filter(type -> type instanceof ParameterizedType).map(type -> (ParameterizedType) type)
-				.filter(type -> EntityProvider.class == type.getRawType())
-				.map(ParameterizedType::getActualTypeArguments).filter(args -> args.length == 1).map(args -> args[0])
-				.filter(arg -> arg instanceof Class).map(arg -> (Class<?>) arg).findFirst()
+		var entityClass = extractParam(provider.getClass(), EntityProvider.class, 1).map(args -> (Class<?>) args[0])
+				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("Cannot find the entity class of the provider"));
 		entityProviders.add(new EntityProviderInfo(entityClass, provider));
 	}
 
 	public void registerProvider(AttributeProvider<?, ?> provider) {
-		var params = Arrays.stream(provider.getClass().getGenericInterfaces())
-				.filter(type -> type instanceof ParameterizedType).map(type -> (ParameterizedType) type)
-				.filter(type -> AttributeProvider.class == type.getRawType())
-				.map(ParameterizedType::getActualTypeArguments).filter(args -> args.length == 2)
-				.filter(args -> Arrays.stream(args).allMatch(arg -> arg instanceof Class)).findFirst().orElseThrow(
-						() -> new IllegalArgumentException(
-								"Cannot find the entity and the attribute class of the provider"));
+		var params = extractParam(provider.getClass(), AttributeProvider.class, 2).findFirst().orElseThrow(
+				() -> new IllegalArgumentException("Cannot find the entity and the attribute class of the provider"));
 		attributeProviders.add(new AttributeProviderInfo((Class<?>) params[0], (Class<?>) params[1], provider));
 	}
 

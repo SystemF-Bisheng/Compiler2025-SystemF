@@ -2,6 +2,19 @@
   <dictionary name="project">
     <words>
       <w>alloca</w>
+      <w>ashr</w>
+      <w>fadd</w>
+      <w>fcmp</w>
+      <w>fdiv</w>
+      <w>fmul</w>
+      <w>fneg</w>
+      <w>fptosi</w>
+      <w>fsub</w>
+      <w>getptr</w>
+      <w>lshr</w>
+      <w>sdiv</w>
+      <w>sitofp</w>
+      <w>srem</w>
     </words>
   </dictionary>
 </component>

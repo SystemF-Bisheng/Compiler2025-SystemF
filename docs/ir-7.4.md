@@ -74,8 +74,8 @@ BasicBlock 不被视为 Value 了 (前者也不再是后者的子类).
 
 - [x] Module
 
-- [ ] IRBuilder
+- [x] IRBuilder
 
 - [ ] IRValidator
 
-- [ ] dump
+- [x] dump

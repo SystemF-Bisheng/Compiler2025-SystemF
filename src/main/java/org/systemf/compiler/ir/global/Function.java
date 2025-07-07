@@ -6,8 +6,8 @@ import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
-import org.systemf.compiler.ir.value.Util.ValueUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package org.systemf.compiler.ir.value.Util;
+package org.systemf.compiler.ir.value.util;
 
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.value.Value;

@@ -5,8 +5,8 @@ import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
-import org.systemf.compiler.ir.value.Util.ValueUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public class Call extends AbstractCall implements Value, INamed {
 	private final String name;

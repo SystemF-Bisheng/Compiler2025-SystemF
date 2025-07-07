@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
@@ -15,5 +16,10 @@ public class Store extends DummyNonTerminal {
 	@Override
 	public String toString() {
 		return String.format("store %s, %s", ValueUtil.dumpIdentifier(src), ValueUtil.dumpIdentifier(dest));
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

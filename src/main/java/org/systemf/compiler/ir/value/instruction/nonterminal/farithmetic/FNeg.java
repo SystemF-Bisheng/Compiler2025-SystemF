@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic;
 
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
@@ -12,5 +13,10 @@ public class FNeg extends DummyUnary {
 	@Override
 	public String operatorName() {
 		return "fneg";
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

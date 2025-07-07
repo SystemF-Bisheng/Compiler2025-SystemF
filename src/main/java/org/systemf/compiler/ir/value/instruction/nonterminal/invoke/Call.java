@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
 import org.systemf.compiler.ir.INamed;
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
@@ -32,5 +33,10 @@ public class Call extends AbstractCall implements Value, INamed {
 	@Override
 	public String toString() {
 		return String.format("%s = call %s", ValueUtil.dumpIdentifier(this), dumpCallBody());
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

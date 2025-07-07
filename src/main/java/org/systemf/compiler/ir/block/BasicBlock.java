@@ -1,7 +1,9 @@
 package org.systemf.compiler.ir.block;
 
 import org.systemf.compiler.ir.INamed;
+import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 import java.util.ArrayList;
 
@@ -36,6 +38,20 @@ public class BasicBlock implements INamed {
 
 	public Instruction getInstruction(int index) {
 		return instructions.get(index);
+	}
+
+	public Instruction getLastInstruction() {
+		if (instructions.isEmpty()) {
+			return null;
+		}
+		return instructions.getLast();
+	}
+
+	public Instruction getTerminator() {
+		if (instructions.isEmpty() || !(instructions.getLast() instanceof Terminal)) {
+			return null;
+		}
+		return instructions.getLast();
 	}
 
 	@Override

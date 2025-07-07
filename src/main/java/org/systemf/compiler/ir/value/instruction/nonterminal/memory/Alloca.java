@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
@@ -15,5 +16,10 @@ public class Alloca extends DummyValueNonTerminal {
 	@Override
 	public String dumpInstructionBody() {
 		return String.format("alloca %s", valueType.getName());
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

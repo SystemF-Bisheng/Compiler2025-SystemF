@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
@@ -18,5 +19,10 @@ public class CondBr extends DummyTerminal {
 	public String toString() {
 		return String.format("cond_br %s, %s, %s", ValueUtil.dumpIdentifier(cond), trueTarget.getName(),
 				falseTarget.getName());
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

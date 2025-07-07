@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
@@ -17,5 +18,10 @@ public class GetPtr extends DummyValueNonTerminal {
 	@Override
 	public String dumpInstructionBody() {
 		return String.format("getptr %s, %s", array.getType(), index.getType());
+	}
+
+	@Override
+	public <T> T accept(InstructionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

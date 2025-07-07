@@ -8,11 +8,13 @@ import org.systemf.compiler.ir.value.DummyValue;
 
 public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
 	public final IGlobalInitializer initializer;
+	public final Type valueType;
 	private final String name;
 
 	public GlobalDeclaration(String name, Type type, IGlobalInitializer initializer) {
 		super(new Pointer(type));
 		this.name = name;
+		this.valueType = type;
 		this.initializer = initializer;
 	}
 
@@ -23,6 +25,6 @@ public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
 
 	@Override
 	public String toString() {
-		return String.format("@%s = global %s %s", name, type.getName(), initializer.toString());
+		return String.format("@%s = global %s %s", name, valueType.getName(), initializer.toString());
 	}
 }

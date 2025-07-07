@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
-import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -14,20 +14,18 @@ import java.util.ArrayList;
 public class Function extends DummyValue implements IGlobal, INamed {
 	final private String name;
 	final private ArrayList<BasicBlock> blocks;
-	final private Value[] formalArgs;
+	final private Parameter[] formalArgs;
 
-	public Function(String name, Type returnType, Value... formalArgs) {
+	public Function(String name, Type returnType, Parameter... formalArgs) {
 		super(buildFunctionType(returnType, formalArgs));
 		this.name = name;
 		this.formalArgs = formalArgs;
 		this.blocks = new ArrayList<>();
 	}
 
-	static private FunctionType buildFunctionType(Type returnType, Value[] formalArgs) {
+	static private FunctionType buildFunctionType(Type returnType, Parameter[] formalArgs) {
 		Type[] formalTypes = new Type[formalArgs.length];
-		for (int i = 0; i < formalTypes.length; i++) {
-			formalTypes[i] = formalArgs[i].getType();
-		}
+		for (int i = 0; i < formalTypes.length; i++) formalTypes[i] = formalArgs[i].getType();
 		return new FunctionType(returnType, formalTypes);
 	}
 
@@ -73,8 +71,8 @@ public class Function extends DummyValue implements IGlobal, INamed {
 				sb.append(", ");
 			}
 			sb.append(formalArgs[i].getType().getName());
-			sb.append(" %");
-			sb.append(ValueUtil.getValueName(formalArgs[i]));
+			sb.append(" ");
+			sb.append(ValueUtil.dumpIdentifier(formalArgs[i]));
 		}
 		sb.append(") {\n");
 		for (BasicBlock block : blocks) {

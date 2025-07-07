@@ -2,20 +2,15 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic;
 
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
-import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
-public class FAdd extends DummyValueNonTerminal {
-	public final Value op1, op2;
-
-	public FAdd(String name, Value op1, Value op2) {
-		super(Float.INSTANCE, name);
-		this.op1 = op1;
-		this.op2 = op2;
+public class FAdd extends DummyBinary {
+	public FAdd(String name, Value x, Value y) {
+		super(name, x, y, Float.INSTANCE);
 	}
 
 	@Override
-	public String toString() {
-		return String.format("%%%s = fadd %%%s, %%%s", name, ValueUtil.getValueName(op1), ValueUtil.getValueName(op2));
+	public String operatorName() {
+		return "fadd";
 	}
 }

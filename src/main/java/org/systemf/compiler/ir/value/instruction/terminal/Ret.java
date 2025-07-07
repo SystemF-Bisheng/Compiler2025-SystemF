@@ -12,6 +12,6 @@ public class Ret extends DummyTerminal {
 
 	@Override
 	public String toString() {
-		return String.format("ret %%%s", ValueUtil.getValueName(returnValue));
+		return String.format("ret %s", ValueUtil.dumpIdentifier(returnValue));
 	}
 }

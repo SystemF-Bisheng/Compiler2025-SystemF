@@ -13,7 +13,7 @@ public class Load extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public String toString() {
-		return String.format("%%%s = load %%%s", name, ValueUtil.getValueName(ptr));
+	public String dumpInstructionBody() {
+		return String.format("load %s", ValueUtil.dumpIdentifier(ptr));
 	}
 }

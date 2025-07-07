@@ -11,6 +11,6 @@ public class Br extends DummyTerminal {
 
 	@Override
 	public String toString() {
-		return String.format("br %%%s", target.getName());
+		return String.format("br %s", target.getName());
 	}
 }

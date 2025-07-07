@@ -9,4 +9,9 @@ public class ConstantFloat extends DummyConstant {
 		super(Float.INSTANCE);
 		this.value = value;
 	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(value);
+	}
 }

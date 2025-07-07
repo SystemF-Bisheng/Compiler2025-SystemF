@@ -9,6 +9,7 @@ import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
 
 public class IRBuilderTest {
@@ -36,10 +37,10 @@ public class IRBuilderTest {
 			FunctionType functionType = new FunctionType(I32, I32);
 			FunctionType functionType1 = new FunctionType(I32, I32, array);
 //		Function function = builder.buildFunction(functionType,"main");
-			Value param = builder.buildParameter(I32, "param");
+			Parameter param = builder.buildParameter(I32, "param");
 			Function function = builder.buildFunction("main", I32, param);
-			Value param1 = builder.buildParameter(I32, "param1");
-			Value param2 = builder.buildParameter(array, "param2");
+			Parameter param1 = builder.buildParameter(I32, "param1");
+			Parameter param2 = builder.buildParameter(array, "param2");
 			Function function1 = builder.buildFunction("function1", Float, param1, param2);
 			BasicBlock entryBlock1 = builder.buildBasicBlock(function, "entry");
 			BasicBlock block1 = builder.buildBasicBlock(function, "block1");

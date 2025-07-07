@@ -9,4 +9,9 @@ public class ConstantInt extends DummyConstant {
 		super(I32.INSTANCE);
 		this.value = value;
 	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(value);
+	}
 }

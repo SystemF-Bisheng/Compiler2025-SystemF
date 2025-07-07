@@ -16,7 +16,7 @@ public class CondBr extends DummyTerminal {
 
 	@Override
 	public String toString() {
-		return String.format("cond_br %%%s, %%%s, %%%s", ValueUtil.getValueName(cond), trueTarget.getName(),
+		return String.format("cond_br %s, %s, %s", ValueUtil.dumpIdentifier(cond), trueTarget.getName(),
 				falseTarget.getName());
 	}
 }

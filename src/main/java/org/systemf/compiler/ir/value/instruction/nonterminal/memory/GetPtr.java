@@ -6,16 +6,16 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 public class GetPtr extends DummyValueNonTerminal {
-  public final Value array, index;
+	public final Value array, index;
 
-  public GetPtr(String name, Value array, Value index) {
-    super(new Pointer(TypeUtil.getElementType(TypeUtil.getElementType(array.getType()))), name);
-    this.array = array;
-    this.index = index;
-  }
+	public GetPtr(String name, Value array, Value index) {
+		super(new Pointer(TypeUtil.getElementType(TypeUtil.getElementType(array.getType()))), name);
+		this.array = array;
+		this.index = index;
+	}
 
-  @Override
-  public String toString() {
-    return String.format("%%%s = getptr %s, %s", name, array.getType(), index.getType());
-  }
+	@Override
+	public String dumpInstructionBody() {
+		return String.format("getptr %s, %s", array.getType(), index.getType());
+	}
 }

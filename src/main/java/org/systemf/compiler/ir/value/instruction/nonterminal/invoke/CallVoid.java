@@ -10,4 +10,9 @@ public class CallVoid extends AbstractCall {
 		if (!Void.INSTANCE.equals(TypeUtil.getReturnType(func.getType())))
 			throw new IllegalArgumentException("Void call inst only accepts functions returning void");
 	}
+
+	@Override
+	public String toString() {
+		return String.format("void call %s", dumpCallBody());
+	}
 }

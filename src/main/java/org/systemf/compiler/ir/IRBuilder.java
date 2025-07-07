@@ -56,7 +56,7 @@ public class IRBuilder implements AutoCloseable {
 		return Void.INSTANCE;
 	}
 
-	public Value buildParameter(Type type, String name) {
+	public Parameter buildParameter(Type type, String name) {
 		return new Parameter(type, module.getNonConflictName(name));
 	}
 
@@ -102,7 +102,7 @@ public class IRBuilder implements AutoCloseable {
 		return new ArrayInitializer(length, elements);
 	}
 
-	public Function buildFunction(String name, Type returnType, Value... formalArgs) {
+	public Function buildFunction(String name, Type returnType, Parameter... formalArgs) {
 		Function function = new Function(module.getNonConflictName(name), returnType, formalArgs);
 		module.addFunction(function);
 		return function;

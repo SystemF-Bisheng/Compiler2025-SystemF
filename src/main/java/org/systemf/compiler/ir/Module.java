@@ -91,8 +91,8 @@ public class Module {
 	}
 
 	public void dumpToConsole() {
-		System.out.println("; ModuleId = '" + "" + "'");
-		System.out.println("source_filename = \"" + "" + "\"");
+		System.out.println("; ModuleId = '" + "'");
+		System.out.println("source_filename = \"" + "\"");
 		System.out.println();
 
 		for (GlobalDeclaration declaration : declarations) {
@@ -104,14 +104,12 @@ public class Module {
 		for (Function function : functions) {
 			System.out.println(function);
 		}
-
-
 	}
 
 	public void dumpToFile(String path) {
 		try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(path))) {
-			writer.println("; ModuleId = '" + "" + "'");
-			writer.println("source_filename = \"" + "" + "\"");
+			writer.println("; ModuleId = '" + "'");
+			writer.println("source_filename = \"" + "\"");
 			writer.println();
 
 			for (GlobalDeclaration declaration : declarations) {

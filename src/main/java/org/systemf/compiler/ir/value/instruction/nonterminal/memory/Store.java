@@ -14,6 +14,6 @@ public class Store extends DummyNonTerminal {
 
 	@Override
 	public String toString() {
-		return String.format("store %%%s, %%%s", ValueUtil.getValueName(src), ValueUtil.getValueName(dest));
+		return String.format("store %s, %s", ValueUtil.dumpIdentifier(src), ValueUtil.dumpIdentifier(dest));
 	}
 }

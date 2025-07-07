@@ -2,9 +2,9 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic;
 
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
-public class FSub extends DummyNonTerminal {
+public class FSub extends DummyValueNonTerminal {
 	public final Value op1, op2;
 
 	public FSub(String name, Value op1, Value op2) {

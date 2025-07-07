@@ -1,16 +1,30 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
+import org.systemf.compiler.ir.INamed;
+import org.systemf.compiler.ir.type.Void;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 
-public class Call extends DummyNonTerminal {
-	public final Value func;
-	public final Value[] args;
+public class Call extends AbstractCall implements Value, INamed {
+	private final String name;
+	private final Type type;
 
 	public Call(String name, Value func, Value... args) {
-		super(TypeUtil.getReturnType(func.getType()), name);
-		this.func = func;
-		this.args = args;
+		super(func, args);
+		this.name = name;
+		this.type = TypeUtil.getReturnType(func.getType());
+		if (Void.INSTANCE.equals(type))
+			throw new IllegalArgumentException("Valued call inst doesn't accept functions returning void");
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public Type getType() {
+		return type;
 	}
 }

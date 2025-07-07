@@ -20,13 +20,14 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.AShr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.LShr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Shl;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FptoSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SitoFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Getptr;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
@@ -170,74 +171,80 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public SDiv buildSDiv(Value lhs, Value rhs, String name) {
-		SDiv sdivInst = new SDiv(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(sdivInst);
-		return sdivInst;
+		SDiv sDivInst = new SDiv(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(sDivInst);
+		return sDivInst;
 	}
 
 	public SRem buildSRem(Value lhs, Value rhs, String name) {
-		SRem sremInst = new SRem(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(sremInst);
-		return sremInst;
+		SRem sRemInst = new SRem(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(sRemInst);
+		return sRemInst;
 	}
 
 	public ICmp buildICmp(Value op1, Value op2, String name, CompareOp code) {
-		ICmp icmpInst = new ICmp(module.getNonConflictName(name), code, op1, op2);
-		insertInstruction(icmpInst);
-		return icmpInst;
+		ICmp iCmpInst = new ICmp(module.getNonConflictName(name), code, op1, op2);
+		insertInstruction(iCmpInst);
+		return iCmpInst;
 
 	}
 
 	public FAdd buildFAdd(Value lhs, Value rhs, String name) {
-		FAdd addInst = new FAdd(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(addInst);
-		return addInst;
+		FAdd fAddInst = new FAdd(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(fAddInst);
+		return fAddInst;
 	}
 
 	public FMul buildFMul(Value lhs, Value rhs, String name) {
-		FMul mulInst = new FMul(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(mulInst);
-		return mulInst;
+		FMul fMulInst = new FMul(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(fMulInst);
+		return fMulInst;
 	}
 
 	public FSub buildFSub(Value lhs, Value rhs, String name) {
-		FSub subInst = new FSub(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(subInst);
-		return subInst;
+		FSub fSubInst = new FSub(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(fSubInst);
+		return fSubInst;
 	}
 
 	public FDiv buildFDiv(Value lhs, Value rhs, String name) {
-		FDiv fdivInst = new FDiv(module.getNonConflictName(name), lhs, rhs);
-		insertInstruction(fdivInst);
-		return fdivInst;
+		FDiv fDivInst = new FDiv(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(fDivInst);
+		return fDivInst;
 	}
 
 	public FNeg buildFNeg(Value op, String name) {
-		FNeg fnegInst = new FNeg(module.getNonConflictName(name), op);
-		insertInstruction(fnegInst);
-		return fnegInst;
+		FNeg fNegInst = new FNeg(module.getNonConflictName(name), op);
+		insertInstruction(fNegInst);
+		return fNegInst;
 	}
 
 	public FCmp buildFCmp(Value lhs, Value rhs, String name, CompareOp code) {
-		FCmp fcmpInst = new FCmp(module.getNonConflictName(name), code, lhs, rhs);
-		insertInstruction(fcmpInst);
-		return fcmpInst;
+		FCmp fCmpInst = new FCmp(module.getNonConflictName(name), code, lhs, rhs);
+		insertInstruction(fCmpInst);
+		return fCmpInst;
 	}
 
-	public FptoSi buildFptoSi(Value op, String name) {
-		FptoSi fptoSiInst = new FptoSi(module.getNonConflictName(name), op);
-		insertInstruction(fptoSiInst);
-		return fptoSiInst;
+	public FpToSi buildFpToSi(Value op, String name) {
+		FpToSi fpToSiInst = new FpToSi(module.getNonConflictName(name), op);
+		insertInstruction(fpToSiInst);
+		return fpToSiInst;
 	}
 
-	public SitoFp buildSitoFp(Value op, String name) {
-		SitoFp sitoFpInst = new SitoFp(module.getNonConflictName(name), op);
-		insertInstruction(sitoFpInst);
-		return sitoFpInst;
+	public SiToFp buildSiToFp(Value op, String name) {
+		SiToFp siToFpInst = new SiToFp(module.getNonConflictName(name), op);
+		insertInstruction(siToFpInst);
+		return siToFpInst;
 	}
 
 	public Call buildCall(Function function, Value[] args, String name) {
 		Call callInst = new Call(module.getNonConflictName(name), function, args);
+		insertInstruction(callInst);
+		return callInst;
+	}
+
+	public CallVoid buildCallVoid(Function function, Value[] args) {
+		CallVoid callInst = new CallVoid(function, args);
 		insertInstruction(callInst);
 		return callInst;
 	}
@@ -248,10 +255,10 @@ public class IRBuilder implements AutoCloseable {
 		return allocaInst;
 	}
 
-	public Getptr buildGetptr(Value array, Value index, String name) {
-		Getptr getptrInst = new Getptr(module.getNonConflictName(name), array, index);
-		insertInstruction(getptrInst);
-		return getptrInst;
+	public GetPtr buildGetPtr(Value array, Value index, String name) {
+		GetPtr getPtrInst = new GetPtr(module.getNonConflictName(name), array, index);
+		insertInstruction(getPtrInst);
+		return getPtrInst;
 	}
 
 	public Load buildLoad(Value pointer, String name) {
@@ -289,7 +296,8 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	private void insertInstruction(Instruction inst) {
-		assert currentBlock != null : "No current block to insert instruction into";
+		if (currentBlock == null)
+			throw new IllegalArgumentException("Attempt to insert an instruction without an attached block");
 		currentBlock.insertInstruction(inst);
 	}
 

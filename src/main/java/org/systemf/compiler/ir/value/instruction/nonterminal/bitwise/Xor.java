@@ -2,9 +2,9 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.bitwise;
 
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
-public class Xor extends DummyNonTerminal {
+public class Xor extends DummyValueNonTerminal {
 	public final Value op1, op2;
 
 	public Xor(String name, Value op1, Value op2) {

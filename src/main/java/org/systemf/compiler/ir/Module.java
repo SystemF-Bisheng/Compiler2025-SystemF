@@ -4,16 +4,37 @@ import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Module {
 	private final ArrayList<GlobalDeclaration> declarations;
 	private final ArrayList<Function> functions;
-	private boolean IRBuilderAttached;
+	private final Set<String> occupiedNames;
+	private boolean irBuilderAttached;
 
 	public Module() {
-		this.IRBuilderAttached = false;
+		this.irBuilderAttached = false;
 		this.declarations = new ArrayList<>();
 		this.functions = new ArrayList<>();
+		this.occupiedNames = new HashSet<>();
+	}
+
+	public String getNonConflictName(String originalName) {
+		if (!occupiedNames.contains(originalName)) {
+			occupiedNames.add(originalName);
+			return originalName;
+		}
+
+		int suffix = 0;
+		while (true) {
+			String newName = originalName + suffix;
+			if (!occupiedNames.contains(newName)) {
+				occupiedNames.add(newName);
+				return newName;
+			}
+			++suffix;
+		}
 	}
 
 	public void addGlobalDeclaration(GlobalDeclaration declaration) {
@@ -57,10 +78,14 @@ public class Module {
 	}
 
 	public void attachIRBuilder() {
-		IRBuilderAttached = true;
+		irBuilderAttached = true;
+	}
+
+	public void detachIRBuilder() {
+		irBuilderAttached = false;
 	}
 
 	public boolean isIRBuilderAttached() {
-		return IRBuilderAttached;
+		return irBuilderAttached;
 	}
 }

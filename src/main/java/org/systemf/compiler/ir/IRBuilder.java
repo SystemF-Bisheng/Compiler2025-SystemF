@@ -35,28 +35,21 @@ import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * external interface. all write operations are available with only Module and IRBuilder
  */
-public class IRBuilder {
+public class IRBuilder implements AutoCloseable {
 	private final Module module;
-	private final Set<String> occupiedNames;
 	private BasicBlock currentBlock;
 
 	public IRBuilder(Module module) {
-		if (module.isIRBuilderAttached()) {
-			System.err.println("warning: multiple IRBuilder attaching to one Module may cause unexpected behavior");
-		}
+		if (module.isIRBuilderAttached()) throw new IllegalStateException("Module has already been attached");
 		module.attachIRBuilder();
 
 		this.module = module;
-		occupiedNames = new HashSet<>();
 	}
 
-		public Void buildVoidType() {
+	public Void buildVoidType() {
 		return Void.INSTANCE;
 	}
 
@@ -76,6 +69,10 @@ public class IRBuilder {
 		return new Array(length, elementType);
 	}
 
+	public UnsizedArray buildUnsizedArrayType(Sized elementType) {
+		return new UnsizedArray(elementType);
+	}
+
 	public ConstantInt buildConstantInt(int value) {
 		return new ConstantInt(value);
 	}
@@ -84,15 +81,14 @@ public class IRBuilder {
 		return new ConstantFloat(value);
 	}
 
-
 	public GlobalDeclaration buildGlobalDeclaration(String name, I32 type, IGlobalInitializer initializer) {
-		GlobalDeclaration declaration = new GlobalDeclaration(getNonConflictName(name), type, initializer);
+		GlobalDeclaration declaration = new GlobalDeclaration(module.getNonConflictName(name), type, initializer);
 		module.addGlobalDeclaration(declaration);
 		return declaration;
 	}
 
 	public GlobalDeclaration buildGlobalDeclaration(String name, Array type, IGlobalInitializer initializer) {
-		GlobalDeclaration declaration = new GlobalDeclaration(getNonConflictName(name), type, initializer);
+		GlobalDeclaration declaration = new GlobalDeclaration(module.getNonConflictName(name), type, initializer);
 		module.addGlobalDeclaration(declaration);
 		return declaration;
 	}
@@ -106,13 +102,13 @@ public class IRBuilder {
 	}
 
 	public Function buildFunction(String name, FunctionType type) {
-		Function function = new Function(getNonConflictName(name), type);
-		module.addFunction(new Function(getNonConflictName(name), type));
+		Function function = new Function(module.getNonConflictName(name), type);
+		module.addFunction(function);
 		return function;
 	}
 
-	public BasicBlock buildBasicBlock(Function func ,String name) {
-		BasicBlock block = new BasicBlock(getNonConflictName(name));
+	public BasicBlock buildBasicBlock(Function func, String name) {
+		BasicBlock block = new BasicBlock(module.getNonConflictName(name));
 		func.insertBlock(block);
 		return block;
 	}
@@ -126,140 +122,140 @@ public class IRBuilder {
 	}
 
 	public And buildAnd(Value lhs, Value rhs, String name) {
-		And andInst = new And(getNonConflictName(name),lhs, rhs);
+		And andInst = new And(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(andInst);
 		return andInst;
 	}
 
 	public AShr buildAShr(Value lhs, Value rhs, String name) {
-		AShr AShrInst = new AShr(getNonConflictName(name), lhs, rhs);
+		AShr AShrInst = new AShr(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(AShrInst);
 		return AShrInst;
 	}
 
 	public Shl buildShl(Value lhs, Value rhs, String name) {
-		Shl shlInst = new Shl(getNonConflictName(name), lhs, rhs);
+		Shl shlInst = new Shl(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(shlInst);
 		return shlInst;
 	}
 
 	public And buildXor(Value lhs, Value rhs, String name) {
-		And xorInst = new And(getNonConflictName(name), lhs, rhs);
+		And xorInst = new And(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(xorInst);
 		return xorInst;
 	}
 
 	public LShr buildLShr(Value lhs, Value rhs, String name) {
-		LShr LShrInstruction = new LShr(getNonConflictName(name), lhs, rhs);
+		LShr LShrInstruction = new LShr(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(LShrInstruction);
 		return LShrInstruction;
 	}
 
 	public Add buildAdd(Value lhs, Value rhs, String name) {
-		Add addInst = new Add(getNonConflictName(name), lhs, rhs);
-        insertInstruction(addInst);
-        return addInst;
+		Add addInst = new Add(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(addInst);
+		return addInst;
 	}
 
 	public Sub buildSub(Value lhs, Value rhs, String name) {
-        Sub subInst = new Sub(getNonConflictName(name), lhs, rhs);
-        insertInstruction(subInst);
-        return subInst;
+		Sub subInst = new Sub(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(subInst);
+		return subInst;
 	}
 
 	public Mul buildMul(Value lhs, Value rhs, String name) {
-		Mul mulInst = new Mul(getNonConflictName(name), lhs, rhs);
+		Mul mulInst = new Mul(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(mulInst);
 		return mulInst;
 	}
 
 	public SDiv buildSDiv(Value lhs, Value rhs, String name) {
-		SDiv sdivInst = new SDiv(getNonConflictName(name), lhs, rhs);
+		SDiv sdivInst = new SDiv(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(sdivInst);
 		return sdivInst;
 	}
 
 	public SRem buildSRem(Value lhs, Value rhs, String name) {
-		SRem sremInst = new SRem(getNonConflictName(name), lhs, rhs);
+		SRem sremInst = new SRem(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(sremInst);
 		return sremInst;
 	}
 
 	public ICmp buildICmp(Value op1, Value op2, String name, CompareOp code) {
-		ICmp icmpInst = new ICmp(getNonConflictName(name), code, op1, op2);
+		ICmp icmpInst = new ICmp(module.getNonConflictName(name), code, op1, op2);
 		insertInstruction(icmpInst);
 		return icmpInst;
 
 	}
 
 	public FAdd buildFAdd(Value lhs, Value rhs, String name) {
-		FAdd addInst = new FAdd(getNonConflictName(name), lhs, rhs);
+		FAdd addInst = new FAdd(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(addInst);
 		return addInst;
 	}
 
 	public FMul buildFMul(Value lhs, Value rhs, String name) {
-		FMul mulInst = new FMul(getNonConflictName(name), lhs, rhs);
+		FMul mulInst = new FMul(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(mulInst);
 		return mulInst;
 	}
 
 	public FSub buildFSub(Value lhs, Value rhs, String name) {
-		FSub subInst = new FSub(getNonConflictName(name), lhs, rhs);
+		FSub subInst = new FSub(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(subInst);
 		return subInst;
 	}
 
 	public FDiv buildFDiv(Value lhs, Value rhs, String name) {
-		FDiv fdivInst = new FDiv(getNonConflictName(name), lhs, rhs);
+		FDiv fdivInst = new FDiv(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(fdivInst);
 		return fdivInst;
 	}
 
 	public FNeg buildFNeg(Value op, String name) {
-		FNeg fnegInst = new FNeg(getNonConflictName(name), op);
+		FNeg fnegInst = new FNeg(module.getNonConflictName(name), op);
 		insertInstruction(fnegInst);
 		return fnegInst;
 	}
 
 	public FCmp buildFCmp(Value lhs, Value rhs, String name, CompareOp code) {
-		FCmp fcmpInst = new FCmp(getNonConflictName(name), code, lhs, rhs);
+		FCmp fcmpInst = new FCmp(module.getNonConflictName(name), code, lhs, rhs);
 		insertInstruction(fcmpInst);
 		return fcmpInst;
 	}
 
 	public FptoSi buildFptoSi(Value op, String name) {
-		FptoSi fptoSiInst = new FptoSi(getNonConflictName(name), op);
+		FptoSi fptoSiInst = new FptoSi(module.getNonConflictName(name), op);
 		insertInstruction(fptoSiInst);
 		return fptoSiInst;
 	}
 
 	public SitoFp buildSitoFp(Value op, String name) {
-		SitoFp sitoFpInst = new SitoFp(getNonConflictName(name), op);
+		SitoFp sitoFpInst = new SitoFp(module.getNonConflictName(name), op);
 		insertInstruction(sitoFpInst);
 		return sitoFpInst;
 	}
 
 	public Call buildCall(Function function, Value[] args, String name) {
-		Call callInst = new Call(getNonConflictName(name), function, args);
+		Call callInst = new Call(module.getNonConflictName(name), function, args);
 		insertInstruction(callInst);
 		return callInst;
 	}
 
 	public Alloca buildAlloca(Type type, String name) {
-		Alloca allocaInst = new Alloca(getNonConflictName(name), type);
+		Alloca allocaInst = new Alloca(module.getNonConflictName(name), type);
 		insertInstruction(allocaInst);
 		return allocaInst;
 	}
 
 	public Getptr buildGetptr(Value array, Value index, String name) {
-		Getptr getptrInst = new Getptr(getNonConflictName(name), array, index);
+		Getptr getptrInst = new Getptr(module.getNonConflictName(name), array, index);
 		insertInstruction(getptrInst);
 		return getptrInst;
 	}
 
 	public Load buildLoad(Value pointer, String name) {
-		Load loadInst = new Load(getNonConflictName(name), pointer);
+		Load loadInst = new Load(module.getNonConflictName(name), pointer);
 		insertInstruction(loadInst);
 		return loadInst;
 	}
@@ -297,20 +293,8 @@ public class IRBuilder {
 		currentBlock.insertInstruction(inst);
 	}
 
-	private String getNonConflictName(String originalName) {
-		if (!occupiedNames.contains(originalName)) {
-			occupiedNames.add(originalName);
-			return originalName;
-		}
-
-		int suffix = 0;
-		while (true) {
-			String newName = originalName + suffix;
-			if (!occupiedNames.contains(newName)) {
-				occupiedNames.add(newName);
-				return newName;
-			}
-			suffix += 1;
-		}
+	@Override
+	public void close() {
+		module.detachIRBuilder();
 	}
 }

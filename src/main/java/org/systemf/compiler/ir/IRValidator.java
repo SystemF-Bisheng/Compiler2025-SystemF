@@ -3,7 +3,10 @@ package org.systemf.compiler.ir;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
+import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 
@@ -81,6 +84,24 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 
 	@Override
 	protected Boolean defaultValue() {
+		return true;
+	}
+
+	@Override
+	public Boolean visit(AbstractCall inst) {
+		// TODO: Validate function arguments
+		return true;
+	}
+
+	@Override
+	public Boolean visit(Store inst) {
+		var srcType = inst.getSrc().getType();
+		var destType = TypeUtil.getElementType(inst.getDest().getType());
+		if (!(srcType.convertibleTo(destType))) {
+			addErrorInfo(String.format("Store: Src type %s isn't convertible to the element type %s of dest", srcType,
+					destType));
+			return false;
+		}
 		return true;
 	}
 }

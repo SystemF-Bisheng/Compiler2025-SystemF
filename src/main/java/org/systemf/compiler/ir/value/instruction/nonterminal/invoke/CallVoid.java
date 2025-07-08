@@ -8,8 +8,13 @@ import org.systemf.compiler.ir.value.Value;
 public class CallVoid extends AbstractCall {
 	public CallVoid(Value func, Value... args) {
 		super(func, args);
+	}
+
+	@Override
+	public void setFunction(Value func) {
 		if (!Void.INSTANCE.equals(TypeUtil.getReturnType(func.getType())))
 			throw new IllegalArgumentException("Void call inst only accepts functions returning void");
+		super.setFunction(func);
 	}
 
 	@Override

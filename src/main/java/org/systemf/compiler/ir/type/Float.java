@@ -15,4 +15,9 @@ public enum Float implements Type, Sized {
 	public String getName() {
 		return "float";
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

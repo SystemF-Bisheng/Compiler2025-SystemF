@@ -9,15 +9,11 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTermin
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public class Load extends DummyValueNonTerminal {
-	public final Value ptr;
+	private Value ptr;
 
 	public Load(String name, Value ptr) {
 		super(TypeUtil.getElementType(ptr.getType()), name);
-		if (!(ptr.getType() instanceof Pointer ptrType))
-			throw new IllegalArgumentException("The type of the operand must be a pointer type");
-		if (!(ptrType.getElementType() instanceof Sized))
-			throw new IllegalArgumentException("The element type of the pointer must be sized");
-		this.ptr = ptr;
+		setPointer(ptr);
 	}
 
 	@Override
@@ -28,5 +24,19 @@ public class Load extends DummyValueNonTerminal {
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	public Value getPointer() {
+		return ptr;
+	}
+
+	public void setPointer(Value ptr) {
+		if (!(ptr.getType() instanceof Pointer ptrType))
+			throw new IllegalArgumentException("The type of the operand must be a pointer type");
+		var elementType = ptrType.getElementType();
+		if (!(elementType instanceof Sized))
+			throw new IllegalArgumentException("The element type of the pointer must be sized");
+		TypeUtil.assertConvertible(elementType, type, "Illegal pointer");
+		this.ptr = ptr;
 	}
 }

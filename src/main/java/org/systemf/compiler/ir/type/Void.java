@@ -14,4 +14,9 @@ public enum Void implements Type {
 	public String getName() {
 		return "void";
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

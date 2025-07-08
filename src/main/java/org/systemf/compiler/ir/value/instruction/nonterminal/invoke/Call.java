@@ -21,6 +21,13 @@ public class Call extends AbstractCall implements Value, INamed {
 	}
 
 	@Override
+	public void setFunction(Value func) {
+		var newRet = TypeUtil.getReturnType(func.getType());
+		if (type != null) TypeUtil.assertConvertible(newRet, type, "Illegal return type");
+		super.setFunction(func);
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}

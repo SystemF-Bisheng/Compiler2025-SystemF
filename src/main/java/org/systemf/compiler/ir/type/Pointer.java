@@ -8,4 +8,10 @@ public class Pointer extends DummyDereferenceableType implements Sized {
 	public Pointer(Type elementType) {
 		super(String.format("%s*", elementType.getName()), elementType);
 	}
+
+	@Override
+	public boolean convertibleTo(Type otherType) {
+		if (super.convertibleTo(otherType)) return true;
+		return otherType instanceof Pointer ptr && elementType.convertibleTo(ptr.getElementType());
+	}
 }

@@ -18,7 +18,7 @@ public class Array extends DummyIndexableType implements Sized {
 	@Override
 	public boolean convertibleTo(Type otherType) {
 		if (super.convertibleTo(otherType)) return true;
-		if (otherType instanceof Pointer pointer) return elementType.equals(pointer.getElementType());
+		if (otherType instanceof UnsizedArray arr) return elementType.equals(arr.getElementType());
 		return false;
 	}
 

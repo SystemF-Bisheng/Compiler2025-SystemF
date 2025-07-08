@@ -6,12 +6,13 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public abstract class DummyUnary extends DummyValueNonTerminal {
-	public final Value x;
+	private final Type xType;
+	private Value x;
 
 	protected DummyUnary(String name, Value x, Type xType, Type resultType) {
 		super(resultType, name);
-		TypeUtil.assertSameType(x.getType(), xType, "Illegal x");
-		this.x = x;
+		this.xType = xType;
+		setX(x);
 	}
 
 	public abstract String operatorName();
@@ -19,5 +20,14 @@ public abstract class DummyUnary extends DummyValueNonTerminal {
 	@Override
 	public String dumpInstructionBody() {
 		return String.format("%s %s", operatorName(), ValueUtil.dumpIdentifier(x));
+	}
+
+	public Value getX() {
+		return x;
+	}
+
+	public void setX(Value x) {
+		TypeUtil.assertConvertible(x.getType(), xType, "Illegal x");
+		this.x = x;
 	}
 }

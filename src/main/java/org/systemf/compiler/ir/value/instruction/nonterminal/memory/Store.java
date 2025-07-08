@@ -8,18 +8,12 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public class Store extends DummyNonTerminal {
-	public final Value src, dest;
+	private Value src;
+	private Value dest;
 
 	public Store(Value src, Value dest) {
-		var srcType = src.getType();
-		var destType = dest.getType();
-		if (!(destType instanceof Pointer ptr))
-			throw new IllegalArgumentException("The type of the destination must be a pointer type");
-		if (!(srcType.equals(ptr.getElementType()))) throw new IllegalArgumentException(
-				"The type of the source must equal to the element type of the destination");
-		if (!(srcType instanceof Sized)) throw new IllegalArgumentException("The type of the source must be sized");
-		this.src = src;
-		this.dest = dest;
+		setSrc(src);
+		setDest(dest);
 	}
 
 	@Override
@@ -30,5 +24,25 @@ public class Store extends DummyNonTerminal {
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	public Value getSrc() {
+		return src;
+	}
+
+	public void setSrc(Value src) {
+		if (!(src.getType() instanceof Sized))
+			throw new IllegalArgumentException("The type of the source must be sized");
+		this.src = src;
+	}
+
+	public Value getDest() {
+		return dest;
+	}
+
+	public void setDest(Value dest) {
+		if (!(dest.getType() instanceof Pointer))
+			throw new IllegalArgumentException("The type of the destination must be a pointer type");
+		this.dest = dest;
 	}
 }

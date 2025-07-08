@@ -32,6 +32,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
 import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
@@ -271,6 +272,12 @@ public class IRBuilder implements AutoCloseable {
 		Store storeInst = new Store(src, dest);
 		insertInstruction(storeInst);
 		return storeInst;
+	}
+
+	public Phi buildPhi(Type type, String name) {
+		var phiInst = new Phi(type, module.getNonConflictName(name));
+		insertInstruction(phiInst);
+		return phiInst;
 	}
 
 	public Unreachable buildUnreachable() {

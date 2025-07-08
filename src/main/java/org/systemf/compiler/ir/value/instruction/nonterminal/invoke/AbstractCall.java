@@ -8,14 +8,12 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 import java.util.Arrays;
 
 public abstract class AbstractCall extends DummyNonTerminal {
-	public final Value func;
-	public final Value[] args;
+	private Value func;
+	private Value[] args;
 
 	protected AbstractCall(Value func, Value... args) {
-		if (!(func.getType() instanceof FunctionType))
-			throw new IllegalArgumentException("The type of the function must be a function type");
-		this.func = func;
-		this.args = Arrays.copyOf(args, args.length);
+		setFunction(func);
+		setArgs(args);
 	}
 
 	protected String dumpCallBody() {
@@ -28,5 +26,23 @@ public abstract class AbstractCall extends DummyNonTerminal {
 		}
 		result.append(")");
 		return result.toString();
+	}
+
+	public Value getFunction() {
+		return func;
+	}
+
+	public void setFunction(Value func) {
+		if (!(func.getType() instanceof FunctionType))
+			throw new IllegalArgumentException("The type of the function must be a function type");
+		this.func = func;
+	}
+
+	public Value[] getArgs() {
+		return Arrays.copyOf(args, args.length);
+	}
+
+	public void setArgs(Value[] args) {
+		this.args = Arrays.copyOf(args, args.length);
 	}
 }

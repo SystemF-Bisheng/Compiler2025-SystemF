@@ -1,10 +1,14 @@
 package org.systemf.compiler.ir;
 
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
@@ -23,114 +27,130 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return null;
 	}
 
+	public T visit(DummyBinary inst) {
+		return defaultValue();
+	}
+
+	public T visit(DummyCompare inst) {
+		return visit((DummyBinary) inst);
+	}
+
+	public T visit(DummyUnary inst) {
+		return defaultValue();
+	}
+
 	@Override
 	public T visit(Add inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(Sub inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(Mul inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(SDiv inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(SRem inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(ICmp inst) {
-		return defaultValue();
+		return visit((DummyCompare) inst);
 	}
 
 	@Override
 	public T visit(FAdd inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(FSub inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(FMul inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(FDiv inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(FNeg inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(FCmp inst) {
-		return defaultValue();
+		return visit((DummyCompare) inst);
 	}
 
 	@Override
 	public T visit(And inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(Or inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(Xor inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(Shl inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(LShr inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(AShr inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(FpToSi inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(SiToFp inst) {
+		return visit((DummyUnary) inst);
+	}
+
+	public T visit(AbstractCall inst) {
 		return defaultValue();
 	}
 
 	@Override
 	public T visit(Call inst) {
-		return defaultValue();
+		return visit((AbstractCall) inst);
 	}
 
 	@Override
 	public T visit(CallVoid inst) {
-		return defaultValue();
+		return visit((AbstractCall) inst);
 	}
 
 	@Override

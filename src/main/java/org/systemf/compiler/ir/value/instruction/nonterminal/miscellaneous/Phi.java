@@ -2,41 +2,33 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous;
 
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
-import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
+import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.Pair;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Phi extends DummyValueNonTerminal {
-	private final BasicBlock[] incomingBlocks;
-	private final Value[] incomingValues;
+	private List<Pair<BasicBlock, Value>> incoming = new ArrayList<>();
 
-	public Phi(Type type, String name, BasicBlock[] incomingBlocks, Value[] incomingValues) {
+	public Phi(Type type, String name) {
 		super(type, name);
-		if (incomingBlocks.length == 0)
-			throw new IllegalArgumentException("At least one incoming block must be specified");
-		if (incomingBlocks.length != incomingValues.length)
-			throw new IllegalArgumentException("Incoming blocks and values must have the same length");
-		var valueType = incomingValues[0].getType();
-		if (!(valueType instanceof Sized))
-			throw new IllegalArgumentException("The type of incoming values must be sized");
-		if (!Arrays.stream(incomingValues).map(Value::getType).allMatch(valueType::equals))
-			throw new IllegalArgumentException("The types of incoming values must be the same");
-
-		this.incomingBlocks = Arrays.copyOf(incomingBlocks, incomingBlocks.length);
-		this.incomingValues = Arrays.copyOf(incomingValues, incomingValues.length);
 	}
 
 	@Override
 	public String dumpInstructionBody() {
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < incomingBlocks.length; i++) {
-			if (i > 0) sb.append(", ");
+		boolean nonFirst = false;
+		for (var pair : incoming) {
+			if (nonFirst) sb.append(", ");
+			nonFirst = true;
 			sb.append("[ ");
-			sb.append(ValueUtil.dumpIdentifier(incomingValues[i])).append(", ").append(incomingBlocks[i].getName());
+			sb.append(ValueUtil.dumpIdentifier(pair.right)).append(", ").append(pair.left.getName());
 			sb.append(" ]");
 		}
 		return sb.toString();
@@ -45,5 +37,23 @@ public class Phi extends DummyValueNonTerminal {
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	public List<Pair<BasicBlock, Value>> getIncoming() {
+		return Collections.unmodifiableList(incoming);
+	}
+
+	public void setIncoming(List<Pair<BasicBlock, Value>> incoming) {
+		incoming.stream().map(Pair::getRight).forEach(this::checkIncoming);
+		this.incoming = new ArrayList<>(incoming);
+	}
+
+	private void checkIncoming(Value value) {
+		TypeUtil.assertConvertible(value.getType(), type, "Illegal incoming");
+	}
+
+	public void addIncoming(BasicBlock block, Value value) {
+		checkIncoming(value);
+		incoming.add(Pair.of(block, value));
 	}
 }

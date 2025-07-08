@@ -28,6 +28,7 @@ public class IRBuilderTest {
 					builder.buildGlobalInitializer(builder.buildConstantFloat(2)));
 
 			Array array = builder.buildArrayType(I32, 10);
+			var arrayPtr = builder.buildPointerType(array);
 
 			GlobalDeclaration globalArrayDeclaration = builder.buildGlobalDeclaration("g", array,
 					builder.buildGlobalInitializer(1, builder.buildGlobalInitializer(builder.buildConstantInt(1))));
@@ -35,13 +36,13 @@ public class IRBuilderTest {
 
 			//Function and BasicBlock
 			FunctionType functionType = new FunctionType(I32, I32);
-			FunctionType functionType1 = new FunctionType(I32, I32, array);
+			FunctionType functionType1 = new FunctionType(I32, I32, arrayPtr);
 //		Function function = builder.buildFunction(functionType,"main");
 			Parameter param = builder.buildParameter(I32, "param");
 			Function function = builder.buildFunction("main", I32, param);
 			Parameter param1 = builder.buildParameter(I32, "param1");
-			Parameter param2 = builder.buildParameter(array, "param2");
-			Function function1 = builder.buildFunction("function1", Float, param1, param2);
+			Parameter param2 = builder.buildParameter(arrayPtr, "param2");
+			Function function1 = builder.buildFunction("function1", I32, param1, param2);
 			BasicBlock entryBlock1 = builder.buildBasicBlock(function, "entry");
 			BasicBlock block1 = builder.buildBasicBlock(function, "block1");
 			BasicBlock entryBlock2 = builder.buildBasicBlock(function1, "entry1");
@@ -65,8 +66,10 @@ public class IRBuilderTest {
 			builder.buildBr(block1);
 
 			builder.attachToBlockTail(entryBlock2);
-			Value div = builder.buildSDiv(param1, param2, "div");
-			Value mul = builder.buildSDiv(div, builder.buildConstantInt(2), "mul");
+			var ptr0 = builder.buildGetPtr(param2, builder.buildConstantInt(0), "indexZero");
+			var value0 = builder.buildLoad(ptr0, "var0");
+			Value div = builder.buildSDiv(param1, value0, "div");
+			Value mul = builder.buildMul(div, builder.buildConstantInt(2), "mul");
 
 			builder.buildRet(mul);
 

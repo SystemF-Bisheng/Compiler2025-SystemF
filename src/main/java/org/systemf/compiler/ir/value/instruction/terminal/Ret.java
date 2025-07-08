@@ -5,10 +5,10 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public class Ret extends DummyTerminal {
-	public final Value returnValue;
+	private Value returnValue;
 
 	public Ret(Value returnValue) {
-		this.returnValue = returnValue;
+		setReturnValue(returnValue);
 	}
 
 	@Override
@@ -19,5 +19,13 @@ public class Ret extends DummyTerminal {
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	public Value getReturnValue() {
+		return returnValue;
+	}
+
+	public void setReturnValue(Value returnValue) {
+		this.returnValue = returnValue;
 	}
 }

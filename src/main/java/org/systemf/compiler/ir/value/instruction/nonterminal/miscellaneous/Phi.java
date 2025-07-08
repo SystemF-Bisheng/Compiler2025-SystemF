@@ -21,11 +21,9 @@ public class Phi extends DummyValueNonTerminal {
 	public String dumpInstructionBody() {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < incomingBlocks.length; i++) {
-			if (i > 0) {
-				sb.append(", ");
-			}
+			if (i > 0) sb.append(", ");
 			sb.append("[ ");
-			sb.append(ValueUtil.getName(incomingValues[i])).append(", ").append(incomingBlocks[i].getName());
+			sb.append(ValueUtil.dumpIdentifier(incomingValues[i])).append(", ").append(incomingBlocks[i].getName());
 			sb.append(" ]");
 		}
 		return sb.toString();

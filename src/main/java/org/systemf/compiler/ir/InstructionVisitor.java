@@ -1,16 +1,25 @@
 package org.systemf.compiler.ir;
 
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.*;
-import org.systemf.compiler.ir.value.instruction.terminal.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
+import org.systemf.compiler.ir.value.instruction.terminal.Br;
+import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
+import org.systemf.compiler.ir.value.instruction.terminal.Ret;
+import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 
 public interface InstructionVisitor<T> {
-    // iarithmetic
+    // integer arithmetic
     T visit(Add inst);
     T visit(Sub inst);
     T visit(Mul inst);
@@ -18,7 +27,7 @@ public interface InstructionVisitor<T> {
     T visit(SRem inst);
     T visit(ICmp inst);
 
-    // farithmetic
+    // float arithmetic
     T visit(FAdd inst);
     T visit(FSub inst);
     T visit(FMul inst);

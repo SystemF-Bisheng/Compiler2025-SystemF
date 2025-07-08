@@ -37,6 +37,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			addErrorInfo("Local declaration " + declaration.getName() + " must have an initializer.");
 			return false;
 		}
+		// TODO: Validate initializer type
 		return true;
 	}
 

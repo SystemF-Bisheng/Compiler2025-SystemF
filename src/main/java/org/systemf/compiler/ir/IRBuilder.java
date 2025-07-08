@@ -249,7 +249,7 @@ public class IRBuilder implements AutoCloseable {
 		return callInst;
 	}
 
-	public Alloca buildAlloca(Type type, String name) {
+	public Alloca buildAlloca(Sized type, String name) {
 		Alloca allocaInst = new Alloca(module.getNonConflictName(name), type);
 		insertInstruction(allocaInst);
 		return allocaInst;

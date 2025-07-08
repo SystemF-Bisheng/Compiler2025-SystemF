@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 
 public class FNeg extends DummyUnary {
 	public FNeg(String name, Value x) {
-		super(name, x, Float.INSTANCE);
+		super(name, x, Float.INSTANCE, Float.INSTANCE);
 	}
 
 	@Override

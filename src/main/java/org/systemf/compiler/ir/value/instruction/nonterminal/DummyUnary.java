@@ -1,14 +1,16 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal;
 
 import org.systemf.compiler.ir.type.interfaces.Type;
+import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 public abstract class DummyUnary extends DummyValueNonTerminal {
 	public final Value x;
 
-	protected DummyUnary(String name, Value x, Type resultType) {
+	protected DummyUnary(String name, Value x, Type xType, Type resultType) {
 		super(resultType, name);
+		TypeUtil.assertSameType(x.getType(), xType, "Illegal x");
 		this.x = x;
 	}
 

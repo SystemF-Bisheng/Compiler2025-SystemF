@@ -19,164 +19,167 @@ import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 
 public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
+	protected T defaultValue() {
+		return null;
+	}
 
 	@Override
 	public T visit(Add inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Sub inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Mul inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(SDiv inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(SRem inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(ICmp inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FAdd inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FSub inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FMul inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FDiv inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FNeg inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FCmp inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(And inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Or inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Xor inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Shl inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(LShr inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(AShr inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(FpToSi inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(SiToFp inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Call inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(CallVoid inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Alloca inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(GetPtr inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Load inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Store inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Unreachable inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Phi inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Br inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(CondBr inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(Ret inst) {
-		return null;
+		return defaultValue();
 	}
 
 	@Override
 	public T visit(RetVoid inst) {
-		return null;
+		return defaultValue();
 	}
 }

@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class FMul extends DummyBinary {
 	public FMul(String name, Value x, Value y) {
-		super(name, x, y, Float.INSTANCE);
+		super(name, x, y, Float.INSTANCE, Float.INSTANCE, Float.INSTANCE);
 	}
 
 	@Override

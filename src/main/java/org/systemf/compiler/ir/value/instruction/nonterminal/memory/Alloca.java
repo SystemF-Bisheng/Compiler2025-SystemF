@@ -2,13 +2,13 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Pointer;
-import org.systemf.compiler.ir.type.interfaces.Type;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 public class Alloca extends DummyValueNonTerminal {
-	public final Type valueType;
+	public final Sized valueType;
 
-	public Alloca(String name, Type type) {
+	public Alloca(String name, Sized type) {
 		super(new Pointer(type), name);
 		this.valueType = type;
 	}

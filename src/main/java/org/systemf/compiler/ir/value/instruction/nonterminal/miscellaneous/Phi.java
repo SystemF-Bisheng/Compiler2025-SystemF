@@ -2,10 +2,13 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous;
 
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+
+import java.util.Arrays;
 
 public class Phi extends DummyValueNonTerminal {
 	private final BasicBlock[] incomingBlocks;
@@ -13,8 +16,18 @@ public class Phi extends DummyValueNonTerminal {
 
 	public Phi(Type type, String name, BasicBlock[] incomingBlocks, Value[] incomingValues) {
 		super(type, name);
-		this.incomingBlocks = incomingBlocks;
-		this.incomingValues = incomingValues;
+		if (incomingBlocks.length == 0)
+			throw new IllegalArgumentException("At least one incoming block must be specified");
+		if (incomingBlocks.length != incomingValues.length)
+			throw new IllegalArgumentException("Incoming blocks and values must have the same length");
+		var valueType = incomingValues[0].getType();
+		if (!(valueType instanceof Sized))
+			throw new IllegalArgumentException("The type of incoming values must be sized");
+		if (!Arrays.stream(incomingValues).map(Value::getType).allMatch(valueType::equals))
+			throw new IllegalArgumentException("The types of incoming values must be the same");
+
+		this.incomingBlocks = Arrays.copyOf(incomingBlocks, incomingBlocks.length);
+		this.incomingValues = Arrays.copyOf(incomingValues, incomingValues.length);
 	}
 
 	@Override

@@ -6,8 +6,8 @@ import org.systemf.compiler.ir.value.Value;
 public abstract class DummyCompare extends DummyBinary {
 	public final CompareOp method;
 
-	public DummyCompare(String name, CompareOp method, Value x, Value y, Type resultType) {
-		super(name, x, y, resultType);
+	public DummyCompare(String name, CompareOp method, Value x, Value y, Type xType, Type yType, Type resultType) {
+		super(name, x, y, xType, yType, resultType);
 		this.method = method;
 	}
 

@@ -3,92 +3,84 @@ package org.systemf.compiler.ir;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
-import org.systemf.compiler.ir.type.Pointer;
-import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 
-public class IRValidator extends InstructionVisitorBase<Void> {
-	StringBuilder errorMessage;
-	boolean isValid = true;
-
-	public IRValidator() {
-		this.errorMessage = new StringBuilder();
-	}
+public class IRValidator extends InstructionVisitorBase<Boolean> {
+	private StringBuilder errorMessage = new StringBuilder();
 
 	public String getErrorMessage() {
 		return errorMessage.toString();
 	}
 
-	public void addErrorInfo(String info) {
+	public void clearErrorMessage() {
+		errorMessage = new StringBuilder();
+	}
+
+	private void addErrorInfo(String info) {
 		errorMessage.append(info).append("\n");
 	}
 
-	public boolean isValid(Module module) {
-		isValid = true;
-		errorMessage.setLength(0);
-		for (int i = 0; i < module.getGlobalDeclarationCount(); ++i) {
-			 isValid(module.getGlobalDeclaration(i));
-		}
-		for (int i = 0; i < module.getFunctionCount(); ++i) {
-			 isValid(module.getFunction(i));
-		}
-		return isValid;
+	public boolean check(Module module) {
+		boolean valid = true;
+		for (int i = 0; i < module.getGlobalDeclarationCount(); ++i) valid &= check(module.getGlobalDeclaration(i));
+		for (int i = 0; i < module.getFunctionCount(); ++i) valid &= check(module.getFunction(i));
+		return valid;
 	}
 
-	public void isValid(GlobalDeclaration declaration) {
+	public boolean check(GlobalDeclaration declaration) {
 		if (declaration.initializer == null) {
 			addErrorInfo("Local declaration " + declaration.getName() + " must have an initializer.");
-			isValid = false;
+			return false;
 		}
+		return true;
 	}
 
-	public void isValid(Function function) {
+	public boolean check(Function function) {
+		boolean valid = true;
 		if (function.getBlockCount() == 0) {
 			addErrorInfo("Function " + function.getName() + " must have at least one block.");
-			isValid = false;
+			valid = false;
 		}
-		for (int i = 0; i < function.getBlockCount(); ++i) {
-			 isValid(function.getBlock(i));
-		}
+		for (int i = 0; i < function.getBlockCount(); ++i) valid &= check(function.getBlock(i));
+		return valid;
 	}
 
-	public void isValid(BasicBlock block) {
+	public boolean check(BasicBlock block) {
+		boolean valid = true;
+
 		if (block.getInstructionCount() == 0) {
 			addErrorInfo("Block " + block.getName() + " must have at least one instruction.");
-			isValid = false;
+			valid = false;
 		}
 
 		if (block.getTerminator() == null) {
-			addErrorInfo("Block " + block.getName() + " must have a terminator instruction.");
-			isValid = false;
+			addErrorInfo("Block " + block.getName() + " must have a terminator.");
+			valid = false;
 		}
 
+		int terminatorCnt = 0;
 		for (int i = 0; i < block.getInstructionCount(); ++i) {
-			 isValid(block.getInstruction(i));
+			var inst = block.getInstruction(i);
+			valid &= check(inst);
+			if (inst instanceof Terminal) ++terminatorCnt;
 		}
+
+		if (terminatorCnt > 1) {
+			addErrorInfo("Block " + block.getName() + " have more than one terminators.");
+			valid = false;
+		}
+
+		return valid;
 	}
 
-	public void isValid(Instruction instruction) {
-		instruction.accept(this);
+	public boolean check(Instruction instruction) {
+		return instruction.accept(this);
 	}
 
 	@Override
-	public Void visit(Store instruction) {
-		if (!checkPointerToType(instruction.dest, instruction.src)) {
-			addErrorInfo("Store instruction destination " + instruction.dest.getType().getName() +
-			             " must be a pointer to the type of source " + instruction.src.getType().getName());
-			isValid = false;
-		}
-		return null;
+	protected Boolean defaultValue() {
+		return true;
 	}
-
-	private boolean checkPointerToType(Value pointer, Value type) {
-		if (!(pointer.getType() instanceof Pointer pointer1)) {
-			return false;
-		}
-		return pointer1.getElementType().equals(type.getType());
-	}
-
 }

@@ -8,7 +8,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
 
 public class ICmp extends DummyCompare {
 	public ICmp(String name, CompareOp method, Value x, Value y) {
-		super(name, method, x, y, I32.INSTANCE);
+		super(name, method, x, y, I32.INSTANCE, I32.INSTANCE, I32.INSTANCE);
 	}
 
 	@Override

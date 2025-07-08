@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class SRem extends DummyBinary {
 	public SRem(String name, Value x, Value y) {
-		super(name, x, y, I32.INSTANCE);
+		super(name, x, y, I32.INSTANCE, I32.INSTANCE, I32.INSTANCE);
 	}
 
 	@Override

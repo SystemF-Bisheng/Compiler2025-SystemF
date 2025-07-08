@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class FDiv extends DummyBinary {
 	public FDiv(String name, Value x, Value y) {
-		super(name, x, y, Float.INSTANCE);
+		super(name, x, y, Float.INSTANCE, Float.INSTANCE, Float.INSTANCE);
 	}
 
 	@Override

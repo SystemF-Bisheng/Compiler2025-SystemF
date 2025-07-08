@@ -21,4 +21,9 @@ public class TypeUtil {
 		if (!(type instanceof Indexable ind)) throw new IllegalArgumentException("Type " + type + " is not indexable");
 		return ind.getElementType();
 	}
+
+	public static void assertSameType(Type given, Type expected, String message) {
+		if (!expected.equals(given)) throw new IllegalArgumentException(
+				String.format("%s: the given type %s doesn't equal to the expected type %s", message, given, expected));
+	}
 }

@@ -1,6 +1,7 @@
 package ir;
 
 import org.systemf.compiler.ir.IRBuilder;
+import org.systemf.compiler.ir.IRValidator;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -35,14 +36,14 @@ public class IRBuilderTest {
 
 
 			//Function and BasicBlock
-			FunctionType functionType = new FunctionType(I32, I32);
-			FunctionType functionType1 = new FunctionType(I32, I32, arrayPtr);
-//		Function function = builder.buildFunction(functionType,"main");
+
 			Parameter param = builder.buildParameter(I32, "param");
 			Function function = builder.buildFunction("main", I32, param);
+
 			Parameter param1 = builder.buildParameter(I32, "param1");
 			Parameter param2 = builder.buildParameter(arrayPtr, "param2");
 			Function function1 = builder.buildFunction("function1", I32, param1, param2);
+
 			BasicBlock entryBlock1 = builder.buildBasicBlock(function, "entry");
 			BasicBlock block1 = builder.buildBasicBlock(function, "block1");
 			BasicBlock entryBlock2 = builder.buildBasicBlock(function1, "entry1");
@@ -74,6 +75,10 @@ public class IRBuilderTest {
 			builder.buildRet(mul);
 
 			module.dump(System.out);
+
+			IRValidator irValidator= new IRValidator();
+			irValidator.check(module);
+			System.out.println(irValidator.getErrorMessage());
 		}
 	}
 }

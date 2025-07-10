@@ -1,8 +1,5 @@
-package ir;
+package org.systemf.compiler.ir;
 
-import org.systemf.compiler.ir.IRBuilder;
-import org.systemf.compiler.ir.IRValidator;
-import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;

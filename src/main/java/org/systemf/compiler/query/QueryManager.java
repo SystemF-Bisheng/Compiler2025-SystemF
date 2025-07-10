@@ -6,10 +6,17 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class QueryManager {
+	private static final QueryManager INSTANCE = new QueryManager();
 	private final HashSet<Object> entities = new HashSet<>();
 	private final HashMap<Object, HashSet<Object>> attributes = new HashMap<>();
 	private final HashSet<EntityProviderInfo> entityProviders = new HashSet<>();
 	private final HashSet<AttributeProviderInfo> attributeProviders = new HashSet<>();
+
+	private QueryManager() {}
+
+	public static QueryManager getInstance() {
+		return INSTANCE;
+	}
 
 	private Stream<Type[]> extractParam(Class<?> clazz, Class<?> target, int len) {
 		return Arrays.stream(clazz.getGenericInterfaces()).filter(type -> type instanceof ParameterizedType)

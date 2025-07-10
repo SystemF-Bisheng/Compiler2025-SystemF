@@ -14,7 +14,7 @@ public class TypeUtil {
 	static public Type[] getParameterTypes(Type type) {
 		if (!(type instanceof FunctionType func))
 			throw new IllegalArgumentException("Type " + type + " is not a function");
-		return func.parameterTypes;
+		return func.getParameterTypes();
 	}
 
 	static public Type getElementType(Type type) {

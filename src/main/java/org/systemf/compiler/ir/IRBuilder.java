@@ -3,9 +3,6 @@ package org.systemf.compiler.ir;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
-import org.systemf.compiler.ir.global.initializer.ArrayInitializer;
-import org.systemf.compiler.ir.global.initializer.AtomicInitializer;
-import org.systemf.compiler.ir.global.initializer.IGlobalInitializer;
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.Void;
@@ -14,6 +11,7 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
+import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.Instruction;
@@ -89,18 +87,14 @@ public class IRBuilder implements AutoCloseable {
 		return new ConstantFloat(value);
 	}
 
-	public GlobalDeclaration buildGlobalDeclaration(String name, Type type, IGlobalInitializer initializer) {
+	public ConstantArray buildConstantArray(Sized elementType, Constant... content) {
+		return new ConstantArray(elementType, content);
+	}
+
+	public GlobalDeclaration buildGlobalDeclaration(String name, Type type, Constant initializer) {
 		GlobalDeclaration declaration = new GlobalDeclaration(module.getNonConflictName(name), type, initializer);
 		module.addGlobalDeclaration(declaration);
 		return declaration;
-	}
-
-	public IGlobalInitializer buildGlobalInitializer(Constant value) {
-		return new AtomicInitializer(value);
-	}
-
-	public IGlobalInitializer buildGlobalInitializer(int length, IGlobalInitializer... elements) {
-		return new ArrayInitializer(length, elements);
 	}
 
 	public Function buildFunction(String name, Type returnType, Parameter... formalArgs) {

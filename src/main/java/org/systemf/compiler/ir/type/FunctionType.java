@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class FunctionType extends DummyType {
 	final public Type returnType;
-	final public Type[] parameterTypes;
+	private final Type[] parameterTypes;
 
 	public FunctionType(Type returnType, Type... parameterTypes) {
 		super(typeName(returnType, parameterTypes));
@@ -41,5 +41,9 @@ public class FunctionType extends DummyType {
 	@Override
 	public int hashCode() {
 		return Objects.hash(returnType, Arrays.hashCode(parameterTypes));
+	}
+
+	public Type[] getParameterTypes() {
+		return Arrays.copyOf(parameterTypes, parameterTypes.length);
 	}
 }

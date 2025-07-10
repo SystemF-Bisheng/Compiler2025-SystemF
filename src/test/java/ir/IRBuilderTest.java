@@ -8,10 +8,12 @@ import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalDeclaration;
 import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
-import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.Constant;
+
+import java.util.Arrays;
 
 public class IRBuilderTest {
 	public static void main(String[] args) {
@@ -22,17 +24,17 @@ public class IRBuilderTest {
 			final Float Float = builder.buildFloatType();
 
 			//GlobalDeclaration
-			GlobalDeclaration globalvar1 = builder.buildGlobalDeclaration("g", I32,
-					builder.buildGlobalInitializer(builder.buildConstantInt(1)));
+			GlobalDeclaration globalvar1 = builder.buildGlobalDeclaration("g", I32, builder.buildConstantInt(1));
 
-			GlobalDeclaration globalvar2 = builder.buildGlobalDeclaration("g", I32,
-					builder.buildGlobalInitializer(builder.buildConstantFloat(2)));
+			GlobalDeclaration globalvar2 = builder.buildGlobalDeclaration("g", I32, builder.buildConstantInt(2));
 
 			Array array = builder.buildArrayType(I32, 10);
 			var arrayPtr = builder.buildPointerType(array);
 
+			var arrContent = new Constant[10];
+			Arrays.fill(arrContent, builder.buildConstantInt(1));
 			GlobalDeclaration globalArrayDeclaration = builder.buildGlobalDeclaration("g", array,
-					builder.buildGlobalInitializer(1, builder.buildGlobalInitializer(builder.buildConstantInt(1))));
+					builder.buildConstantArray(I32, arrContent));
 
 
 			//Function and BasicBlock
@@ -76,7 +78,7 @@ public class IRBuilderTest {
 
 			module.dump(System.out);
 
-			IRValidator irValidator= new IRValidator();
+			IRValidator irValidator = new IRValidator();
 			irValidator.check(module);
 			System.out.println(irValidator.getErrorMessage());
 		}

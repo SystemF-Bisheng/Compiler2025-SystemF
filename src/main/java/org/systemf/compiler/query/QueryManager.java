@@ -32,10 +32,19 @@ public class QueryManager {
 		entityProviders.add(new EntityProviderInfo(entityClass, provider));
 	}
 
+	public <T> void registerProvider(Class<T> entityClass, EntityProvider<T> provider) {
+		entityProviders.add(new EntityProviderInfo(entityClass, provider));
+	}
+
 	public void registerProvider(AttributeProvider<?, ?> provider) {
 		var params = extractParam(provider.getClass(), AttributeProvider.class, 2).findFirst().orElseThrow(
 				() -> new IllegalArgumentException("Cannot find the entity and the attribute class of the provider"));
 		attributeProviders.add(new AttributeProviderInfo((Class<?>) params[0], (Class<?>) params[1], provider));
+	}
+
+	public <T, U> void registerProvider(Class<T> entityClass, Class<U> attributeClass,
+			AttributeProvider<T, U> provider) {
+		attributeProviders.add(new AttributeProviderInfo(entityClass, attributeClass, provider));
 	}
 
 	@SuppressWarnings("unchecked")

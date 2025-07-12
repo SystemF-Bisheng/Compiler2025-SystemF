@@ -24,7 +24,8 @@ funcDef : r_type=retType name=IDENT L_PAREN (funcParam (COMMA funcParam)*)? R_PA
 
 varAccess : IDENT arrayPostfix;
 funcRealParam : expr;
-expr : value=INTEGER_CONST # const
+expr : value=INTEGER_CONST # constInt
+     | value=FLOAT_CONST # constFloat
      | func=IDENT L_PAREN (funcRealParam (COMMA funcRealParam)*)? R_PAREN # functionCall
      | varAccess # access
      | L_PAREN expr R_PAREN # paren

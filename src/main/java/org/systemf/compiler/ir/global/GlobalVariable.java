@@ -7,12 +7,12 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.constant.Constant;
 
-public class GlobalDeclaration extends DummyValue implements IGlobal, INamed {
+public class GlobalVariable extends DummyValue implements IGlobal, INamed {
 	public final Type valueType;
 	private final String name;
 	private Constant initializer;
 
-	public GlobalDeclaration(String name, Type type, Constant initializer) {
+	public GlobalVariable(String name, Type type, Constant initializer) {
 		super(new Pointer(type));
 		this.name = name;
 		this.valueType = type;

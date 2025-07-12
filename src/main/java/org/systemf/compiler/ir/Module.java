@@ -1,23 +1,21 @@
 package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.global.GlobalDeclaration;
+import org.systemf.compiler.ir.global.GlobalVariable;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Module {
-	private final ArrayList<GlobalDeclaration> declarations;
-	private final ArrayList<Function> functions;
+	private final HashMap<String, GlobalVariable> declarations;
+	private final HashMap<String, Function> functions;
 	private final Set<String> occupiedNames;
 	private boolean irBuilderAttached;
 
 	public Module() {
 		this.irBuilderAttached = false;
-		this.declarations = new ArrayList<>();
-		this.functions = new ArrayList<>();
+		this.declarations = new HashMap<>();
+		this.functions = new HashMap<>();
 		this.occupiedNames = new HashSet<>();
 	}
 
@@ -38,44 +36,40 @@ public class Module {
 		}
 	}
 
-	public void addGlobalDeclaration(GlobalDeclaration declaration) {
-		declarations.add(declaration);
+	public void addGlobalVariable(GlobalVariable declaration) {
+		var name = declaration.getName();
+		if (declarations.containsKey(name)) throw new IllegalStateException("Duplicate declaration: " + name);
+		declarations.put(name, declaration);
 	}
 
-	public void removeGlobalDeclaration(GlobalDeclaration declaration) {
-		declarations.remove(declaration);
+	public void removeGlobalVariable(GlobalVariable declaration) {
+		declarations.remove(declaration.getName());
 	}
 
-	public void removeGlobalDeclaration(int index) {
-		declarations.remove(index);
+	public GlobalVariable getGlobalVariable(String name) {
+		return declarations.get(name);
 	}
 
-	public int getGlobalDeclarationCount() {
-		return declarations.size();
-	}
-
-	public GlobalDeclaration getGlobalDeclaration(int index) {
-		return declarations.get(index);
+	public Map<String, GlobalVariable> getGlobalDeclarations() {
+		return Collections.unmodifiableMap(declarations);
 	}
 
 	public void addFunction(Function declaration) {
-		functions.add(declaration);
+		var name = declaration.getName();
+		if (functions.containsKey(name)) throw new IllegalStateException("Duplicate function: " + name);
+		functions.put(name, declaration);
 	}
 
 	public void removeFunction(Function declaration) {
-		functions.remove(declaration);
+		functions.remove(declaration.getName());
 	}
 
-	public void removeFunction(int index) {
-		functions.remove(index);
+	public Map<String, Function> getFunctions() {
+		return Collections.unmodifiableMap(functions);
 	}
 
-	public int getFunctionCount() {
-		return functions.size();
-	}
-
-	public Function getFunction(int index) {
-		return functions.get(index);
+	public Function getFunction(String name) {
+		return functions.get(name);
 	}
 
 	public void attachIRBuilder() {
@@ -91,14 +85,10 @@ public class Module {
 	}
 
 	public void dump(PrintStream out) {
-		for (GlobalDeclaration declaration : declarations) {
-			out.println(declaration);
-		}
+		declarations.values().forEach(out::println);
 
 		out.println();
 
-		for (Function function : functions) {
-			out.println(function);
-		}
+		functions.values().forEach(out::println);
 	}
 }

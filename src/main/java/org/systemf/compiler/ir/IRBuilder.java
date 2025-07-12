@@ -2,7 +2,7 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.global.GlobalDeclaration;
+import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.Void;
@@ -91,9 +91,9 @@ public class IRBuilder implements AutoCloseable {
 		return new ConstantArray(elementType, content);
 	}
 
-	public GlobalDeclaration buildGlobalDeclaration(String name, Type type, Constant initializer) {
-		GlobalDeclaration declaration = new GlobalDeclaration(module.getNonConflictName(name), type, initializer);
-		module.addGlobalDeclaration(declaration);
+	public GlobalVariable buildGlobalVariable(String name, Type type, Constant initializer) {
+		GlobalVariable declaration = new GlobalVariable(module.getNonConflictName(name), type, initializer);
+		module.addGlobalVariable(declaration);
 		return declaration;
 	}
 

@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.*;
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 
-public enum ParsedProvider implements EntityProvider<ParsedResult> {
+public enum ProgramParser implements EntityProvider<ParsedResult> {
 	INSTANCE;
 
 	@Override

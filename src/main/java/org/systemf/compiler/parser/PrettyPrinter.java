@@ -6,7 +6,7 @@ import org.systemf.compiler.query.AttributeProvider;
 
 import java.util.stream.Collectors;
 
-public enum PrettyPrintProvider implements AttributeProvider<SysYParser.ProgramContext, PrettyPrintAttribute> {
+public enum PrettyPrinter implements AttributeProvider<SysYParser.ProgramContext, PrettyPrintAttribute> {
 	INSTANCE;
 
 	@Override

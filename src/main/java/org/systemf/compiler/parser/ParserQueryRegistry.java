@@ -7,7 +7,7 @@ public class ParserQueryRegistry {
 
 	public static void registerAll() {
 		var manager = QueryManager.getInstance();
-		manager.registerProvider(ParsedProvider.INSTANCE);
-		manager.registerProvider(PrettyPrintProvider.INSTANCE);
+		manager.registerProvider(ProgramParser.INSTANCE);
+		manager.registerProvider(PrettyPrinter.INSTANCE);
 	}
 }

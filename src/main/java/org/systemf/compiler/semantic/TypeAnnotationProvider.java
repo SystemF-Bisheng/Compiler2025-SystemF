@@ -3,6 +3,7 @@ package org.systemf.compiler.semantic;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.systemf.compiler.query.AttributeProvider;
 import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.semantic.value.ValueAndType;
 
 import java.util.NoSuchElementException;
 

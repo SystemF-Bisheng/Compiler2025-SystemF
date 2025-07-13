@@ -41,4 +41,9 @@ public class SysYTypeUtil {
 		if (constPrefix.CONST() == null) return ValueClass.LEFT;
 		return ValueClass.RIGHT;
 	}
+
+	public static SysYNumeric elevatedType(SysYNumeric a, SysYNumeric b) {
+		if (a.equals(b)) return b;
+		return a;
+	}
 }

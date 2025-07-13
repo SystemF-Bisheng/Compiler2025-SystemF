@@ -1,6 +1,5 @@
 package org.systemf.compiler.semantic.util;
 
-import org.systemf.compiler.semantic.type.SysYType;
 import org.systemf.compiler.util.Pair;
 
 import java.util.ArrayDeque;
@@ -8,17 +7,17 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Objects;
 
-public class SysYAggregateBuilder<V, R> {
-	private final SysYAggregateHelper<V, R> aggregateHelper;
-	private final Deque<Pair<SysYType, ArrayList<R>>> stack = new ArrayDeque<>();
+public class SysYAggregateBuilder<Ty, V, R> {
+	private final SysYAggregateHelper<Ty, V, R> aggregateHelper;
+	private final Deque<Pair<Ty, ArrayList<R>>> stack = new ArrayDeque<>();
 	private int depth;
 	private R result;
 
-	public SysYAggregateBuilder(SysYAggregateHelper<V, R> aggregateHelper) {
+	public SysYAggregateBuilder(SysYAggregateHelper<Ty, V, R> aggregateHelper) {
 		this.aggregateHelper = aggregateHelper;
 	}
 
-	public void begin(SysYType type) {
+	public void begin(Ty type) {
 		stack.push(new Pair<>(type, new ArrayList<>()));
 		depth = 1;
 		result = null;
@@ -30,7 +29,7 @@ public class SysYAggregateBuilder<V, R> {
 		return result;
 	}
 
-	private <T> SysYType nextLayerType(Pair<SysYType, ArrayList<T>> layer) {
+	private <T> Ty nextLayerType(Pair<Ty, ArrayList<T>> layer) {
 		return aggregateHelper.aggregateType(layer.left, layer.right.size());
 	}
 
@@ -38,12 +37,12 @@ public class SysYAggregateBuilder<V, R> {
 		stack.push(new Pair<>(nextLayerType(Objects.requireNonNull(stack.peek())), new ArrayList<>()));
 	}
 
-	private void unfoldUntil(SysYType type) {
+	private void unfoldUntil(Ty type) {
 		if (stack.isEmpty()) return;
 		while (true) {
 			var next = nextLayerType(Objects.requireNonNull(stack.peek()));
-			if (type.convertibleTo(next)) break;
-			if (aggregateHelper.isAggregateAtom(next)) throw new IllegalArgumentException("Unexpected type: " + type);
+			if (aggregateHelper.convertibleTo(type, next)) break;
+			if (aggregateHelper.isAggregateAtom(next)) aggregateHelper.onIllegalType(type);
 			unfoldOnce();
 		}
 	}

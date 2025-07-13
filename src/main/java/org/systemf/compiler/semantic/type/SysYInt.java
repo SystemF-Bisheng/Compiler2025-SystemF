@@ -1,6 +1,6 @@
 package org.systemf.compiler.semantic.type;
 
-public enum SysYInt implements SysYType {
+public enum SysYInt implements SysYType, SysYNumeric {
 	INT;
 
 	@Override
@@ -13,5 +13,10 @@ public enum SysYInt implements SysYType {
 	@Override
 	public String toString() {
 		return "int";
+	}
+
+	@Override
+	public boolean compare(SysYNumeric other) {
+		return other != INT;
 	}
 }

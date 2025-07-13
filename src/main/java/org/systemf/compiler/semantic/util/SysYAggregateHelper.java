@@ -1,21 +1,23 @@
 package org.systemf.compiler.semantic.util;
 
-import org.systemf.compiler.semantic.type.SysYType;
-
 import java.util.List;
 
-public interface SysYAggregateHelper<V, R> {
-	int aggregateCount(SysYType type);
+public interface SysYAggregateHelper<Ty, V, R> {
+	int aggregateCount(Ty type);
 
-	SysYType aggregateType(SysYType type, int index);
+	Ty aggregateType(Ty type, int index);
 
-	SysYType typeOf(V value);
+	Ty typeOf(V value);
 
-	V convertTo(V value, SysYType type);
+	boolean convertibleTo(Ty from, Ty to);
+
+	V convertTo(V value, Ty type);
 
 	R fromValue(V value);
 
-	boolean isAggregateAtom(SysYType type);
+	boolean isAggregateAtom(Ty type);
 
-	R aggregate(SysYType type, List<R> content);
+	R aggregate(Ty type, List<R> content);
+
+	void onIllegalType(Ty type);
 }

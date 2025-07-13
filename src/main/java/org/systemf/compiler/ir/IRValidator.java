@@ -26,7 +26,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 
 	public boolean check(Module module) {
 		boolean valid = true;
-		for (int i = 0; i < module.getFunctionCount(); ++i) valid &= check(module.getFunction(i));
+		for (var func : module.getFunctions().values()) valid &= check(func);
 		return valid;
 	}
 

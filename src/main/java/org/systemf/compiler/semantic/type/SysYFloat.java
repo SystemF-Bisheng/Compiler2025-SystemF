@@ -1,8 +1,7 @@
 package org.systemf.compiler.semantic.type;
 
-public enum SysYFloat implements SysYType {
+public enum SysYFloat implements SysYType, SysYNumeric {
 	FLOAT;
-
 
 	@Override
 	public boolean convertibleTo(SysYType other) {
@@ -13,5 +12,10 @@ public enum SysYFloat implements SysYType {
 	@Override
 	public String toString() {
 		return "float";
+	}
+
+	@Override
+	public boolean compare(SysYNumeric other) {
+		return false;
 	}
 }

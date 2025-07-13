@@ -46,6 +46,10 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		private SysYType retType;
 		private int loopLayer = 0;
 
+		public SemanticListener() {
+			context.push();
+		}
+
 		@Override
 		public void enterEveryRule(ParserRuleContext ctx) {
 			currentContext = ctx;

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 
 public class Context<T> {
-	private ContextLayer<T> current = new ContextLayer<>(null);
+	private ContextLayer<T> current = null;
 
 	public void push() {
 		current = new ContextLayer<>(current);
@@ -23,6 +23,15 @@ public class Context<T> {
 	public void define(String key, T value) {
 		if (current == null) throw new IllegalStateException("Context underflow");
 		current.define(key, value);
+	}
+
+	public boolean contains(String key) {
+		if (current == null) return false;
+		return current.contains(key);
+	}
+
+	public ContextLayer<T> top() {
+		return current;
 	}
 
 	public static class ContextLayer<T> {

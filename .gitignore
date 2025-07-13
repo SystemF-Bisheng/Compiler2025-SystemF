@@ -26,6 +26,8 @@ src/main/antlr4/org/systemf/compiler/parser/.antlr/
 hs_err_pid*
 replay_pid*
 
+tmp/
+
 # vscode project configuartion
 .vscode/
 

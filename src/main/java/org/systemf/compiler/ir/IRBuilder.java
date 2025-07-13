@@ -16,10 +16,7 @@ import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
-import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.AShr;
-import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
-import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.LShr;
-import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Shl;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
@@ -32,15 +29,13 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
-import org.systemf.compiler.ir.value.instruction.terminal.Br;
-import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
-import org.systemf.compiler.ir.value.instruction.terminal.Ret;
-import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.ir.value.instruction.terminal.*;
 
 /**
  * external interface. all write operations are available with only Module and IRBuilder
  */
 public class IRBuilder implements AutoCloseable {
+	public final IRFolder folder;
 	private final Module module;
 	private BasicBlock currentBlock;
 
@@ -49,6 +44,7 @@ public class IRBuilder implements AutoCloseable {
 		module.attachIRBuilder();
 
 		this.module = module;
+		this.folder = new IRFolder(this);
 	}
 
 	public Void buildVoidType() {
@@ -79,11 +75,11 @@ public class IRBuilder implements AutoCloseable {
 		return new UnsizedArray(elementType);
 	}
 
-	public ConstantInt buildConstantInt(int value) {
+	public ConstantInt buildConstantInt(long value) {
 		return new ConstantInt(value);
 	}
 
-	public ConstantFloat buildConstantFloat(float value) {
+	public ConstantFloat buildConstantFloat(double value) {
 		return new ConstantFloat(value);
 	}
 
@@ -123,10 +119,18 @@ public class IRBuilder implements AutoCloseable {
 		return andInst;
 	}
 
+	public Value buildOrFoldAnd(Value lhs, Value rhs, String name) {
+		return folder.tryFoldAnd(lhs, rhs).orElseGet(() -> buildAnd(lhs, rhs, name));
+	}
+
 	public AShr buildAShr(Value lhs, Value rhs, String name) {
 		AShr AShrInst = new AShr(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(AShrInst);
 		return AShrInst;
+	}
+
+	public Value buildOrFoldAShr(Value lhs, Value rhs, String name) {
+		return folder.tryFoldAShr(lhs, rhs).orElseGet(() -> buildAShr(lhs, rhs, name));
 	}
 
 	public Shl buildShl(Value lhs, Value rhs, String name) {
@@ -135,10 +139,18 @@ public class IRBuilder implements AutoCloseable {
 		return shlInst;
 	}
 
-	public And buildXor(Value lhs, Value rhs, String name) {
-		And xorInst = new And(module.getNonConflictName(name), lhs, rhs);
+	public Value buildOrFoldShl(Value lhs, Value rhs, String name) {
+		return folder.tryFoldShl(lhs, rhs).orElseGet(() -> buildShl(lhs, rhs, name));
+	}
+
+	public Xor buildXor(Value lhs, Value rhs, String name) {
+		Xor xorInst = new Xor(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(xorInst);
 		return xorInst;
+	}
+
+	public Value buildOrFoldXor(Value lhs, Value rhs, String name) {
+		return folder.tryFoldXor(lhs, rhs).orElseGet(() -> buildXor(lhs, rhs, name));
 	}
 
 	public LShr buildLShr(Value lhs, Value rhs, String name) {
@@ -147,10 +159,18 @@ public class IRBuilder implements AutoCloseable {
 		return LShrInstruction;
 	}
 
+	public Value buildOrFoldLShr(Value lhs, Value rhs, String name) {
+		return folder.tryFoldLShr(lhs, rhs).orElseGet(() -> buildLShr(lhs, rhs, name));
+	}
+
 	public Add buildAdd(Value lhs, Value rhs, String name) {
 		Add addInst = new Add(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(addInst);
 		return addInst;
+	}
+
+	public Value buildOrFoldAdd(Value lhs, Value rhs, String name) {
+		return folder.tryFoldAdd(lhs, rhs).orElseGet(() -> buildAdd(lhs, rhs, name));
 	}
 
 	public Sub buildSub(Value lhs, Value rhs, String name) {
@@ -159,10 +179,18 @@ public class IRBuilder implements AutoCloseable {
 		return subInst;
 	}
 
+	public Value buildOrFoldSub(Value lhs, Value rhs, String name) {
+		return folder.tryFoldSub(lhs, rhs).orElseGet(() -> buildSub(lhs, rhs, name));
+	}
+
 	public Mul buildMul(Value lhs, Value rhs, String name) {
 		Mul mulInst = new Mul(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(mulInst);
 		return mulInst;
+	}
+
+	public Value buildOrFoldMul(Value lhs, Value rhs, String name) {
+		return folder.tryFoldMul(lhs, rhs).orElseGet(() -> buildMul(lhs, rhs, name));
 	}
 
 	public SDiv buildSDiv(Value lhs, Value rhs, String name) {
@@ -171,17 +199,28 @@ public class IRBuilder implements AutoCloseable {
 		return sDivInst;
 	}
 
+	public Value buildOrFoldSDiv(Value lhs, Value rhs, String name) {
+		return folder.tryFoldSDiv(lhs, rhs).orElseGet(() -> buildSDiv(lhs, rhs, name));
+	}
+
 	public SRem buildSRem(Value lhs, Value rhs, String name) {
 		SRem sRemInst = new SRem(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(sRemInst);
 		return sRemInst;
 	}
 
+	public Value buildOrFoldSRem(Value lhs, Value rhs, String name) {
+		return folder.tryFoldSRem(lhs, rhs).orElseGet(() -> buildSRem(lhs, rhs, name));
+	}
+
 	public ICmp buildICmp(Value op1, Value op2, String name, CompareOp code) {
 		ICmp iCmpInst = new ICmp(module.getNonConflictName(name), code, op1, op2);
 		insertInstruction(iCmpInst);
 		return iCmpInst;
+	}
 
+	public Value buildOrFoldICmp(Value op1, Value op2, String name, CompareOp code) {
+		return folder.tryFoldICmp(op1, op2, code).orElseGet(() -> buildICmp(op1, op2, name, code));
 	}
 
 	public FAdd buildFAdd(Value lhs, Value rhs, String name) {
@@ -190,10 +229,18 @@ public class IRBuilder implements AutoCloseable {
 		return fAddInst;
 	}
 
+	public Value buildOrFoldFAdd(Value lhs, Value rhs, String name) {
+		return folder.tryFoldFAdd(lhs, rhs).orElseGet(() -> buildFAdd(lhs, rhs, name));
+	}
+
 	public FMul buildFMul(Value lhs, Value rhs, String name) {
 		FMul fMulInst = new FMul(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(fMulInst);
 		return fMulInst;
+	}
+
+	public Value buildOrFoldFMul(Value lhs, Value rhs, String name) {
+		return folder.tryFoldFMul(lhs, rhs).orElseGet(() -> buildFMul(lhs, rhs, name));
 	}
 
 	public FSub buildFSub(Value lhs, Value rhs, String name) {
@@ -202,10 +249,18 @@ public class IRBuilder implements AutoCloseable {
 		return fSubInst;
 	}
 
+	public Value buildOrFoldFSub(Value lhs, Value rhs, String name) {
+		return folder.tryFoldFSub(lhs, rhs).orElseGet(() -> buildFSub(lhs, rhs, name));
+	}
+
 	public FDiv buildFDiv(Value lhs, Value rhs, String name) {
 		FDiv fDivInst = new FDiv(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(fDivInst);
 		return fDivInst;
+	}
+
+	public Value buildOrFoldFDiv(Value lhs, Value rhs, String name) {
+		return folder.tryFoldFDiv(lhs, rhs).orElseGet(() -> buildFDiv(lhs, rhs, name));
 	}
 
 	public FNeg buildFNeg(Value op, String name) {
@@ -214,10 +269,18 @@ public class IRBuilder implements AutoCloseable {
 		return fNegInst;
 	}
 
+	public Value buildOrFoldFNeg(Value op, String name) {
+		return folder.tryFoldFNeg(op).orElseGet(() -> buildFNeg(op, name));
+	}
+
 	public FCmp buildFCmp(Value lhs, Value rhs, String name, CompareOp code) {
 		FCmp fCmpInst = new FCmp(module.getNonConflictName(name), code, lhs, rhs);
 		insertInstruction(fCmpInst);
 		return fCmpInst;
+	}
+
+	public Value buildOrFoldFCmp(Value lhs, Value rhs, String name, CompareOp code) {
+		return folder.tryFoldFCmp(lhs, rhs, code).orElseGet(() -> buildFCmp(lhs, rhs, name, code));
 	}
 
 	public FpToSi buildFpToSi(Value op, String name) {
@@ -226,10 +289,18 @@ public class IRBuilder implements AutoCloseable {
 		return fpToSiInst;
 	}
 
+	public Value buildOrFoldFpToSi(Value op, String name) {
+		return folder.tryFoldFpToSi(op).orElseGet(() -> buildFpToSi(op, name));
+	}
+
 	public SiToFp buildSiToFp(Value op, String name) {
 		SiToFp siToFpInst = new SiToFp(module.getNonConflictName(name), op);
 		insertInstruction(siToFpInst);
 		return siToFpInst;
+	}
+
+	public Value buildOrFoldSiToFp(Value op, String name) {
+		return folder.tryFoldSiToFp(op).orElseGet(() -> buildSiToFp(op, name));
 	}
 
 	public Call buildCall(Function function, String name, Value... args) {
@@ -290,6 +361,11 @@ public class IRBuilder implements AutoCloseable {
 		CondBr condBrInst = new CondBr(condition, trueTarget, falseTarget);
 		insertInstruction(condBrInst);
 		return condBrInst;
+	}
+
+	public Terminal buildOrFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
+		return folder.tryFoldCondBr(condition, trueTarget, falseTarget)
+				.orElseGet(() -> buildCondBr(condition, trueTarget, falseTarget));
 	}
 
 	public void attachToBlockTail(BasicBlock block) {

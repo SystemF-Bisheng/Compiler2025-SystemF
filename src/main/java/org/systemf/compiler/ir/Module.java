@@ -72,6 +72,13 @@ public class Module {
 		return functions.get(name);
 	}
 
+	public Function getNamedFunction(String name) {
+		if (!functions.containsKey(name)) {
+			throw new NoSuchElementException("Function not found: " + name);
+		}
+		return functions.get(name);
+	}
+
 	public void attachIRBuilder() {
 		irBuilderAttached = true;
 	}

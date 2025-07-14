@@ -20,4 +20,12 @@ public class Pair<T, U> {
 	public U getRight() {
 		return right;
 	}
+
+	public <L> Pair<L, U> withLeft(L left) {
+		return Pair.of(left, right);
+	}
+
+	public <R> Pair<T, R> withRight(R right) {
+		return Pair.of(left, right);
+	}
 }

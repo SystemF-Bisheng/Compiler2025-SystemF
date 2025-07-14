@@ -34,6 +34,10 @@ public class Context<T> {
 		return current;
 	}
 
+	public boolean empty() {
+		return current == null;
+	}
+
 	public static class ContextLayer<T> {
 		public final ContextLayer<T> parent;
 		public final HashMap<String, T> content = new HashMap<>();

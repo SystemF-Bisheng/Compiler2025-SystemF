@@ -2,6 +2,7 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
+import org.systemf.compiler.ir.value.Value;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -38,7 +39,8 @@ public class Module {
 
 	public void addGlobalVariable(GlobalVariable declaration) {
 		var name = declaration.getName();
-		if (declarations.containsKey(name)) throw new IllegalStateException("Duplicate declaration: " + name);
+		if (declarations.containsKey(name) || functions.containsKey(name))
+			throw new IllegalStateException("Duplicate declaration: " + name);
 		declarations.put(name, declaration);
 	}
 
@@ -56,7 +58,8 @@ public class Module {
 
 	public void addFunction(Function declaration) {
 		var name = declaration.getName();
-		if (functions.containsKey(name)) throw new IllegalStateException("Duplicate function: " + name);
+		if (declarations.containsKey(name) || functions.containsKey(name))
+			throw new IllegalStateException("Duplicate function: " + name);
 		functions.put(name, declaration);
 	}
 
@@ -70,6 +73,12 @@ public class Module {
 
 	public Function getFunction(String name) {
 		return functions.get(name);
+	}
+
+	public Value lookupGlobal(String name) {
+		var variable = getGlobalVariable(name);
+		if (variable != null) return variable;
+		return getFunction(name);
 	}
 
 	public void attachIRBuilder() {

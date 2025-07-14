@@ -2,6 +2,7 @@ package org.systemf.compiler.ir.type.util;
 
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.interfaces.Dereferenceable;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 
 public class TypeUtil {
@@ -27,5 +28,10 @@ public class TypeUtil {
 		if (!given.convertibleTo(expected)) throw new IllegalArgumentException(
 				String.format("%s: the given type %s isn't convertible to the expected type %s", message, given,
 						expected));
+	}
+
+	public static Sized assertSized(Type given, String message) {
+		if (given instanceof Sized) return (Sized) given;
+		throw new IllegalArgumentException(String.format("%s: the given type %s is not sized", message, given));
 	}
 }

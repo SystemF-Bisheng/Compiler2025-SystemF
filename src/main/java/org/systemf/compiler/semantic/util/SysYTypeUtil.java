@@ -1,13 +1,30 @@
 package org.systemf.compiler.semantic.util;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.parser.SysYParser;
 import org.systemf.compiler.semantic.type.*;
 import org.systemf.compiler.semantic.value.ValueClass;
 
+import java.util.HashMap;
+
 public class SysYTypeUtil {
 	public static SysYType applyArrayPostfix(SysYType type, SysYParser.ArrayPostfixContext postfix) {
 		var dimension = postfix.arrayPostfixSingle().size();
-		for (int i = 0; i < dimension; ++i) type = new SysYArray(type);
+		for (int i = 0; i < dimension; ++i) type = new SysYRoughArray(type);
+		return type;
+	}
+
+	public static long assertArraySize(long index) {
+		if (index < 1) throw new IllegalArgumentException("Invalid array size " + index);
+		return index;
+	}
+
+	public static SysYType applyArrayPostfix(SysYType type, SysYParser.ArrayPostfixContext postfix,
+			HashMap<ParserRuleContext, Value> valueMap) {
+		for (var post : postfix.arrayPostfixSingle().reversed())
+			type = new SysYArray(type, SysYTypeUtil.assertArraySize(ValueUtil.getConstantInt(valueMap.get(post))));
 		return type;
 	}
 
@@ -17,6 +34,11 @@ public class SysYTypeUtil {
 
 	public static SysYType applyVarDefEntry(SysYType type, SysYParser.VarDefEntryContext varDefEntry) {
 		return applyArrayPostfix(type, varDefEntry.arrayPostfix());
+	}
+
+	public static SysYType applyVarDefEntry(SysYType type, SysYParser.VarDefEntryContext varDefEntry,
+			HashMap<ParserRuleContext, Value> valueMap) {
+		return applyArrayPostfix(type, varDefEntry.arrayPostfix(), valueMap);
 	}
 
 	public static SysYType typeFromBasicType(SysYParser.BasicTypeContext basicType) {

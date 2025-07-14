@@ -3,7 +3,7 @@ package org.systemf.compiler.semantic.util;
 import java.util.List;
 
 public interface SysYAggregateHelper<Ty, V, R> {
-	int aggregateCount(Ty type);
+	long aggregateCount(Ty type);
 
 	Ty aggregateType(Ty type, int index);
 
@@ -11,7 +11,7 @@ public interface SysYAggregateHelper<Ty, V, R> {
 
 	boolean convertibleTo(Ty from, Ty to);
 
-	V convertTo(V value, Ty type);
+	V convertTo(V value, Ty from, Ty to);
 
 	R fromValue(V value);
 

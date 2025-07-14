@@ -37,7 +37,14 @@ import org.systemf.compiler.ir.value.instruction.terminal.*;
 public class IRBuilder implements AutoCloseable {
 	public final IRFolder folder;
 	private final Module module;
+
+	public boolean ignoreOnTerminatedInsert = false;
+
 	private BasicBlock currentBlock;
+
+	public BasicBlock getCurrentBlock() {
+		return currentBlock;
+	}
 
 	public IRBuilder(Module module) {
 		if (module.isIRBuilderAttached()) throw new IllegalStateException("Module has already been attached");
@@ -120,7 +127,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldAnd(Value lhs, Value rhs, String name) {
-		return folder.tryFoldAnd(lhs, rhs).orElseGet(() -> buildAnd(lhs, rhs, name));
+		return folder.tryFoldAnd(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildAnd(lhs, rhs, name));
 	}
 
 	public AShr buildAShr(Value lhs, Value rhs, String name) {
@@ -130,7 +137,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldAShr(Value lhs, Value rhs, String name) {
-		return folder.tryFoldAShr(lhs, rhs).orElseGet(() -> buildAShr(lhs, rhs, name));
+		return folder.tryFoldAShr(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildAShr(lhs, rhs, name));
 	}
 
 	public Shl buildShl(Value lhs, Value rhs, String name) {
@@ -140,7 +147,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldShl(Value lhs, Value rhs, String name) {
-		return folder.tryFoldShl(lhs, rhs).orElseGet(() -> buildShl(lhs, rhs, name));
+		return folder.tryFoldShl(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildShl(lhs, rhs, name));
 	}
 
 	public Xor buildXor(Value lhs, Value rhs, String name) {
@@ -150,7 +157,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldXor(Value lhs, Value rhs, String name) {
-		return folder.tryFoldXor(lhs, rhs).orElseGet(() -> buildXor(lhs, rhs, name));
+		return folder.tryFoldXor(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildXor(lhs, rhs, name));
 	}
 
 	public LShr buildLShr(Value lhs, Value rhs, String name) {
@@ -160,7 +167,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldLShr(Value lhs, Value rhs, String name) {
-		return folder.tryFoldLShr(lhs, rhs).orElseGet(() -> buildLShr(lhs, rhs, name));
+		return folder.tryFoldLShr(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildLShr(lhs, rhs, name));
 	}
 
 	public Add buildAdd(Value lhs, Value rhs, String name) {
@@ -170,7 +177,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldAdd(Value lhs, Value rhs, String name) {
-		return folder.tryFoldAdd(lhs, rhs).orElseGet(() -> buildAdd(lhs, rhs, name));
+		return folder.tryFoldAdd(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildAdd(lhs, rhs, name));
 	}
 
 	public Sub buildSub(Value lhs, Value rhs, String name) {
@@ -180,7 +187,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldSub(Value lhs, Value rhs, String name) {
-		return folder.tryFoldSub(lhs, rhs).orElseGet(() -> buildSub(lhs, rhs, name));
+		return folder.tryFoldSub(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildSub(lhs, rhs, name));
 	}
 
 	public Mul buildMul(Value lhs, Value rhs, String name) {
@@ -190,7 +197,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldMul(Value lhs, Value rhs, String name) {
-		return folder.tryFoldMul(lhs, rhs).orElseGet(() -> buildMul(lhs, rhs, name));
+		return folder.tryFoldMul(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildMul(lhs, rhs, name));
 	}
 
 	public SDiv buildSDiv(Value lhs, Value rhs, String name) {
@@ -200,7 +207,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldSDiv(Value lhs, Value rhs, String name) {
-		return folder.tryFoldSDiv(lhs, rhs).orElseGet(() -> buildSDiv(lhs, rhs, name));
+		return folder.tryFoldSDiv(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildSDiv(lhs, rhs, name));
 	}
 
 	public SRem buildSRem(Value lhs, Value rhs, String name) {
@@ -210,7 +217,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldSRem(Value lhs, Value rhs, String name) {
-		return folder.tryFoldSRem(lhs, rhs).orElseGet(() -> buildSRem(lhs, rhs, name));
+		return folder.tryFoldSRem(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildSRem(lhs, rhs, name));
 	}
 
 	public ICmp buildICmp(Value op1, Value op2, String name, CompareOp code) {
@@ -220,7 +227,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldICmp(Value op1, Value op2, String name, CompareOp code) {
-		return folder.tryFoldICmp(op1, op2, code).orElseGet(() -> buildICmp(op1, op2, name, code));
+		return folder.tryFoldICmp(op1, op2, code).map(c -> (Value) c).orElseGet(() -> buildICmp(op1, op2, name, code));
 	}
 
 	public FAdd buildFAdd(Value lhs, Value rhs, String name) {
@@ -230,7 +237,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFAdd(Value lhs, Value rhs, String name) {
-		return folder.tryFoldFAdd(lhs, rhs).orElseGet(() -> buildFAdd(lhs, rhs, name));
+		return folder.tryFoldFAdd(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildFAdd(lhs, rhs, name));
 	}
 
 	public FMul buildFMul(Value lhs, Value rhs, String name) {
@@ -240,7 +247,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFMul(Value lhs, Value rhs, String name) {
-		return folder.tryFoldFMul(lhs, rhs).orElseGet(() -> buildFMul(lhs, rhs, name));
+		return folder.tryFoldFMul(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildFMul(lhs, rhs, name));
 	}
 
 	public FSub buildFSub(Value lhs, Value rhs, String name) {
@@ -250,7 +257,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFSub(Value lhs, Value rhs, String name) {
-		return folder.tryFoldFSub(lhs, rhs).orElseGet(() -> buildFSub(lhs, rhs, name));
+		return folder.tryFoldFSub(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildFSub(lhs, rhs, name));
 	}
 
 	public FDiv buildFDiv(Value lhs, Value rhs, String name) {
@@ -260,7 +267,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFDiv(Value lhs, Value rhs, String name) {
-		return folder.tryFoldFDiv(lhs, rhs).orElseGet(() -> buildFDiv(lhs, rhs, name));
+		return folder.tryFoldFDiv(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildFDiv(lhs, rhs, name));
 	}
 
 	public FNeg buildFNeg(Value op, String name) {
@@ -270,7 +277,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFNeg(Value op, String name) {
-		return folder.tryFoldFNeg(op).orElseGet(() -> buildFNeg(op, name));
+		return folder.tryFoldFNeg(op).map(c -> (Value) c).orElseGet(() -> buildFNeg(op, name));
 	}
 
 	public FCmp buildFCmp(Value lhs, Value rhs, String name, CompareOp code) {
@@ -280,7 +287,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFCmp(Value lhs, Value rhs, String name, CompareOp code) {
-		return folder.tryFoldFCmp(lhs, rhs, code).orElseGet(() -> buildFCmp(lhs, rhs, name, code));
+		return folder.tryFoldFCmp(lhs, rhs, code).map(c -> (Value) c).orElseGet(() -> buildFCmp(lhs, rhs, name, code));
 	}
 
 	public FpToSi buildFpToSi(Value op, String name) {
@@ -290,7 +297,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldFpToSi(Value op, String name) {
-		return folder.tryFoldFpToSi(op).orElseGet(() -> buildFpToSi(op, name));
+		return folder.tryFoldFpToSi(op).map(c -> (Value) c).orElseGet(() -> buildFpToSi(op, name));
 	}
 
 	public SiToFp buildSiToFp(Value op, String name) {
@@ -300,7 +307,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Value buildOrFoldSiToFp(Value op, String name) {
-		return folder.tryFoldSiToFp(op).orElseGet(() -> buildSiToFp(op, name));
+		return folder.tryFoldSiToFp(op).map(c -> (Value) c).orElseGet(() -> buildSiToFp(op, name));
 	}
 
 	public Call buildCall(Function function, String name, Value... args) {
@@ -375,6 +382,10 @@ public class IRBuilder implements AutoCloseable {
 	private void insertInstruction(Instruction inst) {
 		if (currentBlock == null)
 			throw new IllegalArgumentException("Attempt to insert an instruction without an attached block");
+		if (currentBlock.getTerminator() != null) {
+			if (ignoreOnTerminatedInsert) return;
+			throw new IllegalStateException("Attempt to insert an instruction into a terminated block");
+		}
 		currentBlock.insertInstruction(inst);
 	}
 

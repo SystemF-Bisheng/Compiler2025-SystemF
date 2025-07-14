@@ -31,4 +31,10 @@ public class ConstantArray extends DummyConstant {
 	private void assertElement(Value value) {
 		TypeUtil.assertConvertible(value.getType(), elementType, "Illegal element");
 	}
+
+	@Override
+	public String toString() {
+		return String.format("{%s}",
+				String.join(", ", Arrays.stream(content).map(Object::toString).toArray(String[]::new)));
+	}
 }

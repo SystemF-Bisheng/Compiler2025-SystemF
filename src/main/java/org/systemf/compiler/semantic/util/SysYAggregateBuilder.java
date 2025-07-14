@@ -18,7 +18,7 @@ public class SysYAggregateBuilder<Ty, V, R> {
 	}
 
 	public void begin(Ty type) {
-		stack.push(new Pair<>(type, new ArrayList<>()));
+		stack.push(Pair.of(type, new ArrayList<>()));
 		depth = 1;
 		result = null;
 	}
@@ -34,7 +34,7 @@ public class SysYAggregateBuilder<Ty, V, R> {
 	}
 
 	private void unfoldOnce() {
-		stack.push(new Pair<>(nextLayerType(Objects.requireNonNull(stack.peek())), new ArrayList<>()));
+		stack.push(Pair.of(nextLayerType(Objects.requireNonNull(stack.peek())), new ArrayList<>()));
 	}
 
 	private void unfoldUntil(Ty type) {
@@ -57,9 +57,10 @@ public class SysYAggregateBuilder<Ty, V, R> {
 	}
 
 	public void addValue(V value) {
-		unfoldUntil(aggregateHelper.typeOf(value));
+		var type = aggregateHelper.typeOf(value);
+		unfoldUntil(type);
 		var layer = stack.peek();
-		if (layer != null) value = aggregateHelper.convertTo(value, nextLayerType(layer));
+		if (layer != null) value = aggregateHelper.convertTo(value, type, nextLayerType(layer));
 		addResult(aggregateHelper.fromValue(value));
 	}
 

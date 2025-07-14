@@ -2,6 +2,7 @@ package org.systemf.compiler.ir.value.util;
 
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 
@@ -30,4 +31,8 @@ public class ValueUtil {
 		return constantFloat.value;
 	}
 
+	public static Constant assertConstant(Value value) {
+		if (value instanceof Constant c) return c;
+		throw new IllegalArgumentException("Value `" + value + "` is not a constant");
+	}
 }

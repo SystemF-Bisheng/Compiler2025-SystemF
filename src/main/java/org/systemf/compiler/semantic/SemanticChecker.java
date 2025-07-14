@@ -26,13 +26,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		try {
 			ParseTreeWalker.DEFAULT.walk(listener, program);
 		} catch (RuntimeException e) {
-			var start = listener.currentContext.getStart();
-			var stop = listener.currentContext.getStop();
-			var newException = new IllegalSemanticException(
-					String.format("Semantic error in context from %d:%d to %d:%d", start.getLine(),
-							start.getCharPositionInLine(), stop.getLine(), stop.getCharPositionInLine()), e);
-			newException.setStackTrace(new StackTraceElement[0]);
-			throw newException;
+			throw IllegalSemanticException.wrap(listener.currentContext, e);
 		}
 		return new SemanticResult(program, listener.typeMap);
 	}
@@ -170,22 +164,19 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		}
 
 		@Override
-		public void exitFuncRealParam(SysYParser.FuncRealParamContext ctx) {
-			typeMap.put(ctx, typeMap.get(ctx.expr()));
-		}
-
-		@Override
 		public void exitFunctionCall(SysYParser.FunctionCallContext ctx) {
 			var funcTy = context.get(ctx.func.getText());
 			if (!(funcTy.type() instanceof SysYFunction(SysYType result, SysYType[] args)))
 				throw new IllegalSemanticException("Illegal function call on " + funcTy);
-			var params = ctx.funcRealParam().stream().map(typeMap::get).toArray(ValueAndType[]::new);
+			var params = ctx.funcRealParam().stream().map(SysYParser.FuncRealParamContext::expr).map(typeMap::get)
+					.toArray(ValueAndType[]::new);
 			if (args.length != params.length) throw new IllegalSemanticException(
 					String.format("Illegal number of arguments, expected %d, given %d", args.length, params.length));
 			for (int i = 0; i < args.length; ++i) {
-				var arg = args[i];
+				var arg = new ValueAndType(ValueClass.RIGHT, args[i]);
+				typeMap.put(ctx.funcRealParam(i), arg);
 				var param = params[i];
-				if (!param.convertibleTo(new ValueAndType(ValueClass.RIGHT, arg))) throw new IllegalSemanticException(
+				if (!param.convertibleTo(arg)) throw new IllegalSemanticException(
 						String.format("Illegal parameter, expected %s, given %s", arg, param));
 			}
 			typeMap.put(ctx, new ValueAndType(ValueClass.RIGHT, result));
@@ -200,13 +191,15 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		public void exitUnary(SysYParser.UnaryContext ctx) {
 			var op = ctx.op.getType();
 			var xTy = typeMap.get(ctx.x);
-			if (xTy.convertibleTo(RIGHT_INT)) {
+
+			if (SysYInt.INT.equals(xTy.type())) {
 				typeMap.put(ctx, RIGHT_INT);
 				return;
 			}
 
-			if (op != SysYLexer.NOT && xTy.convertibleTo(RIGHT_FLOAT)) {
-				typeMap.put(ctx, RIGHT_FLOAT);
+			if (SysYFloat.FLOAT.equals(xTy.type())) {
+				if (op != SysYLexer.NOT) typeMap.put(ctx, RIGHT_FLOAT);
+				else typeMap.put(ctx, RIGHT_INT);
 				return;
 			}
 
@@ -223,6 +216,13 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 
 		@Override
 		public void exitMuls(SysYParser.MulsContext ctx) {
+			if (ctx.op.getType() == SysYLexer.MOD) {
+				var xTy = typeMap.get(ctx.l).type();
+				var yTy = typeMap.get(ctx.r).type();
+				if (SysYFloat.FLOAT.equals(xTy) || SysYFloat.FLOAT.equals(yTy))
+					throw new IllegalSemanticException("Illegal mod operation on float");
+			}
+
 			exitBinary(ctx, ctx.l, ctx.r);
 		}
 
@@ -231,14 +231,22 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			exitBinary(ctx, ctx.l, ctx.r);
 		}
 
+		private void exitRelation(ParserRuleContext cur, ParserRuleContext x, ParserRuleContext y) {
+			var xTy = typeMap.get(x).type();
+			var yTy = typeMap.get(y).type();
+			if (!(xTy instanceof SysYNumeric)) throw new IllegalSemanticException("Illegal 1st operand " + xTy);
+			if (!(yTy instanceof SysYNumeric)) throw new IllegalSemanticException("Illegal 2nd operand " + yTy);
+			typeMap.put(cur, RIGHT_INT);
+		}
+
 		@Override
 		public void exitRels(SysYParser.RelsContext ctx) {
-			exitBinary(ctx, ctx.l, ctx.r);
+			exitRelation(ctx, ctx.l, ctx.r);
 		}
 
 		@Override
 		public void exitEqs(SysYParser.EqsContext ctx) {
-			exitBinary(ctx, ctx.l, ctx.r);
+			exitRelation(ctx, ctx.l, ctx.r);
 		}
 
 		private void exitLogical(ParserRuleContext cur, ParserRuleContext x, ParserRuleContext y) {

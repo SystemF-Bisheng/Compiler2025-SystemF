@@ -15,7 +15,7 @@ arrayPostfixSingle : L_BRACKT length=expr R_BRACKT;
 arrayPostfix : arrayPostfixSingle*;
 eqInitializeVal : expr # single
                 | L_BRACE (eqInitializeVal (COMMA eqInitializeVal)*)? R_BRACE # array;
-initializer : ASSIGN value=eqInitializeVal # eqInitializer;
+initializer : ASSIGN value=eqInitializeVal;
 varDefEntry : name=IDENT arrayPostfix init=initializer?;
 varDef : constPrefix type=basicType varDefEntry (COMMA varDefEntry)* SEMICOLON;
 

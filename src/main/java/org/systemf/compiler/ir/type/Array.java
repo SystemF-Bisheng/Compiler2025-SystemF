@@ -11,7 +11,7 @@ public class Array extends DummyIndexableType implements Sized {
 
 	public Array(int length, Sized elementType) {
 		super(String.format("[%d x %s]", length, elementType.getName()), elementType);
-		assert length >= 0 : String.format("invalid array length `%d`", length);
+		if (length <= 0) throw new IllegalArgumentException("Illegal array length " + length);
 		this.length = length;
 	}
 

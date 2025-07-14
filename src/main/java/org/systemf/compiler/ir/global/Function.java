@@ -53,6 +53,10 @@ public class Function extends DummyValue implements IGlobal, INamed {
 		return blocks.get(index);
 	}
 
+	public Parameter[] getFormalArgs() {
+		return formalArgs;
+	}
+
 	@Override
 	public String getName() {
 		return name;

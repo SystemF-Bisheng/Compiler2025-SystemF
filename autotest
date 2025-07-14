@@ -1,0 +1,438 @@
+#!/usr/bin/env python3
+
+# copyright: maxxing, PKU Compiling Course
+# edit: CuWO4, SystemF, BiSheng Compilation Competition
+
+from dataclasses import dataclass
+from enum import Enum, auto, unique
+import multiprocessing
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from typing import List, Optional, Tuple
+import uuid
+
+
+# some parameters
+# TODO: SysY runtime library, not supported yet
+# LIBRARY_PATH = os.environ['CDE_LIBRARY_PATH']
+# INCLUDE_PATH = os.environ['CDE_INCLUDE_PATH']
+TEMP_OUTPUT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.S'  
+TEMP_OBJECT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.o'  
+TEMP_EXECUTABLE_FILE = f'{str(uuid.uuid4()).replace("-", "")}'
+COMP_TIMEOUT_SEC = 300
+ASM_TIMEOUT_SEC = 60
+RUN_TIMEOUT_SEC = 120
+RE_TOTAL_TIME = re.compile(r'TOTAL: (\d+H-\d+M-\d+S-\d+us)')  
+
+
+@unique
+class TestMode(Enum):
+  '''
+  Test mode.
+  '''
+  RISCV = auto()
+  PERF = auto()
+
+  def to_opt(self) -> str:
+    '''
+    Converts the current test mode to command line option.
+    '''
+    return {
+        TestMode.RISCV: '-riscv',
+        TestMode.PERF: '-perf',
+    }[self]
+
+
+@dataclass(frozen=True)
+class CompilerInfo:
+  '''
+  Compiler related information.
+  '''
+  working_dir: str
+  compile_cmd: str
+  clean_wd: bool
+
+  def clean(self):
+    '''
+    Deletes the working directory.
+    '''
+    if self.clean_wd:
+      shutil.rmtree(self.working_dir)
+
+
+@dataclass(frozen=True)
+class TestCase:
+  '''
+  Test case information.
+  '''
+  name: str
+  source_file: str
+  output_file: str
+  input_file: Optional[str]
+
+
+@unique
+class TestStatus(Enum):
+  '''
+  Status of a test.
+  '''
+  PASSED = auto()
+  COMP_ERROR = auto()
+  COMP_TIME_EXCEEDED = auto()
+  OUTPUT_NOT_FOUND = auto()
+  ASM_ERROR = auto()
+  ASM_TIME_EXCEEDED = auto()
+  RUN_ERROR = auto()
+  RUN_TIME_EXCEEDED = auto()
+  WRONG_ANSWER = auto()
+
+  def to_msg(self):
+    '''
+    Converts the current test status to `eprint` message.
+    '''
+    return {
+        TestStatus.PASSED: '\033[0;32mPASSED\033[0m',
+        TestStatus.COMP_ERROR: '\033[0;35mCASE COMPILE ERROR\033[0m',
+        TestStatus.COMP_TIME_EXCEEDED: '\033[0;34mCASE COMPILE TIME EXCEEDED\033[0m',
+        TestStatus.OUTPUT_NOT_FOUND: '\033[0;31mOUTPUT NOT FOUND\033[0m',
+        TestStatus.ASM_ERROR: '\033[0;35mCASE ASSEMBLE ERROR\033[0m',
+        TestStatus.ASM_TIME_EXCEEDED: '\033[0;34mCASE ASSEMBLE TIME EXCEEDED\033[0m',
+        TestStatus.RUN_ERROR: '\033[0;35mRUNTIME ERROR\033[0m',
+        TestStatus.RUN_TIME_EXCEEDED: '\033[0;34mTIME LIMIT EXCEEDED\033[0m',
+        TestStatus.WRONG_ANSWER: '\033[0;31mWRONG ANSWER\033[0m',
+    }[self]
+
+
+@dataclass(frozen=True)
+class TestResult:
+  '''
+  Result of a single test.
+  '''
+  status: TestStatus
+  answer: str = ''
+  time: Optional[str] = None
+  output_error: Optional[Tuple[str, str]] = None
+
+  def show_details(self):
+    '''
+    Prints the details of the current test result to `stderr`.
+    '''
+    eprint(self.status.to_msg())
+    if self.status == TestStatus.WRONG_ANSWER:
+      eprint('your answer:')
+      eprint(self.answer)
+    elif self.status != TestStatus.PASSED and self.output_error:
+      eprint('stdout:')
+      eprint(self.output_error[0])
+      eprint('stderr:')
+      eprint(self.output_error[1])
+
+  def show_perf(self):
+    '''
+    Prints the performance test result to `stderr`.
+    '''
+    eprint(f'time elapsed: {self.time}')
+
+
+def eprint(*args, **kwargs):
+  '''
+  Prints to `stderr`.
+  '''
+  print(*args, file=sys.stderr, **kwargs)
+  sys.stderr.flush()
+
+
+def decode_bytes(b: bytes) -> str:
+  '''
+  Decodes bytes to UTF-8 string.
+  '''
+  try:
+    return b.decode('utf-8')
+  except UnicodeDecodeError:
+    return str(b)
+
+
+def decode_result(result: 'subprocess.CompletedProcess[bytes]') -> Tuple[str, str]:
+  '''
+  Decodes result returned by `subprocess.run`, extracts `stdout` and `stderr`.
+  '''
+  return (decode_bytes(result.stdout), decode_bytes(result.stderr))
+
+
+def execute(cmd: str, timeout: int, error_status: TestStatus,
+            timeout_status: TestStatus,
+            pipe_cmd: Optional[str] = None) -> Optional[TestResult]:
+  '''
+  Executes the given command line, returns test result if failed.
+  '''
+  try:
+    if pipe_cmd:
+      pipe = subprocess.Popen(pipe_cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+      result = subprocess.run(cmd, shell=True, timeout=timeout, stdin=pipe.stdout,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      if pipe.wait():
+        return TestResult(error_status,
+                          output_error=(decode_bytes(pipe.stdout.read()),
+                                        decode_bytes(pipe.stderr.read())))
+    else:
+      result = subprocess.run(cmd, shell=True, timeout=timeout,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode:
+      return TestResult(error_status, output_error=decode_result(result))
+  except subprocess.TimeoutExpired:
+    return TestResult(timeout_status)
+  return None
+
+
+def parse_time_info(stderr: str) -> str:
+  '''
+  Parses time information from the given `stderr`.
+  '''
+  time = RE_TOTAL_TIME.findall(stderr)
+  if time:
+    time = time[0]
+  else:
+    time = 'time information not found'
+  return time
+
+
+def remove_prefix(s: str, prefix: str) -> str:
+  '''
+  Removes the prefix from the given string.
+  '''
+  if s.startswith(prefix):
+    return s[len(prefix):]
+  return s
+
+
+def scan_test_cases(test_case_dir: str) -> List[TestCase]:
+  '''
+  Scans all test cases recursively in the given test case directory.
+
+  Returns the list of test case paths.
+  '''
+  cases = []
+  # walk in test case directory
+  for root, _, files in os.walk(test_case_dir):
+    prefix = remove_prefix(root, test_case_dir).lstrip('/')
+    files = set(files)
+    for file in files:
+      # check if is SysY source file
+      if file.endswith('.c') or file.endswith('.sy'):
+        name = os.path.splitext(file)[0]
+        out_file = f'{name}.out'
+        # check if output file exists
+        if out_file in files:
+          source_file = os.path.join(root, file)
+          output_file = os.path.join(root, out_file)
+          in_file = f'{name}.in'
+          input_file = os.path.join(
+              root, in_file) if in_file in files else None
+          # add to cases list
+          name = os.path.join(prefix, name)
+          cases.append(TestCase(name, source_file, output_file, input_file))
+  cases.sort(key=lambda x: x.source_file)
+  return cases
+
+
+def build_commands(repo_dir: str, working_dir: str) -> Tuple[str, str]:
+  '''
+  Returns build command and compile command.
+  '''
+  build_cmd = 'mvn package'
+  comp_cmd = f'java -jar {os.path.join(repo_dir, "target", "compiler-1.0-SNAPSHOT.jar")}'
+  return build_cmd, comp_cmd
+
+def build_repo(repo_dir: str,
+               working_dir: Optional[str] = None) -> Optional[CompilerInfo]:
+  '''
+  Builds the given repository.
+
+  Returns compiler information.
+  '''
+  # initialize working directory
+  if not working_dir:
+    working_dir = tempfile.mkdtemp()
+    clean_wd = True
+  else:
+    working_dir = os.path.abspath(working_dir)
+    clean_wd = False
+  eprint(f'working directory: {working_dir}')
+  try:
+    build_cmd, compile_cmd = build_commands(repo_dir, working_dir)
+    # build repository
+    result = subprocess.run(build_cmd, shell=True)
+    if result.returncode:
+      eprint('failed to build the repository')
+      eprint(f'compilation command: {build_cmd}')
+      return None
+    # check if the compiler has been generated properly
+    compiler_file = compile_cmd.split(' ')[-1]
+    if not os.path.exists(compiler_file):
+      eprint(f'compiler "{compiler_file}" not found')
+      eprint('please check your maven build configuration')
+      return None
+    return CompilerInfo(working_dir, compile_cmd, clean_wd)
+  except Exception as e:
+    eprint(e)
+    # delete the working directory
+    if clean_wd:
+      shutil.rmtree(working_dir)
+    return None
+
+
+def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
+  '''
+  Converts RISC-V assembly to executable.
+  '''
+  asm_flags = '-target riscv32-unknown-linux-elf -march=rv32im -mabi=ilp32'
+  cmd = f'clang {rv} -c -o {obj} {asm_flags}'
+  if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
+                       TestStatus.ASM_TIME_EXCEEDED):
+    return result
+  # TODO: SysY runtime library
+  # lib_flags = f'-L{LIBRARY_PATH}/riscv32 -lsysy'
+  lib_flags = ''
+  cmd = f'ld.lld {obj} {lib_flags} -o {exe}'
+  if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
+                       TestStatus.ASM_TIME_EXCEEDED):
+    return result
+  return None
+
+
+def run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
+  '''
+  Runs the generated output executable and checks the result.
+  '''
+  # execute output file
+  inputs = None
+  if case.input_file:
+    with open(case.input_file, 'r') as f:
+      inputs = f.read().encode('utf-8')
+  exe = f'qemu-riscv32-static {exe}'
+  try:
+    result = subprocess.run(exe, shell=True, timeout=RUN_TIMEOUT_SEC,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            input=inputs)
+  except subprocess.TimeoutExpired:
+    return TestResult(TestStatus.RUN_TIME_EXCEEDED)
+  # get actual output
+  (stdout, stderr) = decode_result(result)
+  if not stdout or stdout.endswith('\n'):
+    out = f'{stdout}{result.returncode}'
+  else:
+    out = f'{stdout}\n{result.returncode}'
+  # get expected output
+  with open(case.output_file, mode='r', newline='') as f:
+    ref = f.read().rstrip()
+  # get time information
+  time = None
+  if mode == TestMode.PERF:
+    time = parse_time_info(stderr)
+  # generate result
+  status = TestStatus.PASSED if out == ref else TestStatus.WRONG_ANSWER
+  return TestResult(status, out, time, (stdout, stderr))
+
+
+def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase) -> TestResult:
+  '''
+  Runs the test for the given compiler by using the given test case.
+
+  Returns test result.
+  '''
+  output = os.path.join(compiler.working_dir, TEMP_OUTPUT_FILE)
+  obj = os.path.join(compiler.working_dir, TEMP_OBJECT_FILE)
+  exe = os.path.join(compiler.working_dir, TEMP_EXECUTABLE_FILE)
+  # compile test case
+  cmd = f'{compiler.compile_cmd} {mode.to_opt()} {case.source_file} -o {output}'
+  if result := execute(cmd, COMP_TIMEOUT_SEC, TestStatus.COMP_ERROR,
+                       TestStatus.COMP_TIME_EXCEEDED):
+    return result
+  # check output file
+  if not os.path.exists(output):
+    return TestResult(TestStatus.OUTPUT_NOT_FOUND)
+  # assembly output file
+  asm = asm_riscv
+  if result := asm(output, obj, exe):
+    return result
+  return run_output(mode, case, exe)
+
+
+def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase]):
+  '''
+  Runs test for all test cases.
+
+  Prints test results to `stderr` when necessary.
+  '''
+  passed = 0
+  # run all tests
+  for case in cases:
+    eprint(f'running test "{case.name}" ... ', end='')
+    result = run_test(mode, compiler, case)
+    result.show_details()
+    if result.status == TestStatus.PASSED:
+      if mode == TestMode.PERF:
+        result.show_perf()
+      passed += 1
+  # print test result
+  total = len(cases)
+  status = TestStatus.PASSED if passed == total else TestStatus.WRONG_ANSWER
+  eprint(f'{status.to_msg()} ({passed}/{total})')
+
+
+if __name__ == '__main__':
+  # initialize argument parser
+  import argparse
+  parser = argparse.ArgumentParser(
+      description='An automated testing script.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument('-perf', action='store_const', const=TestMode.PERF,
+                     dest='mode', help='run performance test')
+  parser.set_defaults(mode=TestMode.RISCV)
+  parser.add_argument('-t', '--test_case_dir',
+                      default=os.path.join(os.path.dirname(
+                          os.path.realpath(__file__)), 'testcases'),
+                      help='specify test case directory, ' +
+                           'default to SCRIPT_DIR/testcases')
+  parser.add_argument('-w', '--working_dir',
+                      default=None,
+                      help='specify working directory, ' +
+                           'default to a temporary directory')
+  parser.add_argument('-s', '--sub_dir',
+                      default=False,
+                      help='run testcases in the specific sub directory')
+  parser.add_argument('--repo_dir', type=str,
+                      default=os.path.dirname(os.path.realpath(__file__)),
+                      help='compiler repository directory')
+
+  # parse arguments
+  args = parser.parse_args()
+  eprint(f'run test in "{args.mode.to_opt()}" mode')
+
+  # scan test cases
+  test_case_dir = os.path.abspath(args.test_case_dir)
+  if args.sub_dir:
+    test_case_dir = os.path.join(test_case_dir, args.sub_dir)
+  cases = scan_test_cases(test_case_dir)
+  if not cases:
+    eprint(f'no test cases found in directory "{test_case_dir}"')
+    sys.exit(-1)
+
+  # compile the repository
+  compiler = build_repo(args.repo_dir, args.working_dir)
+  if not compiler:
+    eprint(f'failed to compile the repository "{args.repo_dir}"')
+    sys.exit(-1)
+
+  # run test
+  try:
+    run_tests(args.mode, compiler, cases)
+  except KeyboardInterrupt:
+    eprint(f'\033[0;33mINTERRUPTED\033[0m')
+  finally:
+    compiler.clean()

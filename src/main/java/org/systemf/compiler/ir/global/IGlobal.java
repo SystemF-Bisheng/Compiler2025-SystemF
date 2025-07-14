@@ -1,4 +1,6 @@
 package org.systemf.compiler.ir.global;
 
-public interface IGlobal {
+import org.systemf.compiler.ir.INamed;
+
+public interface IGlobal extends INamed {
 }

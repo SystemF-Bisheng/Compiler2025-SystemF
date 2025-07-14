@@ -15,6 +15,7 @@ public class TranslatorTest {
 				int main(int arg, int arr_in[][3]) {
 					arg = arg + 1;
 					arr_in[0][1] = arg;
+					global_arr[0][0] = arg;
 					int b = 1;
 					int c = a + b;
 					c = c + 1;

@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.util;
 
 import org.systemf.compiler.ir.INamed;
+import org.systemf.compiler.ir.global.IGlobal;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
@@ -8,6 +9,7 @@ import org.systemf.compiler.ir.value.constant.ConstantInt;
 
 public class ValueUtil {
 	static public String dumpIdentifier(Value value) {
+		if (value instanceof IGlobal global) return "@" + global.getName();
 		if (value instanceof INamed named) return "%" + named.getName();
 		return value.toString();
 	}

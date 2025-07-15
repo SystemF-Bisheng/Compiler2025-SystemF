@@ -12,6 +12,7 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
@@ -68,6 +69,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		private final QueryManager query = QueryManager.getInstance();
 		private final HashMap<ParserRuleContext, Value> valueMap = new HashMap<>();
 		private final Context<Value> context = new Context<>();
+		private final HashMap<String, Constant> globalConstant = new HashMap<>();
 		private final IRBuilder builder;
 		private final IRTypeUtil typeUtil;
 		private final SysYValueUtil valueUtil;
@@ -122,6 +124,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 
 		public Value lookup(String name) {
 			if (context.contains(name)) return context.get(name);
+			if (globalConstant.containsKey(name)) return globalConstant.get(name);
 			var res = module.lookupGlobal(name);
 			if (res == null) throw new NoSuchElementException("Cannot find symbol " + name);
 			return res;
@@ -189,6 +192,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 				var varName = entry.name.getText();
 
 				var entrySysYType = SysYTypeUtil.applyVarDefEntry(sysYType, entry, valueMap);
+				var entryInline = SysYTypeUtil.shouldInline(query.getAttribute(entry, ValueAndType.class));
 				if (context.empty()) {
 					currentAggregate = constAggregate;
 
@@ -198,20 +202,27 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 
 					currentAggregate = null;
 
-					builder.buildGlobalVariable(varName, entryType, initializer);
+					if (entryInline) globalConstant.put(varName, initializer);
+					else builder.buildGlobalVariable(varName, entryType, initializer);
 				} else {
-					var value = builder.buildAlloca(entryType, varName);
-					context.define(varName, value);
-
 					if (entry.init != null) {
 						currentAggregate = nonConstAggregate;
 
 						nonConstAggregate.begin(entrySysYType);
 						visit(entry.init);
 						var initializer = nonConstAggregate.end();
-						valueUtil.toConsumer(initializer).accept(value);
 
 						currentAggregate = null;
+
+						if (entryInline && initializer.isA()) context.define(varName, initializer.getA());
+						else {
+							var value = builder.buildAlloca(entryType, varName);
+							context.define(varName, value);
+							valueUtil.toConsumer(initializer).accept(value);
+						}
+					} else {
+						var value = builder.buildAlloca(entryType, varName);
+						context.define(varName, value);
 					}
 				}
 			}
@@ -543,7 +554,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 				return ptr;
 			}
 
-			var value = builder.buildLoad(ptr, "access");
+			var value = ptr instanceof Constant ? ptr : builder.buildLoad(ptr, "access");
 			if (asCond) {
 				useAsCond(query.getAttribute(ctx, ValueAndType.class).type(), value);
 

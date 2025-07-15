@@ -57,15 +57,22 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			currentContext = ctx;
 		}
 
+		private ValueClass varDefValueClass = null;
+		private SysYType varDefBasicType = null;
+
 		@Override
-		public void exitVarDef(SysYParser.VarDefContext ctx) {
-			var valueClass = SysYTypeUtil.valueClassFromConstPrefix(ctx.constPrefix());
-			var type = SysYTypeUtil.typeFromBasicType(ctx.type);
-			for (var entry : ctx.varDefEntry()) {
-				var entryType = SysYTypeUtil.applyVarDefEntry(type, entry);
-				var varName = entry.name.getText();
-				context.define(varName, new ValueAndType(valueClass, entryType));
-			}
+		public void enterVarDef(SysYParser.VarDefContext ctx) {
+			varDefValueClass = SysYTypeUtil.valueClassFromConstPrefix(ctx.constPrefix());
+			varDefBasicType = SysYTypeUtil.typeFromBasicType(ctx.type);
+		}
+
+		@Override
+		public void exitVarDefEntry(SysYParser.VarDefEntryContext ctx) {
+			var entryType = SysYTypeUtil.applyVarDefEntry(varDefBasicType, ctx);
+			var varName = ctx.name.getText();
+			var varTy = new ValueAndType(varDefValueClass, entryType);
+			typeMap.put(ctx, varTy);
+			context.define(varName, varTy);
 		}
 
 		@Override

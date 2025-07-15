@@ -5,6 +5,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.parser.SysYParser;
 import org.systemf.compiler.semantic.type.*;
+import org.systemf.compiler.semantic.value.ValueAndType;
 import org.systemf.compiler.semantic.value.ValueClass;
 
 import java.util.HashMap;
@@ -67,5 +68,10 @@ public class SysYTypeUtil {
 	public static SysYNumeric elevatedType(SysYNumeric a, SysYNumeric b) {
 		if (a.equals(b)) return b;
 		return a;
+	}
+
+	public static boolean shouldInline(ValueAndType value) {
+		var type = value.type();
+		return value.valueClass() == ValueClass.RIGHT && (type == SysYInt.INT || type == SysYFloat.FLOAT);
 	}
 }

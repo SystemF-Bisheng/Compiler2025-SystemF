@@ -165,10 +165,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitInitializer(SysYParser.InitializerContext ctx) {
 			enterRule(ctx);
 
-			var init = ctx.value;
-			if (init instanceof SysYParser.SingleContext single) visit(single);
-			else if (init instanceof SysYParser.ArrayContext array) array.eqInitializeVal().forEach(this::visit);
-			else throw new IllegalArgumentException("Unknown initializer");
+			visit(ctx.value);
 
 			exitRule();
 			return defaultResult();

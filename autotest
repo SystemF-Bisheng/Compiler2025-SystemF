@@ -20,13 +20,13 @@ import uuid
 # TODO: SysY runtime library, not supported yet
 # LIBRARY_PATH = os.environ['CDE_LIBRARY_PATH']
 # INCLUDE_PATH = os.environ['CDE_INCLUDE_PATH']
-TEMP_OUTPUT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.S'  
-TEMP_OBJECT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.o'  
+TEMP_OUTPUT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.S'
+TEMP_OBJECT_FILE = f'{str(uuid.uuid4()).replace("-", "")}.o'
 TEMP_EXECUTABLE_FILE = f'{str(uuid.uuid4()).replace("-", "")}'
 COMP_TIMEOUT_SEC = 300
 ASM_TIMEOUT_SEC = 60
 RUN_TIMEOUT_SEC = 120
-RE_TOTAL_TIME = re.compile(r'TOTAL: (\d+H-\d+M-\d+S-\d+us)')  
+RE_TOTAL_TIME = re.compile(r'TOTAL: (\d+H-\d+M-\d+S-\d+us)')
 
 
 @unique
@@ -245,7 +245,7 @@ def build_commands(repo_dir: str, working_dir: str) -> Tuple[str, str]:
   Returns build command and compile command.
   '''
   build_cmd = 'mvn package'
-  comp_cmd = f'java -jar {os.path.join(repo_dir, "target", "compiler-1.0-SNAPSHOT.jar")}'
+  comp_cmd = f'java -Xss8M -jar {os.path.join(repo_dir, "target", "compiler-1.0-SNAPSHOT.jar")}'
   return build_cmd, comp_cmd
 
 def build_repo(repo_dir: str,
@@ -360,7 +360,7 @@ def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, bare_run: b
   # stop if this is a bare run
   if bare_run:
     return TestResult(TestStatus.PASSED)
-  
+
   # assembly output file
   asm = asm_riscv
   if result := asm(output, obj, exe):

@@ -16,8 +16,9 @@ public class TranslatorTest {
 					arg = arg + 1;
 					arr_in[0][1] = arg;
 					global_arr[0][0] = arg;
-					int b = 1;
-					int c = a + b;
+					int b = 0xFF;
+					int c = (a + b) * (b + arg);
+					int iArr[2][3][4] = {1, 2, 3, 4, {5}, {}};
 					c = c + 1;
 					int d = 1.0;
 					int arr[2][3] = {1, 2, 3, 4, 5, d};

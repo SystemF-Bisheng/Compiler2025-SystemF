@@ -413,7 +413,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitConstInt(SysYParser.ConstIntContext ctx) {
 			enterRule(ctx);
 
-			var val = Long.parseLong(ctx.value.getText());
+			long val = Long.decode(ctx.value.getText());
 			if (asCond) {
 				if (val == 0) builder.buildBr(falseBlock);
 				else builder.buildBr(trueBlock);

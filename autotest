@@ -339,7 +339,7 @@ def run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
   return TestResult(status, out, time, (stdout, stderr))
 
 
-def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase) -> TestResult:
+def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, bare_run: bool) -> TestResult:
   '''
   Runs the test for the given compiler by using the given test case.
 
@@ -356,6 +356,11 @@ def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase) -> TestResu
   # check output file
   if not os.path.exists(output):
     return TestResult(TestStatus.OUTPUT_NOT_FOUND)
+
+  # stop if this is a bare run
+  if bare_run:
+    return TestResult(TestStatus.PASSED)
+  
   # assembly output file
   asm = asm_riscv
   if result := asm(output, obj, exe):
@@ -363,7 +368,7 @@ def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase) -> TestResu
   return run_output(mode, case, exe)
 
 
-def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase]):
+def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], bare_run: bool):
   '''
   Runs test for all test cases.
 
@@ -373,7 +378,7 @@ def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase]):
   # run all tests
   for case in cases:
     eprint(f'running test "{case.name}" ... ', end='')
-    result = run_test(mode, compiler, case)
+    result = run_test(mode, compiler, case, bare_run)
     result.show_details()
     if result.status == TestStatus.PASSED:
       if mode == TestMode.PERF:
@@ -409,6 +414,11 @@ if __name__ == '__main__':
   parser.add_argument('--repo_dir', type=str,
                       default=os.path.dirname(os.path.realpath(__file__)),
                       help='compiler repository directory')
+  parser.add_argument('-B', '--bare_run',
+                      default=False,
+                      action='store_true',
+                      help='just run the compiler and get the output, ' +
+                           'without doing anything further')
 
   # parse arguments
   args = parser.parse_args()
@@ -431,7 +441,7 @@ if __name__ == '__main__':
 
   # run test
   try:
-    run_tests(args.mode, compiler, cases)
+    run_tests(args.mode, compiler, cases, args.bare_run)
   except KeyboardInterrupt:
     eprint(f'\033[0;33mINTERRUPTED\033[0m')
   finally:

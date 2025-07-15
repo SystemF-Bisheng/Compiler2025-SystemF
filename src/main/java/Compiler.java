@@ -1,21 +1,22 @@
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
+import org.systemf.compiler.translator.IRTranslatedResult;
+
+import java.io.IOException;
+import java.io.PrintStream;
 
 public class Compiler {
-	public static void main(String[] args) {
-		CompileArgument compileArgument;
-
-		try {
-			compileArgument = parseArguments(args);
-		}
-		catch (IllegalArgumentException e) {
-			System.err.println(e);
-			System.exit(-1);
-		}
+	public static void main(String[] args) throws IOException {
+		CompileArgument compileArgument = parseArguments(args);
 
 		QueryRegistry.registerAll();
+		var query = QueryManager.getInstance();
+		var input = CharStreams.fromFileName(compileArgument.inputFilePath());
+		query.registerProvider(CharStream.class, () -> input);
+		query.get(IRTranslatedResult.class).module().dump(new PrintStream(compileArgument.outputFilePath()));
 	}
-
-	record CompileArgument(String inputFilePath, String outputFilePath) {}
 
 	static CompileArgument parseArguments(String[] args) throws IllegalArgumentException {
 		String inputFilePath = null, outputFilePath = null;
@@ -29,12 +30,10 @@ public class Compiler {
 					}
 					outputFilePath = args[i + 1];
 					i++;
-				}
-				else {
+				} else {
 					/* ignore */
 				}
-			}
-			else {
+			} else {
 				if (inputFilePath != null) {
 					throw new IllegalArgumentException("multi input files compiling is not supported so far");
 				}
@@ -50,5 +49,8 @@ public class Compiler {
 		}
 
 		return new CompileArgument(inputFilePath, outputFilePath);
+	}
+
+	record CompileArgument(String inputFilePath, String outputFilePath) {
 	}
 }

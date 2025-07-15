@@ -10,9 +10,9 @@ import java.util.Map;
 
 public class ExecutionContext {
 	private BasicBlock currentBlock;
-	private Function currentFunction;
+	private final Function currentFunction;
 	private int currentInstructionIndex;
-	private Map<Value, ExecutionValue> localVariables;
+	private final Map<Value, ExecutionValue> localVariables;
 	private Value callee;
 
 	public ExecutionContext( BasicBlock currentBlock, Function currentFunction, int currentInstructionIndex, Value callee) {
@@ -51,8 +51,13 @@ public class ExecutionContext {
 		return localVariables.get(variable);
 	}
 
-	public ExecutionValue setValue(Value variable, ExecutionValue executionValue) {
-		return localVariables.put(variable, executionValue);
+	public void setValue(Value variable, ExecutionValue executionValue) {
+		ExecutionValue existingValue = localVariables.get(variable);
+		if (existingValue == null) {
+			localVariables.put(variable, executionValue);
+			return;
+		}
+		existingValue.setValue(executionValue);;
 	}
 
 	public void insertValue(Value variable, ExecutionValue value) {

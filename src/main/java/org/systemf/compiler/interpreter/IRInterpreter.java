@@ -7,8 +7,13 @@ import org.systemf.compiler.interpreter.value.IntValue;
 import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.GlobalVariable;
+import org.systemf.compiler.ir.type.Array;
+import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.type.Float;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
+import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.Instruction;
@@ -35,7 +40,8 @@ import org.systemf.compiler.ir.global.Function;
 
 import java.util.*;
 
-public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implements EntityProvider<IRInterpretedResult> {
+public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implements
+		EntityProvider<IRInterpretedResult> {
 
 	private final List<ExecutionContext> executionContextsStack = new ArrayList<>();
 	private final Map<Value, ExecutionValue> globalVarMap = new HashMap<>();
@@ -48,8 +54,11 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 
 	public void execute(Module module) {
 		mainReturnValue = null;
-		initializeGlobalVariable(module);
 		Function main = module.getFunction("main");
+		if (main == null) {
+			throw new RuntimeException("main function not found.");
+		}
+		initializeGlobalVariable(module);
 		ExecutionContext executionContext = new ExecutionContext(main.getEntryBlock(), main, 0, null);
 		executionContextsStack.add(executionContext);
 		ExecutionValue returnValue = null;
@@ -60,34 +69,49 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	}
 
 	public Constant getMainRet() {
-		if (mainReturnValue == null) {
-			throw new IllegalStateException("Main function has not been executed yet.");
-		}
 		if (mainReturnValue instanceof IntValue intValue) {
-			return new ConstantInt(intValue.value());
-		} else if (mainReturnValue instanceof FloatValue floatValue) {
-			return new ConstantFloat(floatValue.value());
-		} else{
-		    throw  new IllegalStateException("Not implemented yet: Array return value.");
-		}
+			return new ConstantInt(intValue.getValue() & 0xFF); // Ensure it fits in an 8-bit value
+		}else throw new IllegalStateException("Main return value is not an IntValue: " + mainReturnValue);
 	}
 
 	private void initializeGlobalVariable(Module module) {
 		globalVarMap.clear();
 		for (var entry : module.getGlobalDeclarations().entrySet()) {
 			GlobalVariable globalVariable = entry.getValue();
-			globalVarMap.put(globalVariable, formExecutionValue(globalVariable.getInitializer()));
+			globalVarMap.put(globalVariable, formExecutionValue(globalVariable.valueType, globalVariable.getInitializer()));
 		}
 	}
 
-	private ExecutionValue formExecutionValue(Constant constant) {
+	private ExecutionValue formExecutionValue(Type type, Constant constant) {
+		if (type instanceof Array array){
+			ExecutionValue[] values = new ExecutionValue[array.length];
+			var elementType = array.getElementType();
+			for (int i = 0; i < values.length; i++) {
+				values[i] = formExecutionValue(elementType, ((ConstantArray) constant).getContent(i));
+			}
+			return new ArrayValue(values);
+		}
 		return switch (constant) {
 			case ConstantInt intValue -> new IntValue((int) intValue.value);
 			case ConstantFloat constantFloat -> new FloatValue((float) constantFloat.value);
-			// TODO
-//			case ConstantArray constantArray -> new ArrayValue(constantArray.getContent());
-			default ->
-					throw new IllegalArgumentException("Unsupported constant type: " + constant.getClass().getName());
+			default -> new IntValue(0);
+		};
+	}
+
+	private ExecutionValue formExecutionValue(Type type) {
+		if (type instanceof Array array){
+			ExecutionValue[] values = new ExecutionValue[array.length];
+			var elementType = array.getElementType();
+			for (int i = 0; i < values.length; i++) {
+				values[i] = formExecutionValue(elementType);
+			}
+			return new ArrayValue(values);
+		}
+		return switch (type) {
+			case I32 ignored -> new IntValue(0);
+			case Float ignored -> new FloatValue(0.0f);
+//			default -> new IntValue(0);
+			default -> throw new IllegalArgumentException("Type is not an I32 or Float type.");
 		};
 	}
 
@@ -105,6 +129,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		}
 		if (value instanceof ConstantInt constantInt) return new IntValue((int) constantInt.value);
 		if (value instanceof ConstantFloat constantFloat) return new FloatValue((float) constantFloat.value);
+		if (value instanceof ConstantArray constantArray)  return formExecutionValue(value.getType(), constantArray);
 		return context.getValue(value);
 	}
 
@@ -123,8 +148,10 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 
 	private ExecutionValue executeBinaryOperation(ExecutionValue x, ExecutionValue y, DummyBinary dummyBinary) {
 
-		if (x instanceof IntValue(int left) && y instanceof IntValue(int right)) {
-			switch (dummyBinary){
+		if (x instanceof IntValue leftValue && y instanceof IntValue rightValue) {
+			int left = leftValue.getValue();
+			int right = rightValue.getValue();
+			switch (dummyBinary) {
 				case Add ignored -> {return new IntValue(left + right);}
 				case Sub ignored -> {return new IntValue(left - right);}
 				case Mul ignored -> {return new IntValue(left * right);}
@@ -174,7 +201,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	}
 
 	public ExecutionValue executeCmp(CompareOp compareOp, float x, float y) {
-		int comparisonResult = Float.compare(x, y);
+		int comparisonResult = java.lang.Float.compare(x, y);
 		return getCompareValue(compareOp, comparisonResult);
 	}
 
@@ -201,7 +228,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	}
 
 	@Override
-	public  ExecutionValue visit(FpToSi fpToSi) {
+	public ExecutionValue visit(FpToSi fpToSi) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(fpToSi.getX(), context);
 		int convertedValue = toInt(x);
@@ -223,7 +250,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	@Override
 	public ExecutionValue visit(Alloca alloca) {
 		ExecutionContext context = executionContextsStack.getLast();
-		context.insertValue(alloca, null);
+		context.insertValue(alloca, formExecutionValue(alloca.valueType));
 		return null;
 	}
 
@@ -233,7 +260,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		var dest = store.getDest();
 		var src = findValue(store.getSrc(), context);
 		setValue(dest, src, context);
-		return  null;
+		return null;
 	}
 
 	@Override
@@ -290,11 +317,12 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		// TODO
 		ExecutionContext context = executionContextsStack.getLast();
 		Value basePointer = getPtr.getArrayPtr();
-		ExecutionValue baseValue = findValue(basePointer, context);
+		int index = toInt(findValue(getPtr.getIndex(), context));
+		ArrayValue baseValue = (ArrayValue) findValue(basePointer, context);
 		if (baseValue == null) {
 			throw new IllegalStateException("Base pointer not found for GetPtr instruction: " + basePointer);
 		}
-		context.insertValue(getPtr, baseValue);
+		context.insertValue(getPtr, baseValue.getValue(index));
 		return null;
 	}
 
@@ -319,23 +347,24 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	}
 
 	private void setValue(Value value, ExecutionValue executionValue, ExecutionContext context) {
-		// TODO: modify executionValue but not replace it
+		// TODO: check this
 		if (value instanceof GlobalVariable globalVar) {
-			ExecutionValue x = globalVarMap.get(value);
+			ExecutionValue existingValue = globalVarMap.get(globalVar);
+			existingValue.setValue(executionValue);
 		} else {
 			context.setValue(value, executionValue);
 		}
 	}
 
 	private float toFloat(ExecutionValue value) {
-	    if (value instanceof FloatValue(float f)) return f;
-	    if (value instanceof IntValue(int i)) return (float) i;
-        throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
+		if (value instanceof FloatValue f) return f.getValue();
+		if (value instanceof IntValue i) return (float) i.getValue();
+		throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
 	}
 
 	private int toInt(ExecutionValue value) {
-		if (value instanceof IntValue(int i)) return i;
-		if (value instanceof FloatValue(float f)) return (int) f;
+		if (value instanceof IntValue i) return i.getValue();
+		if (value instanceof FloatValue f) return (int) f.getValue();
 		throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
 	}
 
@@ -350,17 +379,17 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		System.out.println("Current Instruction Index: " + currentContext.getCurrentInstructionIndex());
 		System.out.println("Local Variables: ");
 		for (Map.Entry<Value, ExecutionValue> entry : currentContext.getLocalVariables().entrySet()) {
-			System.out.print("  " + entry.getKey() + " = " );
+			System.out.print("  " + entry.getKey() + " = ");
 			ExecutionValue value = entry.getValue();
 			if (value == null) {
 				System.out.println("null");
 				continue;
 			}
 			switch (value) {
-				case IntValue intValue -> System.out.println("IntValue: " + intValue.value());
-				case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.value());
-				case ArrayValue arrayValue -> System.out.println("ArrayValue: " +
-				                                                 Arrays.toString(arrayValue.getValues()));
+				case IntValue intValue -> System.out.println("IntValue: " + intValue.getValue());
+				case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.getValue());
+				case ArrayValue arrayValue ->
+						System.out.println("ArrayValue: " + Arrays.toString(arrayValue.getValues()));
 				default -> System.out.println("Unknown Value Type: " + value.getClass().getName());
 			}
 		}

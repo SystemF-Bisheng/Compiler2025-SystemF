@@ -20,6 +20,17 @@ public class ArrayValue implements ExecutionValue {
 		values[index] = value;
 	}
 
+	public void setValue(ExecutionValue newValue) {
+		if (!(newValue instanceof ArrayValue)) {
+			throw new IllegalArgumentException("Expected ArrayValue, but got " + newValue.getClass().getSimpleName());
+		}
+		ArrayValue value = (ArrayValue) newValue;
+		for (int i = 0; i < values.length; i++) {
+			if (value.getValue(i) instanceof ArrayValue arrayValue) ((ArrayValue) values[i]).setValue(arrayValue);
+			else setValue(i, (value.getValue(i)));
+		}
+	}
+
 	public int getLength() {
 		return values.length;
 	}

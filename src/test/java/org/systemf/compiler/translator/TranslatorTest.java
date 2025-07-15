@@ -11,7 +11,8 @@ public class TranslatorTest {
 		var query = QueryManager.getInstance();
 		var code = CharStreams.fromString("""
 				int a = 0;
-				int global_arr[3][3] = {1, {2, 3}, 4, 5};
+				int global_arr[3][3] = {{1}, {2, 3}, 4, 5};
+				int d[4][2] = {1, 2, {3}, {5}, 7 , 8};
 				int main(int arg, int arr_in[][3]) {
 					arg = arg + 1;
 					arr_in[0][1] = arg;

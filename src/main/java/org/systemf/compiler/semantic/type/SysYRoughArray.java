@@ -9,7 +9,7 @@ public record SysYRoughArray(SysYType element) implements SysYType, ISysYArray {
 
 	@Override
 	public String toString() {
-		return element + "[?]";
+		return String.format("[? x %s]", element);
 	}
 
 	@Override

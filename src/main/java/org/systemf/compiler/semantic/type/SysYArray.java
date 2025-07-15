@@ -10,7 +10,7 @@ public record SysYArray(SysYType element, long length) implements SysYType, ISys
 
 	@Override
 	public String toString() {
-		return String.format("%s[%d]", element, length);
+		return String.format("[%d x %s]", length, element);
 	}
 
 	@Override

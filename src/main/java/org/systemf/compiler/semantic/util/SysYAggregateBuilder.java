@@ -10,7 +10,6 @@ import java.util.Objects;
 public class SysYAggregateBuilder<Ty, V, R> {
 	private final SysYAggregateHelper<Ty, V, R> aggregateHelper;
 	private final Deque<Pair<Ty, ArrayList<R>>> stack = new ArrayDeque<>();
-	private int depth;
 	private R result;
 
 	public SysYAggregateBuilder(SysYAggregateHelper<Ty, V, R> aggregateHelper) {
@@ -19,13 +18,11 @@ public class SysYAggregateBuilder<Ty, V, R> {
 
 	public void begin(Ty type) {
 		stack.push(Pair.of(type, new ArrayList<>()));
-		depth = 1;
 		result = null;
 	}
 
 	public R end() {
-		depth = 0;
-		fold();
+		while (!stack.isEmpty()) foldOnce();
 		return result;
 	}
 
@@ -74,18 +71,11 @@ public class SysYAggregateBuilder<Ty, V, R> {
 		if (aggregateHelper.aggregateCount(layer.left) == layer.right.size()) foldOnce();
 	}
 
-	private void fold() {
-		while (stack.size() > depth) foldOnce();
-	}
-
 	public void beginAggregate() {
-		fold();
-		++depth;
 		unfoldOnce();
 	}
 
 	public void endAggregate() {
-		--depth;
-		fold();
+		foldOnce();
 	}
 }

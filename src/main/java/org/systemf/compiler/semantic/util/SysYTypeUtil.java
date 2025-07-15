@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.parser.SysYParser;
+import org.systemf.compiler.semantic.IllegalSemanticException;
 import org.systemf.compiler.semantic.type.*;
 import org.systemf.compiler.semantic.value.ValueAndType;
 import org.systemf.compiler.semantic.value.ValueClass;
@@ -73,5 +74,11 @@ public class SysYTypeUtil {
 	public static boolean shouldInline(ValueAndType value) {
 		var type = value.type();
 		return value.valueClass() == ValueClass.RIGHT && (type == SysYInt.INT || type == SysYFloat.FLOAT);
+	}
+
+	public static void checkLeftType(SysYType type) {
+		if (type == SysYInt.INT) return;
+		if (type == SysYFloat.FLOAT) return;
+		throw new IllegalSemanticException("Cannot assign to type " + type);
 	}
 }

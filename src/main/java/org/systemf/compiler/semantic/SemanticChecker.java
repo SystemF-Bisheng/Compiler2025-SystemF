@@ -107,6 +107,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			var lTy = typeMap.get(ctx.lvalue);
 			var rTy = typeMap.get(ctx.value);
 			if (lTy.valueClass() != ValueClass.LEFT) throw new IllegalSemanticException("Cannot assign to right value");
+			SysYTypeUtil.checkLeftType(lTy.type());
 			if (!rTy.convertibleTo(ValueAndType.ofRight(lTy.type())))
 				throw new IllegalSemanticException(String.format("Cannot assign %s to %s", rTy, lTy));
 		}

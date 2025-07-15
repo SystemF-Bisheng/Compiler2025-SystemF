@@ -188,6 +188,11 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		}
 
 		@Override
+		public void exitParen(SysYParser.ParenContext ctx) {
+			typeMap.put(ctx, typeMap.get(ctx.expr()));
+		}
+
+		@Override
 		public void exitUnary(SysYParser.UnaryContext ctx) {
 			var op = ctx.op.getType();
 			var xTy = typeMap.get(ctx.x);

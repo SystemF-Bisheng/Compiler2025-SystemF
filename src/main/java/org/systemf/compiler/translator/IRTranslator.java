@@ -597,6 +597,15 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		}
 
 		@Override
+		public Value visitParen(SysYParser.ParenContext ctx) {
+			enterRule(ctx);
+			var res = visit(ctx.expr());
+			valueMap.put(ctx, res);
+			exitRule();
+			return res;
+		}
+
+		@Override
 		public Value visitUnary(SysYParser.UnaryContext ctx) {
 			enterRule(ctx);
 

@@ -95,13 +95,13 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public GlobalVariable buildGlobalVariable(String name, Type type, Constant initializer) {
-		GlobalVariable declaration = new GlobalVariable(module.getNonConflictName(name), type, initializer);
+		GlobalVariable declaration = new GlobalVariable(name, type, initializer);
 		module.addGlobalVariable(declaration);
 		return declaration;
 	}
 
 	public Function buildFunction(String name, Type returnType, Parameter... formalArgs) {
-		Function function = new Function(module.getNonConflictName(name), returnType, formalArgs);
+		Function function = new Function(name, returnType, formalArgs);
 		module.addFunction(function);
 		return function;
 	}

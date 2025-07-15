@@ -320,15 +320,19 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitIf(SysYParser.IfContext ctx) {
 			enterRule(ctx);
 
+			var oldTrueBlock = trueBlock;
+			var oldFalseBlock = falseBlock;
+
 			trueBlock = builder.buildBasicBlock(currentFunction, "ifTrue");
 			var mergeBlock = builder.buildBasicBlock(currentFunction, "ifMerge");
 
 			if (ctx.stmtFalse == null) falseBlock = mergeBlock;
 			else falseBlock = builder.buildBasicBlock(currentFunction, "ifFalse");
 
+			var oldAsCond = asCond;
 			asCond = true;
 			visit(ctx.cond);
-			asCond = false;
+			asCond = oldAsCond;
 
 			builder.attachToBlockTail(trueBlock);
 			visit(ctx.stmtTrue);
@@ -341,6 +345,9 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			}
 
 			builder.attachToBlockTail(mergeBlock);
+
+			trueBlock = oldTrueBlock;
+			falseBlock = oldFalseBlock;
 
 			exitRule();
 			return defaultResult();
@@ -360,11 +367,18 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			builder.buildBr(loopCond);
 			builder.attachToBlockTail(loopCond);
 
+			var oldAsCond = asCond;
+			var oldTrueBlock = trueBlock;
+			var oldFalseBlock = falseBlock;
 			asCond = true;
 			trueBlock = body;
 			falseBlock = loopMerge;
+
 			visit(ctx.cond);
-			asCond = false;
+
+			asCond = oldAsCond;
+			trueBlock = oldTrueBlock;
+			falseBlock = oldFalseBlock;
 
 			builder.attachToBlockTail(body);
 			visit(ctx.stmtTrue);
@@ -615,6 +629,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			if (asCond && op == SysYLexer.NOT) {
 				swapTrueFalse();
 				visit(x);
+				swapTrueFalse();
 
 				exitRule();
 				return defaultResult();
@@ -716,6 +731,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			enterRule(ctx);
 
 			var oldAsCond = asCond;
+			var oldTrueBlock = trueBlock;
+			var oldFalseBlock = falseBlock;
 
 			BasicBlock mergeBlock = null;
 			Value mergedValue = null;
@@ -758,6 +775,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			visit(y);
 
 			asCond = oldAsCond;
+			trueBlock = oldTrueBlock;
+			falseBlock = oldFalseBlock;
 
 			if (!asCond) {
 				builder.attachToBlockTail(mergeBlock);

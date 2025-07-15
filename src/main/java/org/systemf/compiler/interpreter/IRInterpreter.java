@@ -34,23 +34,17 @@ import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
-import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 
 import java.util.*;
 
-public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implements
-		EntityProvider<IRInterpretedResult> {
+public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 
 	private final List<ExecutionContext> executionContextsStack = new ArrayList<>();
 	private final Map<Value, ExecutionValue> globalVarMap = new HashMap<>();
 	private ExecutionValue mainReturnValue = null;
 
-	@Override
-	public IRInterpretedResult produce() {
-		throw new UnsupportedOperationException("IRInterpreter is not implemented yet.");
-	}
 
 	public void execute(Module module) {
 		mainReturnValue = null;
@@ -68,9 +62,9 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		mainReturnValue = returnValue;
 	}
 
-	public Constant getMainRet() {
+	public int getMainRet() {
 		if (mainReturnValue instanceof IntValue intValue) {
-			return new ConstantInt(intValue.getValue() & 0xFF); // Ensure it fits in an 8-bit value
+			return intValue.getValue() & 0xFF; // Ensure it fits in an 8-bit value
 		}else throw new IllegalStateException("Main return value is not an IntValue: " + mainReturnValue);
 	}
 
@@ -110,7 +104,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		return switch (type) {
 			case I32 ignored -> new IntValue(0);
 			case Float ignored -> new FloatValue(0.0f);
-//			default -> new IntValue(0);
 			default -> throw new IllegalArgumentException("Type is not an I32 or Float type.");
 		};
 	}
@@ -195,12 +188,12 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 		}
 	}
 
-	public ExecutionValue executeCmp(CompareOp compareOp, int x, int y) {
+	private ExecutionValue executeCmp(CompareOp compareOp, int x, int y) {
 		int comparisonResult = Integer.compare(x, y);
 		return getCompareValue(compareOp, comparisonResult);
 	}
 
-	public ExecutionValue executeCmp(CompareOp compareOp, float x, float y) {
+	private ExecutionValue executeCmp(CompareOp compareOp, float x, float y) {
 		int comparisonResult = java.lang.Float.compare(x, y);
 		return getCompareValue(compareOp, comparisonResult);
 	}
@@ -347,7 +340,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> implem
 	}
 
 	private void setValue(Value value, ExecutionValue executionValue, ExecutionContext context) {
-		// TODO: check this
 		if (value instanceof GlobalVariable globalVar) {
 			ExecutionValue existingValue = globalVarMap.get(globalVar);
 			existingValue.setValue(executionValue);

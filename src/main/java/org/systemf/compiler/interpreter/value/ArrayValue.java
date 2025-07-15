@@ -21,10 +21,9 @@ public class ArrayValue implements ExecutionValue {
 	}
 
 	public void setValue(ExecutionValue newValue) {
-		if (!(newValue instanceof ArrayValue)) {
+		if (!(newValue instanceof ArrayValue value)) {
 			throw new IllegalArgumentException("Expected ArrayValue, but got " + newValue.getClass().getSimpleName());
 		}
-		ArrayValue value = (ArrayValue) newValue;
 		for (int i = 0; i < values.length; i++) {
 			if (value.getValue(i) instanceof ArrayValue arrayValue) ((ArrayValue) values[i]).setValue(arrayValue);
 			else setValue(i, (value.getValue(i)));

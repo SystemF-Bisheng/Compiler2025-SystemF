@@ -85,8 +85,8 @@ public class IRInterpreterTest {
 			if (irValidator.check(module)){
 				IRInterpreter irInterpreter = new IRInterpreter();
 				irInterpreter.execute(module);
-				System.out.println("fib("+ n +") " + "Expected: " + fib(n) + ", got: " + ((ConstantInt) irInterpreter.getMainRet()).value);
-				if (((ConstantInt) irInterpreter.getMainRet()).value == fib(10)) {
+				System.out.println("fib("+ n +") " + "Expected: " + fib(n) + ", got: " + irInterpreter.getMainRet());
+				if (irInterpreter.getMainRet() == fib(10)) {
 					System.out.println("passed");
 				}else  {
 					System.out.println("failed");

@@ -420,7 +420,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitReturn(SysYParser.ReturnContext ctx) {
 			enterRule(ctx);
 
-			builder.buildRet(visit(ctx.ret));
+			if (ctx.ret == null) builder.buildRetVoid();
+			else builder.buildRet(visit(ctx.ret));
 
 			exitRule();
 			return defaultResult();

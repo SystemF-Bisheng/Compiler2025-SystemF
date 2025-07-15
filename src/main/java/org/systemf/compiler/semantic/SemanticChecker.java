@@ -35,6 +35,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 	private static class SemanticListener extends SysYParserBaseListener {
 		private static final ValueAndType RIGHT_INT = ValueAndType.ofRight(SysYInt.INT);
 		private static final ValueAndType RIGHT_FLOAT = ValueAndType.ofRight(SysYFloat.FLOAT);
+		private static final ValueAndType RIGHT_VOID = ValueAndType.ofRight(SysYVoid.VOID);
 		public final HashMap<ParserRuleContext, ValueAndType> typeMap = new HashMap<>();
 		public final Context<ValueAndType> context = new Context<>();
 		public ParserRuleContext currentContext;
@@ -150,7 +151,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 
 		@Override
 		public void exitReturn(SysYParser.ReturnContext ctx) {
-			var retTy = typeMap.get(ctx.ret);
+			var retTy = ctx.ret == null ? RIGHT_VOID : typeMap.get(ctx.ret);
 			if (!retTy.convertibleTo(ValueAndType.ofRight(retType)))
 				throw new IllegalSemanticException("Illegal return " + retTy);
 		}

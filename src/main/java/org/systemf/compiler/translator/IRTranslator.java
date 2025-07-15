@@ -153,9 +153,9 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitArray(SysYParser.ArrayContext ctx) {
 			enterRule(ctx);
 
-			currentAggregate.beginAggregate();
+			var dep = currentAggregate.beginAggregate();
 			ctx.eqInitializeVal().forEach(this::visit);
-			currentAggregate.endAggregate();
+			currentAggregate.endAggregate(dep);
 
 			exitRule();
 			return defaultResult();

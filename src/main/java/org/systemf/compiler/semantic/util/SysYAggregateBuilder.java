@@ -71,11 +71,12 @@ public class SysYAggregateBuilder<Ty, V, R> {
 		if (aggregateHelper.aggregateCount(layer.left) == layer.right.size()) foldOnce();
 	}
 
-	public void beginAggregate() {
+	public int beginAggregate() {
 		unfoldOnce();
+		return stack.size();
 	}
 
-	public void endAggregate() {
-		foldOnce();
+	public void endAggregate(int depth) {
+		while (stack.size() >= depth) foldOnce();
 	}
 }

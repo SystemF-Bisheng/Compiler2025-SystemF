@@ -1,6 +1,5 @@
 package org.systemf.compiler.ir.global;
 
-import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.interfaces.Type;
@@ -11,7 +10,7 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.ArrayList;
 
-public class Function extends DummyValue implements IGlobal, INamed {
+public class Function extends DummyValue implements IFunction {
 	final private String name;
 	final private ArrayList<BasicBlock> blocks;
 	final private Parameter[] formalArgs;

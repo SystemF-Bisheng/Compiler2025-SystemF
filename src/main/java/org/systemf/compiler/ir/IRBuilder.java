@@ -1,8 +1,10 @@
 package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
+import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.Void;
@@ -103,6 +105,16 @@ public class IRBuilder implements AutoCloseable {
 	public Function buildFunction(String name, Type returnType, Parameter... formalArgs) {
 		Function function = new Function(name, returnType, formalArgs);
 		module.addFunction(function);
+		return function;
+	}
+
+	public FunctionType buildFunctionType(Type returnType, Type... params) {
+		return new FunctionType(returnType, params);
+	}
+
+	public ExternalFunction buildExternalFunction(String name, Type returnType, Type... params) {
+		ExternalFunction function = new ExternalFunction(name, buildFunctionType(returnType, params));
+		module.addExternalFunction(function);
 		return function;
 	}
 
@@ -310,13 +322,13 @@ public class IRBuilder implements AutoCloseable {
 		return folder.tryFoldSiToFp(op).map(c -> (Value) c).orElseGet(() -> buildSiToFp(op, name));
 	}
 
-	public Call buildCall(Function function, String name, Value... args) {
+	public Call buildCall(IFunction function, String name, Value... args) {
 		Call callInst = new Call(module.getNonConflictName(name), function, args);
 		insertInstruction(callInst);
 		return callInst;
 	}
 
-	public CallVoid buildCallVoid(Function function, Value... args) {
+	public CallVoid buildCallVoid(IFunction function, Value... args) {
 		CallVoid callInst = new CallVoid(function, args);
 		insertInstruction(callInst);
 		return callInst;

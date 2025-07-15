@@ -6,6 +6,7 @@ import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
@@ -21,6 +22,7 @@ import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.semantic.IllegalSemanticException;
 import org.systemf.compiler.semantic.SemanticResult;
+import org.systemf.compiler.semantic.external.SysYExternalRegistry;
 import org.systemf.compiler.semantic.type.ISysYArray;
 import org.systemf.compiler.semantic.type.SysYFloat;
 import org.systemf.compiler.semantic.type.SysYInt;
@@ -94,6 +96,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			I32_NEG_ONE = builder.buildConstantInt(-1);
 			I32_ONE = builder.buildConstantInt(1);
 			FLOAT_ZERO = builder.buildConstantFloat(0);
+			SysYExternalRegistry.registerIR(builder);
 
 			typeUtil = new IRTypeUtil(builder);
 			valueUtil = new SysYValueUtil(builder);
@@ -486,7 +489,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitFunctionCall(SysYParser.FunctionCallContext ctx) {
 			enterRule(ctx);
 
-			var func = (Function) lookup(ctx.func.getText());
+			var func = (IFunction) lookup(ctx.func.getText());
 			var retType = TypeUtil.getReturnType(func.getType());
 
 			var oldAsCond = asCond;
@@ -524,7 +527,21 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitAccess(SysYParser.AccessContext ctx) {
 			enterRule(ctx);
 
-			var ptr = visit(ctx.varAccess());
+			var access = ctx.varAccess();
+
+			var oldAsCond = asCond;
+			asCond = false;
+			var ptr = visit(access);
+			asCond = oldAsCond;
+
+			if (query.getAttribute(access, ValueAndType.class).type() instanceof ISysYArray) {
+				if (asCond) throw new IllegalSemanticException("Array as condition");
+				valueMap.put(ctx, ptr);
+
+				exitRule();
+				return ptr;
+			}
+
 			var value = builder.buildLoad(ptr, "access");
 			if (asCond) {
 				useAsCond(query.getAttribute(ctx, ValueAndType.class).type(), value);

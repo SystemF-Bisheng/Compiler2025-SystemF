@@ -1,13 +1,12 @@
 package org.systemf.compiler.ir.global;
 
-import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.constant.Constant;
 
-public class GlobalVariable extends DummyValue implements IGlobal, INamed {
+public class GlobalVariable extends DummyValue implements IGlobal {
 	public final Type valueType;
 	private final String name;
 	private Constant initializer;

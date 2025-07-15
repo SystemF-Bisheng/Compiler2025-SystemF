@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir;
 
+import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.value.Value;
@@ -8,17 +9,11 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Module {
-	private final HashMap<String, GlobalVariable> declarations;
-	private final HashMap<String, Function> functions;
-	private final Set<String> occupiedNames;
-	private boolean irBuilderAttached;
-
-	public Module() {
-		this.irBuilderAttached = false;
-		this.declarations = new HashMap<>();
-		this.functions = new HashMap<>();
-		this.occupiedNames = new HashSet<>();
-	}
+	private final HashMap<String, GlobalVariable> declarations = new HashMap<>();
+	private final HashMap<String, Function> functions = new HashMap<>();
+	private final HashMap<String, ExternalFunction> externalFunctions = new HashMap<>();
+	private final Set<String> occupiedNames = new HashSet<>();
+	private boolean irBuilderAttached = false;
 
 	public String getNonConflictName(String originalName) {
 		if (!occupiedNames.contains(originalName)) {
@@ -37,10 +32,14 @@ public class Module {
 		}
 	}
 
+	private void checkGlobalName(String name) {
+		if (declarations.containsKey(name) || functions.containsKey(name) || externalFunctions.containsKey(name))
+			throw new IllegalStateException("Duplicate declaration: " + name);
+	}
+
 	public void addGlobalVariable(GlobalVariable declaration) {
 		var name = declaration.getName();
-		if (declarations.containsKey(name) || functions.containsKey(name))
-			throw new IllegalStateException("Duplicate declaration: " + name);
+		checkGlobalName(name);
 		declarations.put(name, declaration);
 	}
 
@@ -58,8 +57,7 @@ public class Module {
 
 	public void addFunction(Function declaration) {
 		var name = declaration.getName();
-		if (declarations.containsKey(name) || functions.containsKey(name))
-			throw new IllegalStateException("Duplicate function: " + name);
+		checkGlobalName(name);
 		functions.put(name, declaration);
 	}
 
@@ -75,10 +73,30 @@ public class Module {
 		return functions.get(name);
 	}
 
+	public void addExternalFunction(ExternalFunction externalFunction) {
+		var name = externalFunction.getName();
+		checkGlobalName(name);
+		externalFunctions.put(name, externalFunction);
+	}
+
+	public void removeExternalFunction(ExternalFunction externalFunction) {
+		externalFunctions.remove(externalFunction.getName());
+	}
+
+	public Map<String, ExternalFunction> getExternalFunctions() {
+		return Collections.unmodifiableMap(externalFunctions);
+	}
+
+	public ExternalFunction getExternalFunction(String name) {
+		return externalFunctions.get(name);
+	}
+
 	public Value lookupGlobal(String name) {
 		var variable = getGlobalVariable(name);
 		if (variable != null) return variable;
-		return getFunction(name);
+		var func = getFunction(name);
+		if (func != null) return func;
+		return getExternalFunction(name);
 	}
 
 	public void attachIRBuilder() {
@@ -94,10 +112,10 @@ public class Module {
 	}
 
 	public void dump(PrintStream out) {
-		declarations.values().forEach(out::println);
-
+		externalFunctions.values().forEach(out::println);
 		out.println();
-
+		declarations.values().forEach(out::println);
+		out.println();
 		functions.values().forEach(out::println);
 	}
 }

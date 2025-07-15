@@ -10,31 +10,54 @@ public class TranslatorTest {
 		QueryRegistry.registerAll();
 		var query = QueryManager.getInstance();
 		var code = CharStreams.fromString("""
-				int a = 0;
-				int global_arr[3][3] = {{1}, {2, 3}, 4, 5};
-				int d[4][2] = {1, 2, {3}, {5}, 7 , 8};
-				int main(int arg, int arr_in[][3]) {
-					arg = arg + 1;
-					arr_in[0][1] = arg;
-					global_arr[0][0] = arg;
-					int b = 0xFF;
-					int c = (a + b) * (b + arg);
-					int iArr[2][3][4] = {1, 2, 3, 4, {5}, {}};
-					c = c + 1;
-					int d = 1.0;
-					int arr[2][3] = {1, 2, 3, 4, 5, d};
-					arr[0][1] = 0;
-					if (b && c) {
-						d = 2.0;
-					}
-					while (b > 0) {
-						b = b - 1;
-						if (c < 5) {
-							break;
-						}
-					}
-					if (b == 0) return c;
+				int buf[2][100];
+				
+				// sort [l, r)
+				void merge_sort(int l, int r)
+				{
+				    if (l + 1 >= r)
+				        return;
+				
+				    int mid = (l + r) / 2;
+				    merge_sort(l, mid);
+				    merge_sort(mid, r);
+				
+				    int i = l, j = mid, k = l;
+				    while (i < mid && j < r) {
+				        if (buf[0][i] < buf[0][j]) {
+				            buf[1][k] = buf[0][i];
+				            i = i + 1;
+				        } else {
+				            buf[1][k] = buf[0][j];
+				            j = j + 1;
+				        }
+				        k = k + 1;
+				    }
+				    while (i < mid) {
+				        buf[1][k] = buf[0][i];
+				        i = i + 1;
+				        k = k + 1;
+				    }
+				    while (j < r) {
+				        buf[1][k] = buf[0][j];
+				        j = j + 1;
+				        k = k + 1;
+				    }
+				
+				    while (l < r) {
+				        buf[0][l] = buf[1][l];
+				        l = l + 1;
+				    }
 				}
+				
+				int main()
+				{
+				    int n = getarray(buf[0]);
+				    merge_sort(0, n);
+				    putarray(n, buf[0]);
+				    return 0;
+				}
+				
 				""");
 		query.registerProvider(CharStream.class, () -> code);
 		query.get(IRTranslatedResult.class).module().dump(System.out);

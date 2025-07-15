@@ -8,6 +8,7 @@ import org.systemf.compiler.parser.SysYParser;
 import org.systemf.compiler.parser.SysYParserBaseListener;
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.semantic.external.SysYExternalRegistry;
 import org.systemf.compiler.semantic.type.*;
 import org.systemf.compiler.semantic.util.SysYTypeUtil;
 import org.systemf.compiler.semantic.value.ValueAndType;
@@ -32,8 +33,8 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 	}
 
 	private static class SemanticListener extends SysYParserBaseListener {
-		private static final ValueAndType RIGHT_INT = new ValueAndType(ValueClass.RIGHT, SysYInt.INT);
-		private static final ValueAndType RIGHT_FLOAT = new ValueAndType(ValueClass.RIGHT, SysYFloat.FLOAT);
+		private static final ValueAndType RIGHT_INT = ValueAndType.ofRight(SysYInt.INT);
+		private static final ValueAndType RIGHT_FLOAT = ValueAndType.ofRight(SysYFloat.FLOAT);
 		public final HashMap<ParserRuleContext, ValueAndType> typeMap = new HashMap<>();
 		public final Context<ValueAndType> context = new Context<>();
 		public ParserRuleContext currentContext;
@@ -42,6 +43,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 
 		public SemanticListener() {
 			context.push();
+			SysYExternalRegistry.registerSysY(context);
 		}
 
 		@Override
@@ -70,10 +72,10 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			retType = SysYTypeUtil.typeFromRetType(ctx.retType());
 			var funcType = new SysYFunction(retType,
 					ctx.funcParam().stream().map(SysYTypeUtil::typeFromFuncParam).toArray(SysYType[]::new));
-			context.define(ctx.name.getText(), new ValueAndType(ValueClass.RIGHT, funcType));
+			context.define(ctx.name.getText(), ValueAndType.ofRight(funcType));
 			context.push();
 			ctx.funcParam().forEach(param -> context.define(param.name.getText(),
-					new ValueAndType(ValueClass.LEFT, SysYTypeUtil.typeFromFuncParam(param))));
+					ValueAndType.ofLeft(SysYTypeUtil.typeFromFuncParam(param))));
 		}
 
 		@Override
@@ -97,7 +99,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			var lTy = typeMap.get(ctx.lvalue);
 			var rTy = typeMap.get(ctx.value);
 			if (lTy.valueClass() != ValueClass.LEFT) throw new IllegalSemanticException("Cannot assign to right value");
-			if (!rTy.convertibleTo(new ValueAndType(ValueClass.RIGHT, lTy.type())))
+			if (!rTy.convertibleTo(ValueAndType.ofRight(lTy.type())))
 				throw new IllegalSemanticException(String.format("Cannot assign %s to %s", rTy, lTy));
 		}
 
@@ -149,7 +151,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		@Override
 		public void exitReturn(SysYParser.ReturnContext ctx) {
 			var retTy = typeMap.get(ctx.ret);
-			if (!retTy.convertibleTo(new ValueAndType(ValueClass.RIGHT, retType)))
+			if (!retTy.convertibleTo(ValueAndType.ofRight(retType)))
 				throw new IllegalSemanticException("Illegal return " + retTy);
 		}
 
@@ -173,13 +175,13 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			if (args.length != params.length) throw new IllegalSemanticException(
 					String.format("Illegal number of arguments, expected %d, given %d", args.length, params.length));
 			for (int i = 0; i < args.length; ++i) {
-				var arg = new ValueAndType(ValueClass.RIGHT, args[i]);
+				var arg = ValueAndType.ofRight(args[i]);
 				typeMap.put(ctx.funcRealParam(i), arg);
 				var param = params[i];
 				if (!param.convertibleTo(arg)) throw new IllegalSemanticException(
 						String.format("Illegal parameter, expected %s, given %s", arg, param));
 			}
-			typeMap.put(ctx, new ValueAndType(ValueClass.RIGHT, result));
+			typeMap.put(ctx, ValueAndType.ofRight(result));
 		}
 
 		@Override
@@ -216,7 +218,7 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 			var yTy = typeMap.get(y).type();
 			if (!(xTy instanceof SysYNumeric xNum)) throw new IllegalSemanticException("Illegal 1st operand " + xTy);
 			if (!(yTy instanceof SysYNumeric yNum)) throw new IllegalSemanticException("Illegal 2nd operand " + yTy);
-			typeMap.put(cur, new ValueAndType(ValueClass.RIGHT, SysYTypeUtil.elevatedType(xNum, yNum)));
+			typeMap.put(cur, ValueAndType.ofRight(SysYTypeUtil.elevatedType(xNum, yNum)));
 		}
 
 		@Override

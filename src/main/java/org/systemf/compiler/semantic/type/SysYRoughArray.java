@@ -4,7 +4,10 @@ public record SysYRoughArray(SysYType element) implements SysYType, ISysYArray {
 	@Override
 	public boolean convertibleTo(SysYType other) {
 		if (equals(other)) return true;
-		return other instanceof SysYIncompleteArray(SysYType otherElement) && element.equals(otherElement);
+		if (other instanceof SysYIncompleteArray(SysYType otherElement) && element.equals(otherElement)) return true;
+		if (element instanceof SysYRoughArray innerArr)
+			return new SysYRoughArray(innerArr.getElement()).convertibleTo(other);
+		return false;
 	}
 
 	@Override

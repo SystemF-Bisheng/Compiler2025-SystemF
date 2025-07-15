@@ -269,6 +269,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			visit(ctx.stmtBlock());
 
 			if ("main".equals(funcName)) builder.buildRet(I32_ZERO);
+			else if (VOID.equals(retType)) builder.buildRetVoid();
 			else builder.buildUnreachable();
 
 			context.pop();
@@ -501,12 +502,23 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		public Value visitFunctionCall(SysYParser.FunctionCallContext ctx) {
 			enterRule(ctx);
 
-			var func = (IFunction) lookup(ctx.func.getText());
+			var funcName = ctx.func.getText();
+
+			boolean macroFlag = false;
+			if ("starttime".equals(funcName) || "stoptime".equals(funcName)) {
+				macroFlag = true;
+				funcName = "_sysy_" + funcName;
+			}
+
+			var func = (IFunction) lookup(funcName);
+
 			var retType = TypeUtil.getReturnType(func.getType());
 
 			var oldAsCond = asCond;
 			asCond = false;
-			var params = ctx.funcRealParam().stream().map(param -> {
+			Value[] params;
+			if (macroFlag) params = new Value[]{builder.buildConstantInt(ctx.getStart().getLine())};
+			else params = ctx.funcRealParam().stream().map(param -> {
 				var orgType = query.getAttribute(param.expr(), ValueAndType.class).type();
 				var targetType = query.getAttribute(param, ValueAndType.class).type();
 				return valueUtil.convertTo(visit(param), orgType, targetType);

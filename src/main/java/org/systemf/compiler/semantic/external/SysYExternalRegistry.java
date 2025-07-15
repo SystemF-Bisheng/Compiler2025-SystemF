@@ -24,6 +24,9 @@ public class SysYExternalRegistry {
 		context.define("putfloat", ValueAndType.ofRight(new SysYFunction(VOID, FLOAT)));
 		context.define("putarray", ValueAndType.ofRight(new SysYFunction(VOID, INT, IARR)));
 		context.define("putfarray", ValueAndType.ofRight(new SysYFunction(VOID, INT, FARR)));
+
+		context.define("starttime", ValueAndType.ofRight(new SysYFunction(VOID)));
+		context.define("stoptime", ValueAndType.ofRight(new SysYFunction(VOID)));
 	}
 
 	public static void registerIR(IRBuilder builder) {
@@ -44,5 +47,8 @@ public class SysYExternalRegistry {
 		builder.buildExternalFunction("putfloat", VOID, FLOAT);
 		builder.buildExternalFunction("putarray", VOID, I32, I32ARR);
 		builder.buildExternalFunction("putfarray", VOID, I32, FARR);
+
+		builder.buildExternalFunction("_sysy_starttime", VOID, I32);
+		builder.buildExternalFunction("_sysy_stoptime", VOID, I32);
 	}
 }

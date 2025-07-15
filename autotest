@@ -46,6 +46,25 @@ class TestMode(Enum):
         TestMode.PERF: '-perf',
     }[self]
 
+@unique
+class RunMode(Enum):
+  '''
+  Run mode.
+  '''
+  COMPLETE = auto()
+  BARE_RUN = auto()
+  SIMULATED = auto()
+
+  def to_opt(self) -> str:
+    '''
+    Converts the current test mode to command line option.
+    '''
+    return {
+        RunMode.COMPLETE: '--complete',
+        RunMode.BARE_RUN: '--bare-run',
+        RunMode.SIMULATED: '--simulated',
+    }[self]
+
 
 @dataclass(frozen=True)
 class CompilerInfo:
@@ -304,17 +323,15 @@ def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
     return result
   return None
 
-
 def run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
   '''
-  Runs the generated output executable and checks the result.
+  Runs the designated executable and checks the result.
   '''
   # execute output file
   inputs = None
   if case.input_file:
     with open(case.input_file, 'r') as f:
       inputs = f.read().encode('utf-8')
-  exe = f'qemu-riscv32-static {exe}'
   try:
     result = subprocess.run(exe, shell=True, timeout=RUN_TIMEOUT_SEC,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -338,8 +355,13 @@ def run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
   status = TestStatus.PASSED if out == ref else TestStatus.WRONG_ANSWER
   return TestResult(status, out, time, (stdout, stderr))
 
+def qemu_run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
+  '''
+  Runs the generated output executable with qemu and checks the result.
+  '''
+  return run_output(mode, case, f'qemu-riscv32-static {exe}')
 
-def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, bare_run: bool) -> TestResult:
+def run_test_complete(mode: TestMode, compiler: CompilerInfo, case: TestCase):
   '''
   Runs the test for the given compiler by using the given test case.
 
@@ -357,18 +379,40 @@ def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, bare_run: b
   if not os.path.exists(output):
     return TestResult(TestStatus.OUTPUT_NOT_FOUND)
 
-  # stop if this is a bare run
-  if bare_run:
-    return TestResult(TestStatus.PASSED)
-
   # assembly output file
   asm = asm_riscv
   if result := asm(output, obj, exe):
     return result
-  return run_output(mode, case, exe)
+  return qemu_run_output(mode, case, exe)
+
+def run_test_bare(mode: TestMode, compiler: CompilerInfo, case: TestCase):
+  output = os.path.join(compiler.working_dir, TEMP_OUTPUT_FILE)
+  # compile test case
+  cmd = f'{compiler.compile_cmd} {mode.to_opt()} {case.source_file} -o {output}'
+  if result := execute(cmd, COMP_TIMEOUT_SEC, TestStatus.COMP_ERROR,
+                       TestStatus.COMP_TIME_EXCEEDED):
+    return result
+  # check output file
+  if not os.path.exists(output):
+    return TestResult(TestStatus.OUTPUT_NOT_FOUND)
+
+  return TestResult(TestStatus.PASSED)
+
+def run_test_simulated(mode: TestMode, compiler: CompilerInfo, case: TestCase):
+  cmd = f'{compiler.compile_cmd} {mode.to_opt()} {case.source_file}'
+  return run_output(mode, case, cmd)
+
+def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, run_mode: RunMode) -> TestResult:
+  match run_mode:
+    case RunMode.COMPLETE:
+      return run_test_complete(mode, compiler, case)
+    case RunMode.BARE_RUN:
+      return run_test_bare(mode, compiler, case)
+    case RunMode.SIMULATED:
+      return run_test_simulated(mode, compiler, case)
 
 
-def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], bare_run: bool):
+def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], run_mode: RunMode):
   '''
   Runs test for all test cases.
 
@@ -378,7 +422,7 @@ def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], bar
   # run all tests
   for case in cases:
     eprint(f'running test "{case.name}" ... ', end='')
-    result = run_test(mode, compiler, case, bare_run)
+    result = run_test(mode, compiler, case, run_mode)
     result.show_details()
     if result.status == TestStatus.PASSED:
       if mode == TestMode.PERF:
@@ -414,11 +458,15 @@ if __name__ == '__main__':
   parser.add_argument('--repo_dir', type=str,
                       default=os.path.dirname(os.path.realpath(__file__)),
                       help='compiler repository directory')
-  parser.add_argument('-B', '--bare_run',
-                      default=False,
-                      action='store_true',
-                      help='just run the compiler and get the output, ' +
-                           'without doing anything further')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument('-C', '--complete', action='store_const', const=RunMode.COMPLETE,
+                     dest='run_mode', help='normal running process')
+  group.add_argument('-B', '--bare-run', action='store_const', const=RunMode.BARE_RUN,
+                     dest='run_mode', help='barely run the compiler and get the output, without doing anything further')
+  group.add_argument('-S', '--simulated', action='store_const', const=RunMode.SIMULATED,
+                     dest='run_mode', help='directly use the compiler as a simulator')
+  parser.set_defaults(run_mode=RunMode.COMPLETE)
+
 
   # parse arguments
   args = parser.parse_args()
@@ -441,7 +489,7 @@ if __name__ == '__main__':
 
   # run test
   try:
-    run_tests(args.mode, compiler, cases, args.bare_run)
+    run_tests(args.mode, compiler, cases, args.run_mode)
   except KeyboardInterrupt:
     eprint(f'\033[0;33mINTERRUPTED\033[0m')
   finally:

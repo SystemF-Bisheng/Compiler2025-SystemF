@@ -1,9 +1,16 @@
 int main() {
     int i = 10;
     int sum = 0;
-    for (int i = 0; i < 10; i = i + 1) {
-        if (i % 2 == 0) continue;
-        sum = sum + i;
+    {
+        int i = 0;
+        while (i < 10) {
+            if (i % 2 == 0) {
+                i = i + 1;
+                continue;
+            }
+            sum = sum + i;
+            i = i + 1;
+        }
     }
     return sum;
 }

@@ -1,16 +1,6 @@
 int buf[2][100];
 
 // sort [low, high)
-void merge_sort(int low, int high);
-
-int main()
-{
-    int n = getarray(buf[0]);
-    merge_sort(0, n);
-    putarray(n, buf[0]);
-    return 0;
-}
-
 void merge_sort(int l, int r)
 {
     if (l + 1 >= r)
@@ -46,4 +36,12 @@ void merge_sort(int l, int r)
         buf[0][l] = buf[1][l];
         l = l + 1;
     }
+}
+
+int main()
+{
+    int n = getarray(buf[0]);
+    merge_sort(0, n);
+    putarray(n, buf[0]);
+    return 0;
 }

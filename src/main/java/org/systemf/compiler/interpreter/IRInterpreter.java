@@ -328,6 +328,14 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return null;
 	}
 
+	private String formatFloat(float f) {
+		var res = java.lang.Float.toHexString(f);
+		res = res.replace(".0p", "p");
+		var pPos = res.indexOf('p');
+		if (res.charAt(pPos + 1) != '-') res = res.replace("p", "p+");
+		return res;
+	}
+
 	private void executeExternalFunction(AbstractCall abstractCall) {
 		ExternalFunction externalFunction = (ExternalFunction) abstractCall.getFunction();
 		ExecutionContext context = executionContextsStack.getLast();
@@ -351,7 +359,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			case "putfloat" -> {
 				ExecutionValue value = findValue(abstractCall.getArgs()[0], context);
 				if (value instanceof FloatValue floatValue) {
-					output.printf("%a", floatValue.getValue());
+					output.print(formatFloat(floatValue.getValue()));
 				} else {
 					throw new IllegalArgumentException("Expected FloatValue for putfloat, got: " + value);
 				}
@@ -401,7 +409,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 					if (arrayValue.getValue(i) instanceof IntValue intValue) {
 						output.print(intValue.getValue());
 					} else if (arrayValue.getValue(i) instanceof FloatValue floatValue) {
-						output.printf("%a", floatValue.getValue());
+						output.print(formatFloat(floatValue.getValue()));
 					} else {
 						throw new IllegalArgumentException("Unexpected value type in array: " + arrayValue.getValue(i));
 					}

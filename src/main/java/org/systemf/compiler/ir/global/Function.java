@@ -16,11 +16,13 @@ public class Function extends DummyValue implements IFunction {
 	final private String name;
 	final private HashSet<BasicBlock> blocks = new HashSet<>();
 	private BasicBlock entryBlock;
+	private final Type returnType;
 	final private Parameter[] formalArgs;
 
 	public Function(String name, Type returnType, Parameter... formalArgs) {
 		super(buildFunctionType(returnType, formalArgs));
 		this.name = name;
+		this.returnType = returnType;
 		this.formalArgs = formalArgs;
 	}
 
@@ -81,5 +83,9 @@ public class Function extends DummyValue implements IFunction {
 		}
 		sb.append("}\n");
 		return sb.toString();
+	}
+
+	public Type getReturnType() {
+		return returnType;
 	}
 }

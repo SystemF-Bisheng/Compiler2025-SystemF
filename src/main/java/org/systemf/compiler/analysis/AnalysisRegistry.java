@@ -6,5 +6,6 @@ public class AnalysisRegistry {
 	public static void registerAll() {
 		var query = QueryManager.getInstance();
 		query.registerProvider(CFGAnalysis.INSTANCE);
+		query.registerProvider(PointerAnalysis.INSTANCE);
 	}
 }

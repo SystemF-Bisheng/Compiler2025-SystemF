@@ -18,7 +18,7 @@ public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> 
 		out.predecessors().computeIfAbsent(to, _ -> new HashSet<>()).add(from);
 	}
 
-	private void analysisFunction(Function function, CFGAnalysisResult out) {
+	private void analyzeFunction(Function function, CFGAnalysisResult out) {
 		for (var basicBlock : function.getBlocks()) {
 			var terminator = basicBlock.getTerminator();
 			if (terminator instanceof Br br) addEdge(basicBlock, br.getTarget(), out);
@@ -32,7 +32,7 @@ public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> 
 	@Override
 	public CFGAnalysisResult getAttribute(Module entity) {
 		var res = new CFGAnalysisResult(new HashMap<>(), new HashMap<>());
-		entity.getFunctions().values().forEach(f -> analysisFunction(f, res));
+		entity.getFunctions().values().forEach(f -> analyzeFunction(f, res));
 		return res;
 	}
 }

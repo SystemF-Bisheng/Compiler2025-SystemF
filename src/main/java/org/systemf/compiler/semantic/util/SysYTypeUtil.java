@@ -67,7 +67,7 @@ public class SysYTypeUtil {
 	}
 
 	public static SysYNumeric elevatedType(SysYNumeric a, SysYNumeric b) {
-		if (a.equals(b)) return b;
+		if (a.compare(b)) return b;
 		return a;
 	}
 

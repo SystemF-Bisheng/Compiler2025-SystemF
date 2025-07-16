@@ -43,6 +43,7 @@ public class NonConstantAggregateHelper extends SimpleIRAggregateHelper<Either<C
 
 	@Override
 	public Either<Constant, Consumer<Value>> aggregate(SysYType type, List<Either<Constant, Consumer<Value>>> content) {
+		if (content.isEmpty()) return aggregateDefault(type);
 		padContent(type, content);
 
 		if (type == SysYInt.INT) return content.getFirst();

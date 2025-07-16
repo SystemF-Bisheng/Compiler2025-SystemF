@@ -33,6 +33,7 @@ public class ConstantAggregateHelper extends SimpleIRAggregateHelper<Constant> {
 
 	@Override
 	public Constant aggregate(SysYType type, List<Constant> content) {
+		if (content.isEmpty()) return aggregateDefault(type);
 		padContent(type, content);
 		return valueUtil.aggregateConstant(type, content);
 	}

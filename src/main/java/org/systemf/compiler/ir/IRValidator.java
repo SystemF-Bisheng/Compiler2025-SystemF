@@ -2,16 +2,21 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.type.Void;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
+import org.systemf.compiler.ir.value.instruction.terminal.Ret;
+import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 
 public class IRValidator extends InstructionVisitorBase<Boolean> {
 	private StringBuilder errorMessage = new StringBuilder();
+	private Type retType;
 
 	public String getErrorMessage() {
 		return errorMessage.toString();
@@ -48,6 +53,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			addErrorInfo("Function " + function.getName() + " have an entry block that doesn't belong to it.");
 			valid = false;
 		}
+		retType = function.getReturnType();
 		for (var block : blocks) valid &= check(block);
 		return valid;
 	}
@@ -117,6 +123,26 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 		if (!(srcType.convertibleTo(destType))) {
 			addErrorInfo(String.format("Store: Src type %s isn't convertible to the element type %s of dest", srcType,
 					destType));
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public Boolean visit(RetVoid inst) {
+		if (Void.INSTANCE != retType) {
+			addErrorInfo(String.format("RetVoid: Return type %s is not void", retType));
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public Boolean visit(Ret inst) {
+		var valueType = inst.getReturnValue().getType();
+		if (!valueType.convertibleTo(retType)) {
+			addErrorInfo(String.format("Ret: Return value of type %s is not convertible to return type %s", valueType,
+					retType));
 			return false;
 		}
 		return true;

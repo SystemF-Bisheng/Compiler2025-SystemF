@@ -3,6 +3,7 @@ package org.systemf.compiler.translator;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.systemf.compiler.ir.IRBuilder;
+import org.systemf.compiler.ir.IRValidator;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -61,6 +62,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 				throw IllegalSemanticException.wrap(visitor.contextStack.peek(), e);
 			}
 		}
+		var validator = new IRValidator();
+		if (!validator.check(res)) throw new IllegalSemanticException(validator.getErrorMessage());
 		return new IRTranslatedResult(res);
 	}
 

@@ -10,6 +10,9 @@ import org.systemf.compiler.query.AttributeProvider;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/**
+ * Build control flow graph
+ */
 public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> {
 	INSTANCE;
 

@@ -18,6 +18,9 @@ import org.systemf.compiler.util.GraphClosure;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/**
+ * Interprocedural pointer analysis, inclusion based
+ */
 public enum PointerAnalysis implements AttributeProvider<Module, PointerAnalysisResult> {
 	INSTANCE;
 

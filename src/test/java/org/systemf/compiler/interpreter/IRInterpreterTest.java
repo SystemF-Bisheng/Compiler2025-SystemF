@@ -1,108 +1,82 @@
 package org.systemf.compiler.interpreter;
 
-import org.systemf.compiler.ir.IRBuilder;
-import org.systemf.compiler.ir.IRValidator;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.systemf.compiler.ir.Module;
-import org.systemf.compiler.ir.block.BasicBlock;
-import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.global.GlobalVariable;
-import org.systemf.compiler.ir.type.Float;
-import org.systemf.compiler.ir.type.I32;
-import org.systemf.compiler.ir.value.Parameter;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Sub;
-import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
+import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.query.QueryRegistry;
+import org.systemf.compiler.translator.IRTranslatedResult;
 
 import java.util.Scanner;
 
-import static org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp.LE;
-
 public class IRInterpreterTest {
-
 	public static void main(String[] args) {
 
-		int n = 10; // Change this value to test different Fibonacci numbers
+		QueryRegistry.registerAll();
+		var query = QueryManager.getInstance();
 
-		Module module = new Module();
-		try (IRBuilder builder = new IRBuilder(module)) {
-			final I32 I32 = builder.buildI32Type();
-			final Float Float = builder.buildFloatType();
-			// Fibonacci to test recursion
-
-			GlobalVariable g1 = builder.buildGlobalVariable("g1", I32, builder.buildConstantInt(n));
-
-			Function main = builder.buildFunction("main", I32);
-
-			Parameter param1 = builder.buildParameter(I32, "param1");
-			Function fib = builder.buildFunction("fib", I32, param1);
-
-			BasicBlock entry = main.getEntryBlock();
-			BasicBlock fibEntry = fib.getEntryBlock();
-
-			builder.attachToBlockTail(entry);
-			Load loadG1 = builder.buildLoad(g1, "loadG1");
-			var call = builder.buildCall(fib, "fibcall", loadG1);
-			builder.buildRet(call);
-
-			builder.attachToBlockTail(fibEntry);
-			Alloca alloca2 = builder.buildAlloca(I32, "alloca1");
-			Alloca alloca3 = builder.buildAlloca(I32, "alloca");
-			builder.buildStore(param1, alloca3);
-			Load load4 = builder.buildLoad(alloca3, "load");
-			ICmp cmp5 = builder.buildICmp(load4, builder.buildConstantInt(1), "cmp", LE);
-			BasicBlock block1 = builder.buildBasicBlock(fib, "1");
-			BasicBlock block2 = builder.buildBasicBlock(fib, "2");
-			BasicBlock returnBlock = builder.buildBasicBlock(fib, "return");
-
-			CondBr condBr = builder.buildCondBr(cmp5, block1, block2);
-
-			builder.attachToBlockTail(block1);
-			Load load7 = builder.buildLoad(alloca3, "load2");
-			Store store = builder.buildStore(load7, alloca2);
-			builder.buildBr(returnBlock);
-
-			builder.attachToBlockTail(block2);
-			Load load9 = builder.buildLoad(alloca3, "load3");
-			Sub sub10 = builder.buildSub(load9, builder.buildConstantInt(1), "sub");
-			Call call11 = builder.buildCall(fib, "fibcall", sub10);
-			Load load12 = builder.buildLoad(alloca3, "load4");
-			Sub sub13 = builder.buildSub(load12, builder.buildConstantInt(2), "sub2");
-			Call call14 = builder.buildCall(fib, "fibcall", sub13);
-			Add add15 = builder.buildAdd(call11, call14, "add");
-			builder.buildStore(add15, alloca2);
-			builder.buildBr(returnBlock);
-
-			builder.attachToBlockTail(returnBlock);
-			Load load16 = builder.buildLoad(alloca2, "load5");
-			builder.buildRet(load16);
-
-
-			IRValidator irValidator = new IRValidator();
-			if (irValidator.check(module)){
-				IRInterpreter irInterpreter = new IRInterpreter();
-				Scanner scanner = new Scanner("");
-				irInterpreter.execute(module, scanner, System.out);
-				scanner.close();
-				System.out.println("fib("+ n +") " + "Expected: " + fib(n) + ", got: " + irInterpreter.getMainRet());
-				if (irInterpreter.getMainRet() == fib(10)) {
-					System.out.println("passed");
-				}else  {
-					System.out.println("failed");
+		var input = CharStreams.fromString("""
+				// float global constants
+				const float RADIUS = 5.5, PI = 03.141592653589793, EPS = 1e-6;
+				
+				// hexadecimal float constant
+				const float PI_HEX = 0x1.921fb6p+1;
+				
+				// float constant evaluation
+				const float EVAL2 = 2 * PI_HEX * RADIUS, EVAL3 = PI * 2 * RADIUS;
+				
+				// float -> float function
+				float float_abs(float x) {
+				  if (x < 0) return -x;
+				  return x;
 				}
+				
+				// float -> float -> int function & float/int expression
+				int float_eq(float a, float b) {
+				  float dis = float_abs(a - b);
+				  putfloat(dis);
+				  if (dis < EPS) {
+				    return 1 * 2. / 2;
+				  } else {
+				    return 0;
+				  }
+				}
+				
+				void error() {
+				  putch(101);
+				  putch(114);
+				  putch(114);
+				  putch(111);
+				  putch(114);
+				  putch(10);
+				}
+				
+				void ok() {
+				  putch(111);
+				  putch(107);
+				  putch(10);
+				}
+				
+				void assert(int cond) {
+				  if (!cond) {
+				    error();
+				  } else {
+				    ok();
+				  }
+				}
+				
+				int main() {
+				  assert(float_eq(EVAL2, EVAL3));
+				  return 0;
+				}
+				""");
+		query.registerProvider(CharStream.class, () -> input);
+		Module module = query.get(IRTranslatedResult.class).module();
 
-			}
-		}
-	}
-
-	private static int fib(int n) {
-		if (n <= 1) {
-			return n;
-		}
-		return fib(n - 1) + fib(n - 2);
+		IRInterpreter irInterpreter = new IRInterpreter();
+		Scanner scanner = new Scanner(System.in);
+		irInterpreter.execute(module, scanner, System.out);
+		scanner.close();
+		System.exit(irInterpreter.getMainRet());
 	}
 }

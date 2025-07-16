@@ -9,7 +9,6 @@ import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Parameter;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Sub;
@@ -18,6 +17,8 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
+
+import java.util.Scanner;
 
 import static org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp.LE;
 
@@ -84,7 +85,9 @@ public class IRInterpreterTest {
 			IRValidator irValidator = new IRValidator();
 			if (irValidator.check(module)){
 				IRInterpreter irInterpreter = new IRInterpreter();
-				irInterpreter.execute(module, "");
+				Scanner scanner = new Scanner("");
+				irInterpreter.execute(module, scanner, System.out);
+				scanner.close();
 				System.out.println("fib("+ n +") " + "Expected: " + fib(n) + ", got: " + irInterpreter.getMainRet());
 				if (irInterpreter.getMainRet() == fib(10)) {
 					System.out.println("passed");

@@ -414,6 +414,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 						throw new IllegalArgumentException("Unexpected value type in array: " + arrayValue.getValue(i));
 					}
 				}
+				output.println();
 			}
 		}
 	}

@@ -1,8 +1,13 @@
 package org.systemf.compiler.interpreter;
 
 import org.systemf.compiler.interpreter.value.ExecutionValue;
+import org.systemf.compiler.interpreter.value.FloatValue;
+import org.systemf.compiler.interpreter.value.IntValue;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.type.Array;
+import org.systemf.compiler.ir.type.Float;
+import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 
@@ -57,10 +62,19 @@ public class ExecutionContext {
 	public void setValue(Value variable, ExecutionValue executionValue) {
 		ExecutionValue existingValue = localVariables.get(variable);
 		if (existingValue == null) {
-			localVariables.put(variable, executionValue);
-			return;
-		}
-		existingValue.setValue(executionValue);
+			ExecutionValue newValue = executionValue;
+			if (variable.getType() instanceof Array) {
+				localVariables.put(variable, executionValue);
+				return;
+			}
+			if (variable.getType() instanceof I32) {
+				newValue = new IntValue(0);
+			}else if (variable.getType() instanceof Float) {
+				newValue = new FloatValue(0);
+			}
+			newValue.setValue(executionValue);
+			localVariables.put(variable, newValue);
+		}else existingValue.setValue(executionValue);
 	}
 
 	public void insertValue(Value variable, ExecutionValue value) {

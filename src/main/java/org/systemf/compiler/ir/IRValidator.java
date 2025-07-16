@@ -6,6 +6,7 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 
@@ -25,7 +26,12 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 	}
 
 	public boolean check(Module module) {
+		clearErrorMessage();
 		boolean valid = true;
+		if (module.getFunction("main") == null) {
+			addErrorInfo("Module must have a main function.");
+			valid = false;
+		}
 		for (var func : module.getFunctions().values()) valid &= check(func);
 		return valid;
 	}
@@ -55,7 +61,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			valid = false;
 		}
 
-		if (!block.isTerminated()) {
+		if (block.getTerminator() == null && !(block.getLastInstruction() instanceof Unreachable)) {
 			addErrorInfo("Block " + block.getName() + " must have a terminator.");
 			valid = false;
 		}

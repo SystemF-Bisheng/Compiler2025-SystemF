@@ -5,13 +5,12 @@ import org.systemf.compiler.interpreter.value.ExecutionValue;
 import org.systemf.compiler.interpreter.value.FloatValue;
 import org.systemf.compiler.interpreter.value.IntValue;
 import org.systemf.compiler.ir.InstructionVisitorBase;
-import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
-import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.Array;
-import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
@@ -36,7 +35,10 @@ import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.ir.Module;
+import org.systemf.compiler.ir.global.Function;
 
+import java.io.PrintStream;
 import java.util.*;
 
 public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
@@ -44,10 +46,15 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	private final List<ExecutionContext> executionContextsStack = new ArrayList<>();
 	private final Map<Value, ExecutionValue> globalVarMap = new HashMap<>();
 	private ExecutionValue mainReturnValue = null;
+	private StringBuilder inputBuffer;
+	private StringBuilder outputBuffer;
 
-
-	public void execute(Module module) {
+	public void execute(Module module, String input) {
 		mainReturnValue = null;
+		executionContextsStack.clear();
+		outputBuffer = new StringBuilder();
+		String input1 = input == null ? "" : input;
+		inputBuffer = new StringBuilder(input1);
 		Function main = module.getFunction("main");
 		if (main == null) {
 			throw new RuntimeException("main function not found.");
@@ -68,6 +75,20 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		} else throw new IllegalStateException("Main return value is not an IntValue: " + mainReturnValue);
 	}
 
+	public String getOutput() {
+		if (outputBuffer.isEmpty()) {
+			return getMainRet() + "\n";
+		}
+		if (outputBuffer.charAt(outputBuffer.length() - 1) == '\n') {
+			return outputBuffer.toString() + getMainRet() + "\n";
+		}
+		return outputBuffer + "\n" + getMainRet() + "\n";
+	}
+
+	public void dump(PrintStream out) {
+		out.print(getOutput());
+	}
+
 	private void initializeGlobalVariable(Module module) {
 		globalVarMap.clear();
 		for (var entry : module.getGlobalDeclarations().entrySet()) {
@@ -75,6 +96,32 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			globalVarMap.put(globalVariable,
 					formExecutionValue(globalVariable.valueType, globalVariable.getInitializer()));
 		}
+	}
+
+	private int getNextInputInt() {
+		return Integer.decode(getNext());
+	}
+
+	private float getNextInputFloat() {
+		String nextInput = getNext();
+		return java.lang.Float.parseFloat(nextInput);
+	}
+
+	private String getNext() {
+    StringBuilder sb = new StringBuilder();
+    if (inputBuffer.isEmpty()) throw new NoSuchElementException("No more input available.");
+    while (!inputBuffer.isEmpty() && (inputBuffer.charAt(0) == ' ' || inputBuffer.charAt(0) == '\n' || inputBuffer.charAt(0) == '\r')) inputBuffer.deleteCharAt(0);
+    while (!inputBuffer.isEmpty() && inputBuffer.charAt(0) != ' ' && inputBuffer.charAt(0) != '\n' && inputBuffer.charAt(0) != '\r') {
+        sb.append(inputBuffer.charAt(0));
+        inputBuffer.deleteCharAt(0);
+    }
+    return sb.toString();
+}
+
+	private char getNextInputChar() {
+		char c = inputBuffer.charAt(0);
+		inputBuffer.deleteCharAt(0);
+		return c;
 	}
 
 	private ExecutionValue formExecutionValue(Type type, Constant constant) {
@@ -112,6 +159,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	private ExecutionValue executeOnce() {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		Instruction instruction = currentContext.getCurrentInstruction().next();
+//		System.out.println(instruction);
 		return instruction.accept(this);
 	}
 
@@ -213,9 +261,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public ExecutionValue visit(FNeg fNeg) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(fNeg.getX(), context);
-		float negatedValue = -toFloat(x);
-		ExecutionValue result = new FloatValue(negatedValue);
-		context.insertValue(fNeg, result);
+		context.insertValue(fNeg, new FloatValue(-toFloat(x)));
 		return null;
 	}
 
@@ -223,9 +269,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public ExecutionValue visit(FpToSi fpToSi) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(fpToSi.getX(), context);
-		int convertedValue = toInt(x);
-		ExecutionValue result = new IntValue(convertedValue);
-		context.insertValue(fpToSi, result);
+		context.insertValue(fpToSi, new IntValue(toInt(x)));
 		return null;
 	}
 
@@ -233,9 +277,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public ExecutionValue visit(SiToFp siToFp) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(siToFp.getX(), context);
-		float convertedValue = toFloat(x);
-		ExecutionValue result = new FloatValue(convertedValue);
-		context.insertValue(siToFp, result);
+		context.insertValue(siToFp, new FloatValue(toFloat(x)));
 		return null;
 	}
 
@@ -290,6 +332,10 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	@Override
 	public ExecutionValue visit(AbstractCall abstractCall) {
 		ExecutionContext context = executionContextsStack.getLast();
+		if (abstractCall.getFunction() instanceof ExternalFunction) {
+			executeExternalFunction(abstractCall);
+			return null;
+		}
 		Function function = (Function) abstractCall.getFunction();
 		Value[] arguments = abstractCall.getArgs();
 		Value[] formalArgs = function.getFormalArgs();
@@ -304,9 +350,92 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return null;
 	}
 
+	private void executeExternalFunction(AbstractCall abstractCall) {
+		ExternalFunction externalFunction = (ExternalFunction) abstractCall.getFunction();
+		ExecutionContext context = executionContextsStack.getLast();
+		switch (externalFunction.getName()) {
+			case "getint" -> {
+				int inputValue = getNextInputInt();
+//				System.out.println("readed " + inputValue);
+				context.insertValue((Call) abstractCall, new IntValue(inputValue));
+			}
+			case "putint" -> {
+				ExecutionValue value = findValue(abstractCall.getArgs()[0], context);
+				if (value instanceof IntValue intValue) {
+					outputBuffer.append(intValue.getValue());
+				} else {
+					throw new IllegalArgumentException("Expected IntValue for putint, got: " + value);
+				}
+			}
+			case "getfloat" -> {
+				float inputValue = getNextInputFloat();
+				context.insertValue((Call) abstractCall, new FloatValue(inputValue));
+			}
+			case "putfloat" -> {
+				ExecutionValue value = findValue(abstractCall.getArgs()[0], context);
+				if (value instanceof FloatValue floatValue) {
+//					outputBuffer.append(floatValue.getValue());
+					outputBuffer.append(java.lang.Float.toHexString(floatValue.getValue()));
+				} else {
+					throw new IllegalArgumentException("Expected FloatValue for putfloat, got: " + value);
+				}
+			}
+			case "getch" -> {
+				int inputValue = getNextInputChar();
+//				System.out.println("readed " + (char)inputValue);
+				context.insertValue((Call) abstractCall, new IntValue(inputValue));
+			}
+			case "putch" -> {
+				ExecutionValue value = findValue(abstractCall.getArgs()[0], context);
+				if (value instanceof IntValue intValue) {
+					outputBuffer.append((char) intValue.getValue());
+				} else {
+					throw new IllegalArgumentException("Expected IntValue for putch, got: " + value);
+				}
+			}
+			case "getarray", "getfarray" -> {
+				ArrayValue arrayValue = (ArrayValue) findValue(abstractCall.getArgs()[0], context);
+				int length = getNextInputInt();
+				for (int i = 0; i < length; i++) {
+					if (i >= arrayValue.values().length) {
+						throw new IndexOutOfBoundsException(
+								"Index " + i + " out of bounds for array of length " + arrayValue);
+					}
+					if (externalFunction.getName().equals("getarray")) {
+						int inputValue = getNextInputInt();
+						arrayValue.setValue(i, new IntValue(inputValue));
+					} else {
+						float inputValue = getNextInputFloat();
+						arrayValue.setValue(i, new FloatValue(inputValue));
+					}
+				}
+				context.insertValue((Call) abstractCall, new IntValue(length));
+			}
+			case "putarray", "putfarray" -> {
+				IntValue lengthValue = (IntValue) findValue(abstractCall.getArgs()[0], context);
+				ArrayValue arrayValue = (ArrayValue) findValue(abstractCall.getArgs()[1], context);
+				int length = lengthValue.getValue();
+				outputBuffer.append(lengthValue).append(": ");
+				for (int i = 0; i < length; i++) {
+					if (i >= arrayValue.values().length) {
+						throw new IndexOutOfBoundsException(
+								"Index " + i + " out of bounds for array of length " + arrayValue);
+					}
+					if (i > 0) outputBuffer.append(" ");
+					if (arrayValue.getValue(i) instanceof IntValue intValue) {
+						outputBuffer.append(intValue.getValue());
+					} else if (arrayValue.getValue(i) instanceof FloatValue floatValue) {
+						outputBuffer.append(floatValue.getValue());
+					} else {
+						throw new IllegalArgumentException("Unexpected value type in array: " + arrayValue.getValue(i));
+					}
+				}
+			}
+		}
+	}
+
 	@Override
 	public ExecutionValue visit(GetPtr getPtr) {
-		// TODO
 		ExecutionContext context = executionContextsStack.getLast();
 		Value basePointer = getPtr.getArrayPtr();
 		int index = toInt(findValue(getPtr.getIndex(), context));

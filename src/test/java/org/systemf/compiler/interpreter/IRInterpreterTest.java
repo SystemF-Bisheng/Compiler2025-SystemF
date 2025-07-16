@@ -40,8 +40,8 @@ public class IRInterpreterTest {
 			Parameter param1 = builder.buildParameter(I32, "param1");
 			Function fib = builder.buildFunction("fib", I32, param1);
 
-			BasicBlock entry = builder.buildBasicBlock(main, "entry");
-			BasicBlock fibEntry = builder.buildBasicBlock(fib, "entry");
+			BasicBlock entry = main.getEntryBlock();
+			BasicBlock fibEntry = fib.getEntryBlock();
 
 			builder.attachToBlockTail(entry);
 			Load loadG1 = builder.buildLoad(g1, "loadG1");
@@ -84,7 +84,7 @@ public class IRInterpreterTest {
 			IRValidator irValidator = new IRValidator();
 			if (irValidator.check(module)){
 				IRInterpreter irInterpreter = new IRInterpreter();
-				irInterpreter.execute(module);
+				irInterpreter.execute(module, "");
 				System.out.println("fib("+ n +") " + "Expected: " + fib(n) + ", got: " + irInterpreter.getMainRet());
 				if (irInterpreter.getMainRet() == fib(10)) {
 					System.out.println("passed");

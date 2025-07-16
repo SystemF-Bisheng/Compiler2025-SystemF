@@ -351,7 +351,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			case "putfloat" -> {
 				ExecutionValue value = findValue(abstractCall.getArgs()[0], context);
 				if (value instanceof FloatValue floatValue) {
-					output.print(floatValue.getValue());
+					output.printf("%a", floatValue.getValue());
 				} else {
 					throw new IllegalArgumentException("Expected FloatValue for putfloat, got: " + value);
 				}

@@ -5,6 +5,10 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public abstract class DummyBinary extends DummyValueNonTerminal {
 	private final Type xType;
 	private final Type yType;
@@ -32,7 +36,9 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 
 	public void setX(Value x) {
 		TypeUtil.assertConvertible(x.getType(), xType, "Illegal x");
+		if (this.x != null) this.x.unregisterDependant(this);
 		this.x = x;
+		x.registerDependant(this);
 	}
 
 	public Value getY() {
@@ -41,6 +47,25 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 
 	public void setY(Value y) {
 		TypeUtil.assertConvertible(y.getType(), yType, "Illegal y");
+		if (this.y != null) this.y.unregisterDependant(this);
 		this.y = y;
+		y.registerDependant(this);
+	}
+
+	@Override
+	public Set<Value> getDependency() {
+		return new HashSet<>(List.of(x, y));
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (x == oldValue) setX(newValue);
+		if (y == oldValue) setY(newValue);
+	}
+
+	@Override
+	public void unregister() {
+		if (x != null) x.unregisterDependant(this);
+		if (y != null) y.unregisterDependant(this);
 	}
 }

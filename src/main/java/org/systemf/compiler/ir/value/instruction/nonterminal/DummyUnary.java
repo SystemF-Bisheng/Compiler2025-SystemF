@@ -5,6 +5,9 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.Collections;
+import java.util.Set;
+
 public abstract class DummyUnary extends DummyValueNonTerminal {
 	private final Type xType;
 	private Value x;
@@ -28,6 +31,23 @@ public abstract class DummyUnary extends DummyValueNonTerminal {
 
 	public void setX(Value x) {
 		TypeUtil.assertConvertible(x.getType(), xType, "Illegal x");
+		if (this.x != null) this.x.unregisterDependant(this);
 		this.x = x;
+		x.registerDependant(this);
+	}
+
+	@Override
+	public Set<Value> getDependency() {
+		return Collections.singleton(x);
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (x == oldValue) setX(newValue);
+	}
+
+	@Override
+	public void unregister() {
+		if (x != null) x.unregisterDependant(this);
 	}
 }

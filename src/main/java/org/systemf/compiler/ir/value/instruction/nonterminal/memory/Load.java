@@ -8,6 +8,9 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class Load extends DummyValueNonTerminal {
 	private Value ptr;
 
@@ -22,8 +25,23 @@ public class Load extends DummyValueNonTerminal {
 	}
 
 	@Override
+	public Set<Value> getDependency() {
+		return Collections.singleton(ptr);
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (ptr == oldValue) setPointer(newValue);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	@Override
+	public void unregister() {
+		if (ptr != null) ptr.unregisterDependant(this);
 	}
 
 	public Value getPointer() {
@@ -37,6 +55,8 @@ public class Load extends DummyValueNonTerminal {
 		if (!(elementType instanceof Sized))
 			throw new IllegalArgumentException("The element type of the pointer must be sized");
 		TypeUtil.assertConvertible(elementType, type, "Illegal pointer");
+		if (this.ptr != null) this.ptr.unregisterDependant(this);
 		this.ptr = ptr;
+		ptr.registerDependant(this);
 	}
 }

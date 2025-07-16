@@ -7,6 +7,9 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class CondBr extends DummyTerminal {
 	private Value cond;
 	private BasicBlock trueTarget;
@@ -25,8 +28,23 @@ public class CondBr extends DummyTerminal {
 	}
 
 	@Override
+	public Set<Value> getDependency() {
+		return Collections.singleton(cond);
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (cond == oldValue) setCondition(newValue);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	@Override
+	public void unregister() {
+		if (cond != null) cond.unregisterDependant(this);
 	}
 
 	public BasicBlock getTrueTarget() {
@@ -51,6 +69,8 @@ public class CondBr extends DummyTerminal {
 
 	public void setCondition(Value cond) {
 		TypeUtil.assertConvertible(cond.getType(), I32.INSTANCE, "Illegal condition");
+		if (this.cond != null) this.cond.unregisterDependant(this);
 		this.cond = cond;
+		cond.registerDependant(this);
 	}
 }

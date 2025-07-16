@@ -6,9 +6,15 @@ import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 public class Call extends AbstractCall implements Value, INamed {
+	private final Set<Instruction> dependant = Collections.newSetFromMap(new WeakHashMap<>());
 	private final String name;
 	private final Type type;
 
@@ -25,6 +31,21 @@ public class Call extends AbstractCall implements Value, INamed {
 		var newRet = TypeUtil.getReturnType(func.getType());
 		if (type != null) TypeUtil.assertConvertible(newRet, type, "Illegal return type");
 		super.setFunction(func);
+	}
+
+	@Override
+	public Set<Instruction> getDependant() {
+		return Collections.unmodifiableSet(dependant);
+	}
+
+	@Override
+	public void registerDependant(Instruction instruction) {
+		dependant.add(instruction);
+	}
+
+	@Override
+	public void unregisterDependant(Instruction instruction) {
+		dependant.remove(instruction);
 	}
 
 	@Override

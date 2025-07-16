@@ -7,6 +7,10 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Store extends DummyNonTerminal {
 	private Value src;
 	private Value dest;
@@ -22,8 +26,25 @@ public class Store extends DummyNonTerminal {
 	}
 
 	@Override
+	public Set<Value> getDependency() {
+		return new HashSet<>(Arrays.asList(src, dest));
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (src == oldValue) setSrc(newValue);
+		if (dest == oldValue) setDest(newValue);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	@Override
+	public void unregister() {
+		if (src != null) src.unregisterDependant(this);
+		if (dest != null) dest.unregisterDependant(this);
 	}
 
 	public Value getSrc() {
@@ -33,7 +54,9 @@ public class Store extends DummyNonTerminal {
 	public void setSrc(Value src) {
 		if (!(src.getType() instanceof Sized))
 			throw new IllegalArgumentException("The type of the source must be sized");
+		if (this.src != null) this.src.unregisterDependant(this);
 		this.src = src;
+		src.registerDependant(this);
 	}
 
 	public Value getDest() {
@@ -43,6 +66,8 @@ public class Store extends DummyNonTerminal {
 	public void setDest(Value dest) {
 		if (!(dest.getType() instanceof Pointer))
 			throw new IllegalArgumentException("The type of the destination must be a pointer type");
+		if (this.dest != null) this.dest.unregisterDependant(this);
 		this.dest = dest;
+		dest.registerDependant(this);
 	}
 }

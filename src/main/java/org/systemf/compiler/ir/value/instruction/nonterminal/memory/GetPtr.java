@@ -9,6 +9,10 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class GetPtr extends DummyValueNonTerminal {
 	private Value arrayPtr;
 	private Value index;
@@ -25,8 +29,25 @@ public class GetPtr extends DummyValueNonTerminal {
 	}
 
 	@Override
+	public Set<Value> getDependency() {
+		return new HashSet<>(List.of(arrayPtr, index));
+	}
+
+	@Override
+	public void replaceAll(Value oldValue, Value newValue) {
+		if (arrayPtr == oldValue) setArrayPtr(newValue);
+		if (index == oldValue) setIndex(newValue);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	@Override
+	public void unregister() {
+		if (arrayPtr != null) arrayPtr.unregisterDependant(this);
+		if (index != null) index.unregisterDependant(this);
 	}
 
 	public Value getArrayPtr() {
@@ -39,7 +60,9 @@ public class GetPtr extends DummyValueNonTerminal {
 			throw new IllegalArgumentException("The type of the pointer must be a pointer type");
 		if (!(ptr.getElementType() instanceof Indexable))
 			throw new IllegalArgumentException("The element type of the pointer must be indexable");
+		if (this.arrayPtr != null) this.arrayPtr.unregisterDependant(this);
 		this.arrayPtr = arrayPtr;
+		arrayPtr.registerDependant(this);
 	}
 
 	public Value getIndex() {
@@ -48,6 +71,8 @@ public class GetPtr extends DummyValueNonTerminal {
 
 	public void setIndex(Value index) {
 		TypeUtil.assertConvertible(index.getType(), I32.INSTANCE, "Illegal index");
+		if (this.index != null) this.index.unregisterDependant(this);
 		this.index = index;
+		index.registerDependant(this);
 	}
 }

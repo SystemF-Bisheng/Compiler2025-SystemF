@@ -8,18 +8,20 @@ import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Function extends DummyValue implements IFunction {
 	final private String name;
-	final private ArrayList<BasicBlock> blocks;
+	final private HashSet<BasicBlock> blocks = new HashSet<>();
+	private BasicBlock entryBlock;
 	final private Parameter[] formalArgs;
 
 	public Function(String name, Type returnType, Parameter... formalArgs) {
 		super(buildFunctionType(returnType, formalArgs));
 		this.name = name;
 		this.formalArgs = formalArgs;
-		this.blocks = new ArrayList<>();
 	}
 
 	static private FunctionType buildFunctionType(Type returnType, Parameter[] formalArgs) {
@@ -36,20 +38,16 @@ public class Function extends DummyValue implements IFunction {
 		blocks.remove(block);
 	}
 
-	public void deleteBlock(int index) {
-		blocks.remove(index);
-	}
-
 	public BasicBlock getEntryBlock() {
-		return blocks.getFirst();
+		return entryBlock;
 	}
 
-	public int getBlockCount() {
-		return blocks.size();
+	public void setEntryBlock(BasicBlock entryBlock) {
+		this.entryBlock = entryBlock;
 	}
 
-	public BasicBlock getBlock(int index) {
-		return blocks.get(index);
+	public Set<BasicBlock> getBlocks() {
+		return Collections.unmodifiableSet(blocks);
 	}
 
 	public Parameter[] getFormalArgs() {

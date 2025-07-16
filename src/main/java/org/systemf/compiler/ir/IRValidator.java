@@ -32,11 +32,17 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 
 	public boolean check(Function function) {
 		boolean valid = true;
-		if (function.getBlockCount() == 0) {
-			addErrorInfo("Function " + function.getName() + " must have at least one block.");
+		var entry = function.getEntryBlock();
+		if (function.getEntryBlock() == null) {
+			addErrorInfo("Function " + function.getName() + " must have an entry block.");
 			valid = false;
 		}
-		for (int i = 0; i < function.getBlockCount(); ++i) valid &= check(function.getBlock(i));
+		var blocks = function.getBlocks();
+		if (!blocks.contains(entry)) {
+			addErrorInfo("Function " + function.getName() + " have an entry block that doesn't belong to it.");
+			valid = false;
+		}
+		for (var block : blocks) valid &= check(block);
 		return valid;
 	}
 

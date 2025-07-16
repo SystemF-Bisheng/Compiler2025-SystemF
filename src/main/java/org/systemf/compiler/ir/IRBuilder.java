@@ -104,6 +104,8 @@ public class IRBuilder implements AutoCloseable {
 
 	public Function buildFunction(String name, Type returnType, Parameter... formalArgs) {
 		Function function = new Function(name, returnType, formalArgs);
+		var entry = buildBasicBlock(function, name + "Entry");
+		function.setEntryBlock(entry);
 		module.addFunction(function);
 		return function;
 	}

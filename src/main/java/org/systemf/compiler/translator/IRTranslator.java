@@ -249,8 +249,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			currentFunction = builder.buildFunction(funcName, retType, params);
 
 			context.push();
-			var entryBlock = builder.buildBasicBlock(currentFunction, funcName + "Entry");
-			builder.attachToBlockTail(entryBlock);
+			builder.attachToBlockTail(currentFunction.getEntryBlock());
 			for (int i = 0; i < params.length; ++i) {
 				var param = ctx.funcParam(i);
 				var paramName = param.name.getText();

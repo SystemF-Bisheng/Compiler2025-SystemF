@@ -60,7 +60,7 @@ public class ExecutionContext {
 			localVariables.put(variable, executionValue);
 			return;
 		}
-		existingValue.setValue(executionValue);;
+		existingValue.setValue(executionValue);
 	}
 
 	public void insertValue(Value variable, ExecutionValue value) {

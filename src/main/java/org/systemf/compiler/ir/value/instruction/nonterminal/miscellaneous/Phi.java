@@ -28,7 +28,7 @@ public class Phi extends DummyValueNonTerminal {
 			if (nonFirst) sb.append(", ");
 			nonFirst = true;
 			sb.append("[ ");
-			sb.append(ValueUtil.dumpIdentifier(pair.right)).append(", ").append(pair.left.getName());
+			sb.append(ValueUtil.dumpIdentifier(pair.right())).append(", ").append(pair.left().getName());
 			sb.append(" ]");
 		}
 		return sb.toString();
@@ -44,7 +44,7 @@ public class Phi extends DummyValueNonTerminal {
 	}
 
 	public void setIncoming(List<Pair<BasicBlock, Value>> incoming) {
-		incoming.stream().map(Pair::getRight).forEach(this::checkIncoming);
+		incoming.stream().map(Pair::right).forEach(this::checkIncoming);
 		this.incoming = new ArrayList<>(incoming);
 	}
 

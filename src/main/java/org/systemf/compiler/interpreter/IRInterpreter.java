@@ -377,8 +377,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			switch (value) {
 				case IntValue intValue -> System.out.println("IntValue: " + intValue.getValue());
 				case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.getValue());
-				case ArrayValue arrayValue ->
-						System.out.println("ArrayValue: " + Arrays.toString(arrayValue.getValues()));
+				case ArrayValue arrayValue -> System.out.println("ArrayValue: " + Arrays.toString(arrayValue.values()));
 				default -> System.out.println("Unknown Value Type: " + value.getClass().getName());
 			}
 		}

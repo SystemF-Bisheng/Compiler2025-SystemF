@@ -1,19 +1,9 @@
 package org.systemf.compiler.interpreter.value;
 
 
-public class ArrayValue implements ExecutionValue {
-	private final ExecutionValue[] values;
-
-	public ArrayValue(ExecutionValue[] values) {
-		this.values = values;
-	}
-
+public record ArrayValue(ExecutionValue[] values) implements ExecutionValue {
 	public ExecutionValue getValue(int index) {
 		return values[index];
-	}
-
-	public ExecutionValue[] getValues() {
-		return values;
 	}
 
 	public void setValue(int index, ExecutionValue value) {
@@ -25,7 +15,7 @@ public class ArrayValue implements ExecutionValue {
 			throw new IllegalArgumentException("Expected ArrayValue, but got " + newValue.getClass().getSimpleName());
 		}
 		for (int i = 0; i < values.length; i++) {
-			if (value.getValue(i) instanceof ArrayValue arrayValue) ((ArrayValue) values[i]).setValue(arrayValue);
+			if (value.getValue(i) instanceof ArrayValue arrayValue) values[i].setValue(arrayValue);
 			else setValue(i, (value.getValue(i)));
 		}
 	}
@@ -46,5 +36,4 @@ public class ArrayValue implements ExecutionValue {
 		sb.append("]");
 		return sb.toString();
 	}
-
 }

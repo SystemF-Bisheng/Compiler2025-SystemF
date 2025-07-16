@@ -23,12 +23,12 @@ public class ConstantAggregateHelper extends SimpleIRAggregateHelper<Constant> {
 
 	@Override
 	public Pair<ParserRuleContext, Value> convertTo(Pair<ParserRuleContext, Value> value, SysYType from, SysYType to) {
-		return value.withRight(valueUtil.constConvertTo(ValueUtil.assertConstant(value.right), from, to));
+		return value.withRight(valueUtil.constConvertTo(ValueUtil.assertConstant(value.right()), from, to));
 	}
 
 	@Override
 	public Constant fromValue(Pair<ParserRuleContext, Value> value) {
-		return ValueUtil.assertConstant(value.right);
+		return ValueUtil.assertConstant(value.right());
 	}
 
 	@Override

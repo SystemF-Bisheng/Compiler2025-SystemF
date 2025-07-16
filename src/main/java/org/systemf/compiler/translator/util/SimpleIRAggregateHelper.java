@@ -36,7 +36,7 @@ public abstract class SimpleIRAggregateHelper<R> implements
 
 	@Override
 	public SysYType typeOf(Pair<ParserRuleContext, Value> value) {
-		return query.getAttribute(value.left, ValueAndType.class).type();
+		return query.getAttribute(value.left(), ValueAndType.class).type();
 	}
 
 	@Override

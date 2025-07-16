@@ -27,7 +27,7 @@ public class SysYAggregateBuilder<Ty, V, R> {
 	}
 
 	private <T> Ty nextLayerType(Pair<Ty, ArrayList<T>> layer) {
-		return aggregateHelper.aggregateType(layer.left, layer.right.size());
+		return aggregateHelper.aggregateType(layer.left(), layer.right().size());
 	}
 
 	private void unfoldOnce() {
@@ -46,7 +46,7 @@ public class SysYAggregateBuilder<Ty, V, R> {
 
 	private R foldHead() {
 		var layer = stack.pop();
-		return aggregateHelper.aggregate(layer.left, layer.right);
+		return aggregateHelper.aggregate(layer.left(), layer.right());
 	}
 
 	private void foldOnce() {
@@ -67,8 +67,8 @@ public class SysYAggregateBuilder<Ty, V, R> {
 			return;
 		}
 		var layer = Objects.requireNonNull(stack.peek());
-		layer.right.add(layerResult);
-		if (aggregateHelper.aggregateCount(layer.left) == layer.right.size()) foldOnce();
+		layer.right().add(layerResult);
+		if (aggregateHelper.aggregateCount(layer.left()) == layer.right().size()) foldOnce();
 	}
 
 	public int beginAggregate() {

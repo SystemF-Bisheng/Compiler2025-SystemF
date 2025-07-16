@@ -31,12 +31,12 @@ public class NonConstantAggregateHelper extends SimpleIRAggregateHelper<Either<C
 
 	@Override
 	public Pair<ParserRuleContext, Value> convertTo(Pair<ParserRuleContext, Value> value, SysYType from, SysYType to) {
-		return value.withRight(valueUtil.convertTo(value.right, from, to));
+		return value.withRight(valueUtil.convertTo(value.right(), from, to));
 	}
 
 	@Override
 	public Either<Constant, Consumer<Value>> fromValue(Pair<ParserRuleContext, Value> value) {
-		var src = value.right;
+		var src = value.right();
 		if (src instanceof Constant c) return Either.ofA(c);
 		return Either.ofB(v -> builder.buildStore(src, v));
 	}

@@ -5,11 +5,13 @@ import org.systemf.compiler.interpreter.value.ExecutionValue;
 import org.systemf.compiler.interpreter.value.FloatValue;
 import org.systemf.compiler.interpreter.value.IntValue;
 import org.systemf.compiler.ir.InstructionVisitorBase;
+import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.Array;
-import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.Float;
+import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
@@ -34,8 +36,6 @@ import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
-import org.systemf.compiler.ir.Module;
-import org.systemf.compiler.ir.global.Function;
 
 import java.util.*;
 
@@ -53,7 +53,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			throw new RuntimeException("main function not found.");
 		}
 		initializeGlobalVariable(module);
-		ExecutionContext executionContext = new ExecutionContext(main.getEntryBlock(), main, 0, null);
+		ExecutionContext executionContext = new ExecutionContext(main.getEntryBlock(), main, null);
 		executionContextsStack.add(executionContext);
 		ExecutionValue returnValue = null;
 		while (!executionContextsStack.isEmpty()) {
@@ -65,19 +65,20 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public int getMainRet() {
 		if (mainReturnValue instanceof IntValue intValue) {
 			return intValue.getValue() & 0xFF; // Ensure it fits in an 8-bit value
-		}else throw new IllegalStateException("Main return value is not an IntValue: " + mainReturnValue);
+		} else throw new IllegalStateException("Main return value is not an IntValue: " + mainReturnValue);
 	}
 
 	private void initializeGlobalVariable(Module module) {
 		globalVarMap.clear();
 		for (var entry : module.getGlobalDeclarations().entrySet()) {
 			GlobalVariable globalVariable = entry.getValue();
-			globalVarMap.put(globalVariable, formExecutionValue(globalVariable.valueType, globalVariable.getInitializer()));
+			globalVarMap.put(globalVariable,
+					formExecutionValue(globalVariable.valueType, globalVariable.getInitializer()));
 		}
 	}
 
 	private ExecutionValue formExecutionValue(Type type, Constant constant) {
-		if (type instanceof Array array){
+		if (type instanceof Array array) {
 			ExecutionValue[] values = new ExecutionValue[array.length];
 			var elementType = array.getElementType();
 			for (int i = 0; i < values.length; i++) {
@@ -93,7 +94,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	private ExecutionValue formExecutionValue(Type type) {
-		if (type instanceof Array array){
+		if (type instanceof Array array) {
 			ExecutionValue[] values = new ExecutionValue[array.length];
 			var elementType = array.getElementType();
 			for (int i = 0; i < values.length; i++) {
@@ -110,9 +111,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 
 	private ExecutionValue executeOnce() {
 		ExecutionContext currentContext = executionContextsStack.getLast();
-		BasicBlock currentBlock = currentContext.getCurrentBlock();
-		Instruction instruction = currentBlock.getInstruction(currentContext.getCurrentInstructionIndex());
-		currentContext.setCurrentInstructionIndex(currentContext.getCurrentInstructionIndex() + 1);
+		Instruction instruction = currentContext.getCurrentInstruction().next();
 		return instruction.accept(this);
 	}
 
@@ -122,7 +121,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		}
 		if (value instanceof ConstantInt constantInt) return new IntValue((int) constantInt.value);
 		if (value instanceof ConstantFloat constantFloat) return new FloatValue((float) constantFloat.value);
-		if (value instanceof ConstantArray constantArray)  return formExecutionValue(value.getType(), constantArray);
+		if (value instanceof ConstantArray constantArray) return formExecutionValue(value.getType(), constantArray);
 		return context.getValue(value);
 	}
 
@@ -294,7 +293,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		Function function = (Function) abstractCall.getFunction();
 		Value[] arguments = abstractCall.getArgs();
 		Value[] formalArgs = function.getFormalArgs();
-		ExecutionContext newContext = new ExecutionContext(function.getEntryBlock(), function, 0, null);
+		ExecutionContext newContext = new ExecutionContext(function.getEntryBlock(), function, null);
 		for (int i = 0; i < arguments.length; i++) {
 			Value arg = arguments[i];
 			ExecutionValue argValue = findValue(arg, context);
@@ -324,7 +323,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		BasicBlock targetBlock = br.getTarget();
 		currentContext.setCurrentBlock(targetBlock);
-		currentContext.setCurrentInstructionIndex(0);
 		return null;
 	}
 
@@ -335,7 +333,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		int condition = toInt(conditionValue);
 		BasicBlock targetBlock = condition != 0 ? condBr.getTrueTarget() : condBr.getFalseTarget();
 		currentContext.setCurrentBlock(targetBlock);
-		currentContext.setCurrentInstructionIndex(0);
 		return null;
 	}
 
@@ -368,7 +365,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		System.out.println("Current Block: " + currentContext.getCurrentBlock().getName());
 		System.out.println("Current Function: " + currentContext.getCurrentFunction().getName());
-		System.out.println("Current Instruction Index: " + currentContext.getCurrentInstructionIndex());
+		System.out.println("Current Instruction Index: " + currentContext.getCurrentInstruction());
 		System.out.println("Local Variables: ");
 		for (Map.Entry<Value, ExecutionValue> entry : currentContext.getLocalVariables().entrySet()) {
 			System.out.print("  " + entry.getKey() + " = ");

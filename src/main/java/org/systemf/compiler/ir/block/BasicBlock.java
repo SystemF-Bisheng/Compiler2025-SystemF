@@ -4,39 +4,18 @@ import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class BasicBlock implements INamed {
 	final private String name;
-	final private ArrayList<Instruction> instructions;
+	public final LinkedList<Instruction> instructions = new LinkedList<>();
 
 	public BasicBlock(String name) {
 		this.name = name;
-		this.instructions = new ArrayList<>();
 	}
 
 	public void insertInstruction(Instruction inst) {
 		instructions.add(inst);
-	}
-
-	public void insertInstruction(Instruction inst, int index) {
-		instructions.add(index, inst);
-	}
-
-	public void deleteInstruction(Instruction inst) {
-		instructions.remove(inst);
-	}
-
-	public void deleteInstruction(int index) {
-		instructions.remove(index);
-	}
-
-	public int getInstructionCount() {
-		return instructions.size();
-	}
-
-	public Instruction getInstruction(int index) {
-		return instructions.get(index);
 	}
 
 	public Instruction getLastInstruction() {

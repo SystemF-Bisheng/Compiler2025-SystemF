@@ -49,7 +49,8 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 	public boolean check(BasicBlock block) {
 		boolean valid = true;
 
-		if (block.getInstructionCount() == 0) {
+		var instructions = block.instructions;
+		if (instructions.isEmpty()) {
 			addErrorInfo("Block " + block.getName() + " must have at least one instruction.");
 			valid = false;
 		}
@@ -60,8 +61,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 		}
 
 		int terminatorCnt = 0;
-		for (int i = 0; i < block.getInstructionCount(); ++i) {
-			var inst = block.getInstruction(i);
+		for (var inst : instructions) {
 			valid &= check(inst);
 			if (inst instanceof Terminal) ++terminatorCnt;
 		}

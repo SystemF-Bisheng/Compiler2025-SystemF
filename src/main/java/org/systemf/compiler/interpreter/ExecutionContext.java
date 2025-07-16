@@ -4,21 +4,23 @@ import org.systemf.compiler.interpreter.value.ExecutionValue;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.Instruction;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class ExecutionContext {
 	private BasicBlock currentBlock;
 	private final Function currentFunction;
-	private int currentInstructionIndex;
+	private Iterator<Instruction> currentInstruction;
 	private final Map<Value, ExecutionValue> localVariables;
 	private Value callee;
 
-	public ExecutionContext( BasicBlock currentBlock, Function currentFunction, int currentInstructionIndex, Value callee) {
+	public ExecutionContext(BasicBlock currentBlock, Function currentFunction, Value callee) {
 		this.currentBlock = currentBlock;
 		this.currentFunction = currentFunction;
-		this.currentInstructionIndex = currentInstructionIndex;
+		this.currentInstruction = currentBlock.instructions.iterator();
 		this.localVariables = new HashMap<>();
 		this.callee = callee;
 	}
@@ -35,16 +37,17 @@ public class ExecutionContext {
 		return currentFunction;
 	}
 
-	public int getCurrentInstructionIndex() {
-		return currentInstructionIndex;
+	public Iterator<Instruction> getCurrentInstruction() {
+		return currentInstruction;
 	}
 
-	public void setCurrentInstructionIndex(int currentInstructionIndex) {
-		this.currentInstructionIndex = currentInstructionIndex;
+	public void setCurrentInstruction(Iterator<Instruction> currentInstruction) {
+		this.currentInstruction = currentInstruction;
 	}
 
 	public void setCurrentBlock(BasicBlock currentBlock) {
 		this.currentBlock = currentBlock;
+		this.currentInstruction = currentBlock.instructions.iterator();
 	}
 
 	public ExecutionValue getValue(Value variable) {

@@ -401,7 +401,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 					if (arrayValue.getValue(i) instanceof IntValue intValue) {
 						output.print(intValue.getValue());
 					} else if (arrayValue.getValue(i) instanceof FloatValue floatValue) {
-						output.print(floatValue.getValue());
+						output.printf("%a", floatValue.getValue());
 					} else {
 						throw new IllegalArgumentException("Unexpected value type in array: " + arrayValue.getValue(i));
 					}

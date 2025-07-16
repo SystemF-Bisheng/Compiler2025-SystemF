@@ -432,7 +432,12 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			enterRule(ctx);
 
 			if (ctx.ret == null) builder.buildRetVoid();
-			else builder.buildRet(visit(ctx.ret));
+			else {
+				var res = visit(ctx.ret);
+				res = valueUtil.convertTo(res, query.getAttribute(ctx.ret, ValueAndType.class).type(),
+						query.getAttribute(ctx, ValueAndType.class).type());
+				builder.buildRet(res);
+			}
 
 			exitRule();
 			return defaultResult();

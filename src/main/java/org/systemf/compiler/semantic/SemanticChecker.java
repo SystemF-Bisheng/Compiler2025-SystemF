@@ -160,8 +160,10 @@ public enum SemanticChecker implements EntityProvider<SemanticResult> {
 		@Override
 		public void exitReturn(SysYParser.ReturnContext ctx) {
 			var retTy = ctx.ret == null ? RIGHT_VOID : typeMap.get(ctx.ret);
-			if (!retTy.convertibleTo(ValueAndType.ofRight(retType)))
+			var supposed = ValueAndType.ofRight(retType);
+			if (!retTy.convertibleTo(supposed))
 				throw new IllegalSemanticException("Illegal return " + retTy);
+			typeMap.put(ctx, supposed);
 		}
 
 		@Override

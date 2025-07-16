@@ -10,7 +10,6 @@ import org.systemf.compiler.semantic.type.SysYInt;
 import org.systemf.compiler.semantic.type.SysYType;
 import org.systemf.compiler.util.Either;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -38,14 +37,19 @@ public class SysYValueUtil {
 		return v;
 	}
 
+	private Sized memberIRType(SysYType type) {
+		if (type == SysYInt.INT) return builder.buildI32Type();
+		if (type == SysYFloat.FLOAT) return builder.buildFloatType();
+		if (type instanceof SysYArray(SysYType element, long length))
+			return builder.buildArrayType(memberIRType(element), Math.toIntExact(length));
+		throw new IllegalArgumentException("Invalid member type " + type);
+	}
+
 	public Constant aggregateDefaultValue(SysYType type) {
 		if (type == SysYInt.INT) return builder.buildConstantInt(0);
 		if (type == SysYFloat.FLOAT) return builder.buildConstantFloat(0);
-		if (type instanceof SysYArray(SysYType element, long length)) {
-			var content = new Constant[Math.toIntExact(length)];
-			Arrays.fill(content, aggregateDefaultValue(element));
-			return builder.buildConstantArray((Sized) content[0].getType(), content);
-		}
+		if (type instanceof SysYArray(SysYType element, long length))
+			return builder.buildConstantArray(memberIRType(element), Math.toIntExact(length));
 		throw new IllegalArgumentException("Invalid aggregate type " + type);
 	}
 

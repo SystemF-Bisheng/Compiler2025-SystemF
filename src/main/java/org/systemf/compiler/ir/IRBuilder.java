@@ -12,10 +12,7 @@ import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.constant.Constant;
-import org.systemf.compiler.ir.value.constant.ConstantArray;
-import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
@@ -81,15 +78,19 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public ConstantInt buildConstantInt(long value) {
-		return new ConstantInt(value);
+		return ConstantInt.valueOf(value);
 	}
 
 	public ConstantFloat buildConstantFloat(double value) {
-		return new ConstantFloat(value);
+		return ConstantFloat.valueOf(value);
 	}
 
 	public ConstantArray buildConstantArray(Sized elementType, Constant... content) {
-		return new ConstantArray(elementType, content);
+		return new ConcreteArray(elementType, content);
+	}
+
+	public ArrayZeroInitializer buildConstantArray(Sized elementType, int size) {
+		return new ArrayZeroInitializer(elementType, size);
 	}
 
 	public GlobalVariable buildGlobalVariable(String name, Type type, Constant initializer) {

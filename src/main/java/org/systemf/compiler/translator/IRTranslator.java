@@ -26,10 +26,7 @@ import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.semantic.IllegalSemanticException;
 import org.systemf.compiler.semantic.SemanticResult;
 import org.systemf.compiler.semantic.external.SysYExternalRegistry;
-import org.systemf.compiler.semantic.type.ISysYArray;
-import org.systemf.compiler.semantic.type.SysYFloat;
-import org.systemf.compiler.semantic.type.SysYInt;
-import org.systemf.compiler.semantic.type.SysYType;
+import org.systemf.compiler.semantic.type.*;
 import org.systemf.compiler.semantic.util.SysYAggregateBuilder;
 import org.systemf.compiler.semantic.util.SysYTypeUtil;
 import org.systemf.compiler.semantic.value.ValueAndType;
@@ -624,6 +621,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			var type = query.getAttribute(ctx, ValueAndType.class).type();
 			var xType = query.getAttribute(x, ValueAndType.class).type();
 			var yType = query.getAttribute(y, ValueAndType.class).type();
+			var elevatedType = SysYTypeUtil.elevatedType((SysYNumeric) xType, (SysYNumeric) yType);
 
 			var oldAsCond = asCond;
 			asCond = false;
@@ -631,13 +629,13 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			var yVal = visit(y);
 			asCond = oldAsCond;
 
-			xVal = valueUtil.convertTo(xVal, xType, type);
-			yVal = valueUtil.convertTo(yVal, yType, type);
+			xVal = valueUtil.convertTo(xVal, xType, elevatedType);
+			yVal = valueUtil.convertTo(yVal, yType, elevatedType);
 
 			Value res;
-			if (SysYInt.INT.equals(type)) res = intFunc.apply(xVal, yVal);
-			else if (SysYFloat.FLOAT.equals(type)) res = floatFunc.apply(xVal, yVal);
-			else throw new IllegalArgumentException(String.format("Illegal result type %s", type));
+			if (SysYInt.INT.equals(elevatedType)) res = intFunc.apply(xVal, yVal);
+			else if (SysYFloat.FLOAT.equals(elevatedType)) res = floatFunc.apply(xVal, yVal);
+			else throw new IllegalArgumentException(String.format("Illegal result type %s", elevatedType));
 
 			if (asCond) {
 				useAsCond(type, res);

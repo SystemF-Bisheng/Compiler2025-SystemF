@@ -33,6 +33,8 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
 import org.systemf.compiler.ir.value.instruction.terminal.*;
 
+import java.util.ListIterator;
+
 /**
  * external interface. all write operations are available with only Module and IRBuilder
  */
@@ -40,13 +42,7 @@ public class IRBuilder implements AutoCloseable {
 	public final IRFolder folder;
 	private final Module module;
 
-	public boolean ignoreOnTerminatedInsert = false;
-
-	private BasicBlock currentBlock;
-
-	public BasicBlock getCurrentBlock() {
-		return currentBlock;
-	}
+	private ListIterator<Instruction> position;
 
 	public IRBuilder(Module module) {
 		if (module.isIRBuilderAttached()) throw new IllegalStateException("Module has already been attached");
@@ -390,17 +386,15 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public void attachToBlockTail(BasicBlock block) {
-		currentBlock = block;
+		position = block.instructions.listIterator(block.instructions.size());
 	}
 
-	private void insertInstruction(Instruction inst) {
-		if (currentBlock == null)
-			throw new IllegalArgumentException("Attempt to insert an instruction without an attached block");
-		if (currentBlock.getTerminator() != null) {
-			if (ignoreOnTerminatedInsert) return;
-			throw new IllegalStateException("Attempt to insert an instruction into a terminated block");
-		}
-		currentBlock.insertInstruction(inst);
+	public void setPosition(ListIterator<Instruction> position) {
+		this.position = position;
+	}
+
+	protected void insertInstruction(Instruction inst) {
+		position.add(inst);
 	}
 
 	@Override

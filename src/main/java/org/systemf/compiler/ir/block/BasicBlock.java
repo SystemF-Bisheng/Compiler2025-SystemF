@@ -28,6 +28,10 @@ public class BasicBlock implements INamed {
 		return term;
 	}
 
+	public boolean isTerminated() {
+		return getTerminator() != null;
+	}
+
 	@Override
 	public String getName() {
 		return name;

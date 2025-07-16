@@ -15,6 +15,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.parser.SysYLexer;
 import org.systemf.compiler.parser.SysYParser;
@@ -70,7 +71,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		private final HashMap<ParserRuleContext, Value> valueMap = new HashMap<>();
 		private final Context<Value> context = new Context<>();
 		private final HashMap<String, Constant> globalConstant = new HashMap<>();
-		private final IRBuilder builder;
+		private final MyIRBuilder builder;
 		private final IRTypeUtil typeUtil;
 		private final SysYValueUtil valueUtil;
 		private final ConstantAggregateBuilder constAggregate;
@@ -90,8 +91,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		private BasicBlock falseBlock = null;
 
 		public TranslateVisitor() {
-			builder = new IRBuilder(module);
-			builder.ignoreOnTerminatedInsert = true;
+			builder = new MyIRBuilder(module);
 			VOID = builder.buildVoidType();
 			I32 = builder.buildI32Type();
 			I32_ZERO = builder.buildConstantInt(0);
@@ -838,6 +838,30 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		@Override
 		public Value visitOr(SysYParser.OrContext ctx) {
 			return handleLogical(ctx, ctx.l, ctx.r, true, "or");
+		}
+
+		private static class MyIRBuilder extends IRBuilder {
+			private BasicBlock currentBlock;
+
+			public MyIRBuilder(Module module) {
+				super(module);
+			}
+
+			public BasicBlock getCurrentBlock() {
+				return currentBlock;
+			}
+
+			@Override
+			public void attachToBlockTail(BasicBlock block) {
+				this.currentBlock = block;
+				super.attachToBlockTail(block);
+			}
+
+			@Override
+			protected void insertInstruction(Instruction inst) {
+				if (currentBlock.isTerminated()) return;
+				super.insertInstruction(inst);
+			}
 		}
 	}
 }

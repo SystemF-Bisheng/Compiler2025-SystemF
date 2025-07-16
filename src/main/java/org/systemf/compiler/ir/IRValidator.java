@@ -55,7 +55,7 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			valid = false;
 		}
 
-		if (block.getTerminator() == null) {
+		if (!block.isTerminated()) {
 			addErrorInfo("Block " + block.getName() + " must have a terminator.");
 			valid = false;
 		}

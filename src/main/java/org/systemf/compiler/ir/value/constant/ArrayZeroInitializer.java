@@ -28,6 +28,6 @@ public class ArrayZeroInitializer extends DummyArray {
 
 	@Override
 	public String toString() {
-		return String.format("{(zeros of %s)}", type);
+		return String.format("(zero-initialized %s)", type);
 	}
 }

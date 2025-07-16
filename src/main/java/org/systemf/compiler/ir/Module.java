@@ -35,6 +35,7 @@ public class Module {
 	private void checkGlobalName(String name) {
 		if (declarations.containsKey(name) || functions.containsKey(name) || externalFunctions.containsKey(name))
 			throw new IllegalStateException("Duplicate declaration: " + name);
+		occupiedNames.add(name);
 	}
 
 	public void addGlobalVariable(GlobalVariable declaration) {

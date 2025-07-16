@@ -146,14 +146,14 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldICmp(inst.getX(), inst.getY(), inst.method);
 	}
 
-	public Optional<Constant> tryFoldFloatBinary(Value l, Value r, BiFunction<Double, Double, Double> fold) {
+	public Optional<Constant> tryFoldFloatBinary(Value l, Value r, BiFunction<Float, Float, Float> fold) {
 		if (l instanceof ConstantFloat lC && r instanceof ConstantFloat rC)
-			return Optional.of(builder.buildConstantFloat(fold.apply(lC.value, rC.value)));
+			return Optional.of(builder.buildConstantFloat(fold.apply((float) lC.value, (float) rC.value)));
 		return Optional.empty();
 	}
 
 	public Optional<Constant> tryFoldFAdd(Value lhs, Value rhs) {
-		return tryFoldFloatBinary(lhs, rhs, Double::sum);
+		return tryFoldFloatBinary(lhs, rhs, Float::sum);
 	}
 
 	@Override
@@ -202,15 +202,15 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldFNeg(inst.getX());
 	}
 
-	public Optional<Constant> tryFoldFCmpAtom(Value l, Value r, BiFunction<Double, Double, Boolean> fold) {
+	public Optional<Constant> tryFoldFCmpAtom(Value l, Value r, BiFunction<Float, Float, Boolean> fold) {
 		if (l instanceof ConstantFloat lC && r instanceof ConstantFloat rC)
-			return Optional.of(builder.buildConstantInt(fold.apply(lC.value, rC.value) ? 1L : 0L));
+			return Optional.of(builder.buildConstantInt(fold.apply((float) lC.value, (float) rC.value) ? 1L : 0L));
 		return Optional.empty();
 	}
 
 	public Optional<Constant> tryFoldFCmp(Value lhs, Value rhs, CompareOp code) {
 		return switch (code) {
-			case EQ -> tryFoldFCmpAtom(lhs, rhs, Double::equals);
+			case EQ -> tryFoldFCmpAtom(lhs, rhs, Float::equals);
 			case NE -> tryFoldFCmpAtom(lhs, rhs, (l, r) -> !l.equals(r));
 			case LT -> tryFoldFCmpAtom(lhs, rhs, (l, r) -> l < r);
 			case GT -> tryFoldFCmpAtom(lhs, rhs, (l, r) -> l > r);

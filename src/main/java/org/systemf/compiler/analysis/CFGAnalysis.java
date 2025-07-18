@@ -17,11 +17,15 @@ public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> 
 	INSTANCE;
 
 	private void addEdge(BasicBlock from, BasicBlock to, CFGAnalysisResult out) {
-		out.successors().computeIfAbsent(from, _ -> new HashSet<>()).add(to);
-		out.predecessors().computeIfAbsent(to, _ -> new HashSet<>()).add(from);
+		out.successors().get(from).add(to);
+		out.predecessors().get(to).add(from);
 	}
 
 	private void analyzeFunction(Function function, CFGAnalysisResult out) {
+		for (var basicBlock : function.getBlocks()) {
+			out.successors().put(basicBlock, new HashSet<>());
+			out.predecessors().put(basicBlock, new HashSet<>());
+		}
 		for (var basicBlock : function.getBlocks()) {
 			var terminator = basicBlock.getTerminator();
 			if (terminator instanceof Br br) addEdge(basicBlock, br.getTarget(), out);

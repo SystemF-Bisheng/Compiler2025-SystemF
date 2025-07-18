@@ -2,19 +2,19 @@ package org.systemf.compiler.analysis;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
-public record CFGAnalysisResult(HashMap<BasicBlock, HashSet<BasicBlock>> successors,
-                                HashMap<BasicBlock, HashSet<BasicBlock>> predecessors) {
-	public HashSet<BasicBlock> getSuccessors(BasicBlock block) {
+public record CFGAnalysisResult(Map<BasicBlock, Set<BasicBlock>> successors,
+                                Map<BasicBlock, Set<BasicBlock>> predecessors) {
+	public Set<BasicBlock> getSuccessors(BasicBlock block) {
 		var res = successors.get(block);
 		if (res == null) throw new NoSuchElementException("No such block: " + block.getName());
 		return res;
 	}
 
-	public HashSet<BasicBlock> getPredecessors(BasicBlock block) {
+	public Set<BasicBlock> getPredecessors(BasicBlock block) {
 		var res = predecessors.get(block);
 		if (res == null) throw new NoSuchElementException("No such block: " + block.getName());
 		return res;

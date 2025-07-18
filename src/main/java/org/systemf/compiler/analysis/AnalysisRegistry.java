@@ -7,5 +7,6 @@ public class AnalysisRegistry {
 		var query = QueryManager.getInstance();
 		query.registerProvider(CFGAnalysis.INSTANCE);
 		query.registerProvider(PointerAnalysis.INSTANCE);
+		query.registerProvider(DominanceAnalysis.INSTANCE);
 	}
 }

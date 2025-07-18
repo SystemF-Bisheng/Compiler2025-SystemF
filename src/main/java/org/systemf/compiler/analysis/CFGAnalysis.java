@@ -1,6 +1,5 @@
 package org.systemf.compiler.analysis;
 
-import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.terminal.Br;
@@ -13,7 +12,7 @@ import java.util.HashSet;
 /**
  * Build control flow graph
  */
-public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> {
+public enum CFGAnalysis implements AttributeProvider<Function, CFGAnalysisResult> {
 	INSTANCE;
 
 	private void addEdge(BasicBlock from, BasicBlock to, CFGAnalysisResult out) {
@@ -37,9 +36,9 @@ public enum CFGAnalysis implements AttributeProvider<Module, CFGAnalysisResult> 
 	}
 
 	@Override
-	public CFGAnalysisResult getAttribute(Module entity) {
+	public CFGAnalysisResult getAttribute(Function entity) {
 		var res = new CFGAnalysisResult(new HashMap<>(), new HashMap<>());
-		entity.getFunctions().values().forEach(f -> analyzeFunction(f, res));
+		analyzeFunction(entity, res);
 		return res;
 	}
 }

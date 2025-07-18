@@ -9,12 +9,12 @@ import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Function extends DummyValue implements IFunction {
 	final private String name;
-	final private HashSet<BasicBlock> blocks = new HashSet<>();
+	final private LinkedHashSet<BasicBlock> blocks = new LinkedHashSet<>();
 	private BasicBlock entryBlock;
 	private final Type returnType;
 	final private Parameter[] formalArgs;

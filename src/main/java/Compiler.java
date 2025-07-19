@@ -2,9 +2,9 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.systemf.compiler.interpreter.IRInterpreter;
 import org.systemf.compiler.ir.Module;
+import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
-import org.systemf.compiler.translator.IRTranslatedResult;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -19,7 +19,7 @@ public class Compiler {
 
 		var input = CharStreams.fromFileName(compileArgument.inputFilePath());
 		query.registerProvider(CharStream.class, () -> input);
-		Module module = query.get(IRTranslatedResult.class).module();
+		Module module = query.get(OptimizedResult.class).module();
 
 		if (compileArgument.outputFilePath() != null) {
 			module.dump(new PrintStream(compileArgument.outputFilePath()));

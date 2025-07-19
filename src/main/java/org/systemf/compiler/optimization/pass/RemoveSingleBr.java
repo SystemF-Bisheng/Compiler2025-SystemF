@@ -31,7 +31,9 @@ public enum RemoveSingleBr implements OptPass {
 				predSuccs.remove(block);
 				predSuccs.add(target);
 			});
-			cfg.getPredecessors(target).addAll(preds);
+			var targetPred = cfg.getPredecessors(target);
+			targetPred.remove(block);
+			targetPred.addAll(preds);
 			if (block == function.getEntryBlock()) function.setEntryBlock(target);
 			cfg.successors().remove(block);
 			cfg.predecessors().remove(block);

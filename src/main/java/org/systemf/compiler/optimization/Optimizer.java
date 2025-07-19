@@ -17,8 +17,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		var module = translated.module();
 
 		RemoveDeadBlock.INSTANCE.run(module);
-		MergeChain.INSTANCE.run(module);
 		RemoveSingleBr.INSTANCE.run(module);
+		MergeChain.INSTANCE.run(module);
 
 		query.invalidate(translated);
 		return new OptimizedResult(module);

@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Indexable;
@@ -38,6 +39,9 @@ public class GetPtr extends DummyValueNonTerminal {
 		if (arrayPtr == oldValue) setArrayPtr(newValue);
 		if (index == oldValue) setIndex(newValue);
 	}
+
+	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

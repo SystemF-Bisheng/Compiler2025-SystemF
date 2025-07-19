@@ -2,7 +2,7 @@ package org.systemf.compiler.analysis;
 
 import org.systemf.compiler.query.QueryManager;
 
-public class AnalysisRegistry {
+public class AnalysisQueryRegistry {
 	public static void registerAll() {
 		var query = QueryManager.getInstance();
 		query.registerProvider(CFGAnalysis.INSTANCE);

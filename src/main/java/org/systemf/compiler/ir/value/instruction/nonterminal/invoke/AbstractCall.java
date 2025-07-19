@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
@@ -54,6 +55,9 @@ public abstract class AbstractCall extends DummyNonTerminal {
 		if (func == oldValue) setFunction(newValue);
 		for (int i = 0; i < args.length; i++) if (args[i] == oldValue) args[i] = newValue;
 	}
+
+	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public void unregister() {

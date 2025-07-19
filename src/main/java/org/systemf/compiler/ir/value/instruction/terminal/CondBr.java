@@ -38,6 +38,12 @@ public class CondBr extends DummyTerminal {
 	}
 
 	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {
+		if (trueTarget == oldBlock) setTrueTarget(newBlock);
+		if (falseTarget == oldBlock) setFalseTarget(newBlock);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
 	}

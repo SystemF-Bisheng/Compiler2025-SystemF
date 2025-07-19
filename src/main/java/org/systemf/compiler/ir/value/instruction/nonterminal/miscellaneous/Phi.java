@@ -7,16 +7,11 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
-import org.systemf.compiler.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class Phi extends DummyValueNonTerminal {
-	private List<Pair<BasicBlock, Value>> incoming = new ArrayList<>();
+	private Map<BasicBlock, Value> incoming = new HashMap<>();
 
 	public Phi(Type type, String name) {
 		super(type, name);
@@ -26,11 +21,11 @@ public class Phi extends DummyValueNonTerminal {
 	public String dumpInstructionBody() {
 		StringBuilder sb = new StringBuilder();
 		boolean nonFirst = false;
-		for (var pair : incoming) {
+		for (var entry : incoming.entrySet()) {
 			if (nonFirst) sb.append(", ");
 			nonFirst = true;
 			sb.append("[ ");
-			sb.append(ValueUtil.dumpIdentifier(pair.right())).append(", ").append(pair.left().getName());
+			sb.append(ValueUtil.dumpIdentifier(entry.getValue())).append(": ").append(entry.getKey().getName());
 			sb.append(" ]");
 		}
 		return sb.toString();
@@ -38,26 +33,34 @@ public class Phi extends DummyValueNonTerminal {
 
 	@Override
 	public Set<Value> getDependency() {
-		return incoming.stream().map(Pair::right).collect(Collectors.toSet());
+		return new HashSet<>(incoming.values());
 	}
 
 	@Override
 	public void replaceAll(Value oldValue, Value newValue) {
 		checkIncoming(newValue);
-		for (var iter = incoming.listIterator(); iter.hasNext(); ) {
-			var pair = iter.next();
-			var value = pair.right();
+		for (var entry : incoming.entrySet()) {
+			var value = entry.getValue();
 			if (value == oldValue) {
 				value.unregisterDependant(this);
-				iter.set(pair.withRight(newValue));
+				entry.setValue(newValue);
 				newValue.registerDependant(this);
 			}
 		}
 	}
 
 	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {
+		if (incoming.containsKey(oldBlock)) {
+			var value = incoming.get(oldBlock);
+			incoming.remove(oldBlock);
+			incoming.put(newBlock, value);
+		}
+	}
+
+	@Override
 	public void unregister() {
-		incoming.stream().map(Pair::right).forEach(v -> v.unregisterDependant(this));
+		incoming.values().forEach(v -> v.unregisterDependant(this));
 	}
 
 	@Override
@@ -65,15 +68,15 @@ public class Phi extends DummyValueNonTerminal {
 		return visitor.visit(this);
 	}
 
-	public List<Pair<BasicBlock, Value>> getIncoming() {
-		return Collections.unmodifiableList(incoming);
+	public Map<BasicBlock, Value> getIncoming() {
+		return Collections.unmodifiableMap(incoming);
 	}
 
-	public void setIncoming(List<Pair<BasicBlock, Value>> incoming) {
-		incoming.stream().map(Pair::right).forEach(this::checkIncoming);
-		this.incoming.stream().map(Pair::right).forEach(v -> v.unregisterDependant(this));
-		this.incoming = new ArrayList<>(incoming);
-		this.incoming.stream().map(Pair::right).forEach(v -> v.registerDependant(this));
+	public void setIncoming(Map<BasicBlock, Value> incoming) {
+		incoming.values().forEach(this::checkIncoming);
+		this.incoming.values().forEach(v -> v.unregisterDependant(this));
+		this.incoming = new HashMap<>(incoming);
+		this.incoming.values().forEach(v -> v.registerDependant(this));
 	}
 
 	private void checkIncoming(Value value) {
@@ -82,7 +85,8 @@ public class Phi extends DummyValueNonTerminal {
 
 	public void addIncoming(BasicBlock block, Value value) {
 		checkIncoming(value);
-		incoming.add(Pair.of(block, value));
+		if (incoming.containsKey(block)) throw new IllegalArgumentException("Duplicate incoming block");
+		incoming.put(block, value);
 		value.registerDependant(this);
 	}
 }

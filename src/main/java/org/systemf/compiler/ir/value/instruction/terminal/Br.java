@@ -29,6 +29,11 @@ public class Br extends DummyTerminal {
 	}
 
 	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {
+		if (target == oldBlock) setTarget(newBlock);
+	}
+
+	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
 	}

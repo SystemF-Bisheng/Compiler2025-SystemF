@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -28,6 +29,9 @@ public class Ret extends DummyTerminal {
 	public void replaceAll(Value oldValue, Value newValue) {
 		if (returnValue == oldValue) setReturnValue(newValue);
 	}
+
+	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

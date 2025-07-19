@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 
 import java.util.Collections;
@@ -18,6 +19,9 @@ public class RetVoid extends DummyTerminal {
 	@Override
 	public void replaceAll(Value oldValue, Value newValue) {
 	}
+
+	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public String toString() {

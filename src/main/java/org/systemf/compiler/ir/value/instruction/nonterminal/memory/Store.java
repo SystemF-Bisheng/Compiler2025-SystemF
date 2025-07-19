@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.interfaces.Sized;
@@ -37,6 +38,9 @@ public class Store extends DummyNonTerminal {
 		if (src == oldValue) setSrc(newValue);
 		if (dest == oldValue) setDest(newValue);
 	}
+
+	@Override
+	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

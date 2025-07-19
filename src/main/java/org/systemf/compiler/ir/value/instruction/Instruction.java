@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction;
 
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 
 import java.util.Set;
@@ -12,6 +13,8 @@ public interface Instruction {
 	Set<Value> getDependency();
 
 	void replaceAll(Value oldValue, Value newValue);
+
+	void replaceAll(BasicBlock oldBlock, BasicBlock newBlock);
 
 	<T> T accept(InstructionVisitor<T> visitor);
 

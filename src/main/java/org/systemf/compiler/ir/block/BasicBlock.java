@@ -32,6 +32,11 @@ public class BasicBlock implements INamed {
 		return getTerminator() != null;
 	}
 
+	public void destroy() {
+		instructions.forEach(Instruction::unregister);
+		instructions.clear();
+	}
+
 	@Override
 	public String getName() {
 		return name;

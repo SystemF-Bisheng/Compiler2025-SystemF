@@ -3,6 +3,7 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -10,7 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractCall extends DummyNonTerminal {
+public abstract class AbstractCall extends DummyNonTerminal implements PotentialSideEffect {
 	private Value func;
 	private Value[] args;
 

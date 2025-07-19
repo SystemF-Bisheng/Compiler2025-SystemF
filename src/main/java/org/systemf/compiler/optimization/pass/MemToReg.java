@@ -8,6 +8,7 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.type.interfaces.Atom;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
@@ -37,6 +38,7 @@ public enum MemToReg implements OptPass {
 		private final PointerAnalysisResult pointerResult;
 		private IRBuilder builder;
 		private Alloca curAlloc;
+		private Sized allocatedType;
 		private Set<Value> allocPointedBy;
 		private Tree<BasicBlock> domTree;
 		private HashMap<BasicBlock, Value> curProvide;
@@ -93,7 +95,8 @@ public enum MemToReg implements OptPass {
 			for (var iter = cur.instructions.listIterator(); iter.hasNext(); ) {
 				if (!(iter.next() instanceof Load load)) continue;
 				if (!allocPointedBy.contains(load.getPointer())) continue;
-				var curValue = Objects.requireNonNull(curProvide.get(cur));
+				var curValue = Objects.requireNonNullElseGet(curProvide.get(cur),
+						() -> builder.buildUndefined(allocatedType));
 				load.replaceAllUsage(curValue);
 				if (postProvide.get(cur) == load) postProvide.put(cur, curValue);
 				load.unregister();
@@ -107,6 +110,7 @@ public enum MemToReg implements OptPass {
 		private void inline(Function function, Alloca alloc) {
 			var dominance = query.getAttribute(function, DominanceAnalysisResult.class);
 			this.curAlloc = alloc;
+			this.allocatedType = alloc.valueType;
 			this.allocPointedBy = pointerResult.pointedBy(alloc);
 			this.domTree = dominance.dominance();
 			this.curProvide = new HashMap<>();
@@ -143,7 +147,6 @@ public enum MemToReg implements OptPass {
 
 			dfs(domTree.getRoot(), null);
 
-			var allocatedType = alloc.valueType;
 			var cfg = query.getAttribute(function, CFGAnalysisResult.class);
 			inserted.forEach((block, phi) -> {
 				for (var pred : cfg.predecessors(block))

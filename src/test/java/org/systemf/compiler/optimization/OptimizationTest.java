@@ -21,6 +21,14 @@ public class OptimizationTest {
 						y = tmp;
 						cnt = cnt - 1;
 					}
+					int a, b;
+					if (x == 1) {
+						a = 5;
+					} else {
+						a = 5;
+					}
+					b = a + a;
+					return b;
 				}
 				
 				""");

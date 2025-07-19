@@ -11,9 +11,11 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -244,10 +246,32 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldSiToFp(inst.getX());
 	}
 
+	@Override
+	public Optional<?> visit(Phi inst) {
+		return tryFoldPhi(inst.getIncoming().values());
+	}
+
+	public Optional<Constant> tryFoldPhi(Collection<Value> ops) {
+		if (ops.isEmpty()) return Optional.empty();
+		var first = ops.iterator().next();
+		if (first instanceof ConstantInt firstInt) {
+			var val = firstInt.value;
+			if (ops.stream().allMatch(v -> v instanceof ConstantInt vInt && vInt.value == val))
+				return Optional.of(firstInt);
+			else return Optional.empty();
+		} else if (first instanceof ConstantFloat firstFloat) {
+			var val = (float) firstFloat.value;
+			if (ops.stream().allMatch(v -> v instanceof ConstantFloat vFloat && (float) vFloat.value == val))
+				return Optional.of(firstFloat);
+			else return Optional.empty();
+		}
+		return Optional.empty();
+	}
+
 	public Optional<Terminal> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
 		if (condition instanceof ConstantInt conditionC) {
-			if (conditionC.value == 0) return Optional.of(builder.buildBr(falseTarget));
-			else return Optional.of(builder.buildBr(trueTarget));
+			if (conditionC.value == 0) return Optional.of(builder.constructBr(falseTarget));
+			else return Optional.of(builder.constructBr(trueTarget));
 		} else return Optional.empty();
 	}
 

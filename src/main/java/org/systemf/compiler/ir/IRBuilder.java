@@ -377,6 +377,10 @@ public class IRBuilder implements AutoCloseable {
 		return unreachableInst;
 	}
 
+	public Br constructBr(BasicBlock target) {
+		return new Br(target);
+	}
+
 	public Br buildBr(BasicBlock target) {
 		Br brInst = new Br(target);
 		insertInstruction(brInst);

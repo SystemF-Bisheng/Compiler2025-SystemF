@@ -12,10 +12,15 @@ public class OptimizationTest {
 		var code = CharStreams.fromString("""
 				int main()
 				{
-				    if (0) {
-				        return 1;
-				    }
-				    return 0;
+					int cnt = getint();
+					int x = 5;
+					int y = 3;
+					while (cnt) {
+						int tmp = x;
+						x = y;
+						y = tmp;
+						cnt = cnt - 1;
+					}
 				}
 				
 				""");

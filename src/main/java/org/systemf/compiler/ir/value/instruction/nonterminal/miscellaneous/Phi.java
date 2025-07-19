@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.interfaces.Type;
@@ -32,35 +33,38 @@ public class Phi extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
-		return new HashSet<>(incoming.values());
+	public Set<ITracked> getDependency() {
+		var res = new HashSet<ITracked>();
+		res.addAll(incoming.keySet());
+		res.addAll(incoming.values());
+		return res;
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		checkIncoming(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
 		for (var entry : incoming.entrySet()) {
 			var value = entry.getValue();
 			if (value == oldValue) {
+				var val = (Value) newValue;
+				checkIncoming(val);
 				value.unregisterDependant(this);
-				entry.setValue(newValue);
+				entry.setValue(val);
 				newValue.registerDependant(this);
 			}
 		}
-	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {
-		if (incoming.containsKey(oldBlock)) {
-			var value = incoming.get(oldBlock);
-			incoming.remove(oldBlock);
-			incoming.put(newBlock, value);
+		if (oldValue instanceof BasicBlock && incoming.containsKey(oldValue)) {
+			var val = incoming.get(oldValue);
+			incoming.remove(oldValue);
+			incoming.put((BasicBlock) newValue, val);
 		}
 	}
 
 	@Override
 	public void unregister() {
-		incoming.values().forEach(v -> v.unregisterDependant(this));
+		incoming.forEach((block, value) -> {
+			block.unregisterDependant(this);
+			value.unregisterDependant(this);
+		});
 	}
 
 	@Override
@@ -74,9 +78,15 @@ public class Phi extends DummyValueNonTerminal {
 
 	public void setIncoming(Map<BasicBlock, Value> incoming) {
 		incoming.values().forEach(this::checkIncoming);
-		this.incoming.values().forEach(v -> v.unregisterDependant(this));
+		this.incoming.forEach((block, value) -> {
+			block.unregisterDependant(this);
+			value.unregisterDependant(this);
+		});
 		this.incoming = new HashMap<>(incoming);
-		this.incoming.values().forEach(v -> v.registerDependant(this));
+		incoming.forEach((block, value) -> {
+			block.registerDependant(this);
+			value.registerDependant(this);
+		});
 	}
 
 	private void checkIncoming(Value value) {
@@ -87,6 +97,7 @@ public class Phi extends DummyValueNonTerminal {
 		checkIncoming(value);
 		if (incoming.containsKey(block)) throw new IllegalArgumentException("Duplicate incoming block");
 		incoming.put(block, value);
+		block.registerDependant(this);
 		value.registerDependant(this);
 	}
 }

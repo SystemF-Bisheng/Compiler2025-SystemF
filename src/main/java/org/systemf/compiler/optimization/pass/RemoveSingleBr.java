@@ -4,6 +4,7 @@ import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.query.QueryManager;
 
@@ -23,15 +24,16 @@ public enum RemoveSingleBr implements OptPass {
 			if (!(block.getTerminator() instanceof Br br)) continue;
 			var target = br.getTarget();
 			if (block == target) continue;
+			if (target.getFirstInstruction() instanceof Phi) continue;
 
-			var preds = cfg.getPredecessors(block);
+			var preds = cfg.predecessors(block);
+			block.replaceAllUsage(target);
 			preds.forEach(pred -> {
-				pred.getTerminator().replaceAll(block, target);
-				var predSuccs = cfg.getSuccessors(pred);
+				var predSuccs = cfg.successors(pred);
 				predSuccs.remove(block);
 				predSuccs.add(target);
 			});
-			var targetPred = cfg.getPredecessors(target);
+			var targetPred = cfg.predecessors(target);
 			targetPred.remove(block);
 			targetPred.addAll(preds);
 			if (block == function.getEntryBlock()) function.setEntryBlock(target);

@@ -91,6 +91,20 @@ public enum DominanceAnalysis implements AttributeProvider<Function, DominanceAn
 			out.add(Pair.of(cur, iDom));
 		}
 
+		private void collectDominanceFrontier(Tree<BasicBlock> dominanceTree, BasicBlock block,
+				Map<BasicBlock, Set<BasicBlock>> out) {
+			var iDom = dominanceTree.getParent(block);
+			var preds = predecessors.get(block);
+			if (preds.size() < 2) return;
+			for (var pred : preds) {
+				var pDom = pred;
+				while (pDom != iDom) {
+					out.get(pDom).add(block);
+					pDom = dominanceTree.getParent(pDom);
+				}
+			}
+		}
+
 		public DominanceAnalysisResult analysis() {
 			dfs(entry);
 			for (var dfn = dfnCnt - 1; dfn > 0; --dfn) calcSemiDom(dfn);
@@ -98,7 +112,13 @@ public enum DominanceAnalysis implements AttributeProvider<Function, DominanceAn
 			var res = new ArrayList<Pair<BasicBlock, BasicBlock>>();
 			res.add(Pair.of(entry, null));
 			for (var dfn = 1; dfn < dfnCnt; ++dfn) calcImmediateDom(dfn, res);
-			return new DominanceAnalysisResult(new Tree<>(res));
+			var tree = new Tree<>(res);
+
+			var df = new HashMap<BasicBlock, Set<BasicBlock>>();
+			for (var block : dfn.keySet()) df.put(block, new HashSet<>());
+			for (var block : dfn.keySet()) collectDominanceFrontier(tree, block, df);
+
+			return new DominanceAnalysisResult(new Tree<>(res), df);
 		}
 
 		private DominanceInfo mergeInfo(DominanceInfo to, DominanceInfo from) {

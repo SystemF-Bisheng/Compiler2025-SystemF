@@ -1,5 +1,6 @@
 package org.systemf.compiler.optimization;
 
+import org.systemf.compiler.optimization.pass.MemToReg;
 import org.systemf.compiler.optimization.pass.MergeChain;
 import org.systemf.compiler.optimization.pass.RemoveDeadBlock;
 import org.systemf.compiler.optimization.pass.RemoveSingleBr;
@@ -17,6 +18,9 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		var module = translated.module();
 
 		RemoveDeadBlock.INSTANCE.run(module);
+		RemoveSingleBr.INSTANCE.run(module);
+		MergeChain.INSTANCE.run(module);
+		MemToReg.INSTANCE.run(module);
 		RemoveSingleBr.INSTANCE.run(module);
 		MergeChain.INSTANCE.run(module);
 

@@ -1,8 +1,8 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
-import org.systemf.compiler.ir.value.Value;
 
 import java.util.Collections;
 import java.util.Set;
@@ -20,17 +20,13 @@ public class Br extends DummyTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
-		return Collections.emptySet();
+	public Set<ITracked> getDependency() {
+		return Collections.singleton(target);
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {
-		if (target == oldBlock) setTarget(newBlock);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (target == oldValue) setTarget((BasicBlock) newValue);
 	}
 
 	@Override
@@ -40,6 +36,7 @@ public class Br extends DummyTerminal {
 
 	@Override
 	public void unregister() {
+		if (target != null) target.unregisterDependant(this);
 	}
 
 	public BasicBlock getTarget() {
@@ -47,6 +44,8 @@ public class Br extends DummyTerminal {
 	}
 
 	public void setTarget(BasicBlock target) {
+		if (this.target != null) this.target.unregisterDependant(this);
 		this.target = target;
+		target.registerDependant(this);
 	}
 }

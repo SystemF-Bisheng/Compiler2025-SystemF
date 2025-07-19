@@ -77,6 +77,10 @@ public class IRBuilder implements AutoCloseable {
 		return new UnsizedArray(elementType);
 	}
 
+	public Undefined buildUndefined(Type type) {
+		return Undefined.of(type);
+	}
+
 	public ConstantInt buildConstantInt(long value) {
 		return ConstantInt.valueOf(value);
 	}
@@ -123,12 +127,16 @@ public class IRBuilder implements AutoCloseable {
 		return block;
 	}
 
-	public void buildRet(Value value) {
-		insertInstruction(new Ret(value));
+	public Ret buildRet(Value value) {
+		Ret ret = new Ret(value);
+		insertInstruction(ret);
+		return ret;
 	}
 
-	public void buildRetVoid() {
-		insertInstruction(new RetVoid());
+	public RetVoid buildRetVoid() {
+		RetVoid retVoid = RetVoid.INSTANCE;
+		insertInstruction(retVoid);
+		return retVoid;
 	}
 
 	public And buildAnd(Value lhs, Value rhs, String name) {
@@ -364,7 +372,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Unreachable buildUnreachable() {
-		Unreachable unreachableInst = new Unreachable();
+		Unreachable unreachableInst = Unreachable.INSTANCE;
 		insertInstruction(unreachableInst);
 		return unreachableInst;
 	}

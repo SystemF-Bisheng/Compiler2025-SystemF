@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Indexable;
@@ -30,18 +30,15 @@ public class GetPtr extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return new HashSet<>(List.of(arrayPtr, index));
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (arrayPtr == oldValue) setArrayPtr(newValue);
-		if (index == oldValue) setIndex(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (arrayPtr == oldValue) setArrayPtr((Value) newValue);
+		if (index == oldValue) setIndex((Value) newValue);
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

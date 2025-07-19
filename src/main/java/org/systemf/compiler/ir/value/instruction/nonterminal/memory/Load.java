@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.util.TypeUtil;
@@ -26,17 +26,14 @@ public class Load extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return Collections.singleton(ptr);
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (ptr == oldValue) setPointer(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (ptr == oldValue) setPointer((Value) newValue);
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

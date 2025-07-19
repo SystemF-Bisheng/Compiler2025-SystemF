@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.terminal;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -21,17 +21,14 @@ public class Ret extends DummyTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return Collections.singleton(returnValue);
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (returnValue == oldValue) setReturnValue(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (returnValue == oldValue) setReturnValue((Value) newValue);
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

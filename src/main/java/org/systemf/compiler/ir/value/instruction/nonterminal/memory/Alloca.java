@@ -1,10 +1,9 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Sized;
-import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 import java.util.Collections;
@@ -24,16 +23,13 @@ public class Alloca extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

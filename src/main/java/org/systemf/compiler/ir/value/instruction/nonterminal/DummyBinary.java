@@ -1,6 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal;
 
-import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
@@ -54,18 +54,15 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return new HashSet<>(List.of(x, y));
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (x == oldValue) setX(newValue);
-		if (y == oldValue) setY(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (x == oldValue) setX((Value) newValue);
+		if (y == oldValue) setY((Value) newValue);
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public void unregister() {

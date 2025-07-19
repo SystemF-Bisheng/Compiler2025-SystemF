@@ -1,7 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.interfaces.Sized;
@@ -29,18 +29,15 @@ public class Store extends DummyNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
+	public Set<ITracked> getDependency() {
 		return new HashSet<>(Arrays.asList(src, dest));
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (src == oldValue) setSrc(newValue);
-		if (dest == oldValue) setDest(newValue);
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (src == oldValue) setSrc((Value) newValue);
+		if (dest == oldValue) setDest((Value) newValue);
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {

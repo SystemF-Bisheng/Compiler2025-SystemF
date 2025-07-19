@@ -1,6 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
-import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
@@ -44,20 +44,17 @@ public abstract class AbstractCall extends DummyNonTerminal {
 	}
 
 	@Override
-	public Set<Value> getDependency() {
-		HashSet<Value> usages = new HashSet<>(Arrays.asList(args));
+	public Set<ITracked> getDependency() {
+		HashSet<ITracked> usages = new HashSet<>(Arrays.asList(args));
 		usages.add(func);
 		return usages;
 	}
 
 	@Override
-	public void replaceAll(Value oldValue, Value newValue) {
-		if (func == oldValue) setFunction(newValue);
-		for (int i = 0; i < args.length; i++) if (args[i] == oldValue) args[i] = newValue;
+	public void replaceAll(ITracked oldValue, ITracked newValue) {
+		if (func == oldValue) setFunction((Value) newValue);
+		for (int i = 0; i < args.length; i++) if (args[i] == oldValue) args[i] = (Value) newValue;
 	}
-
-	@Override
-	public void replaceAll(BasicBlock oldBlock, BasicBlock newBlock) {}
 
 	@Override
 	public void unregister() {

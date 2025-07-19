@@ -4,6 +4,7 @@ import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
@@ -12,18 +13,19 @@ public enum MergeChain implements OptPass {
 	INSTANCE;
 
 	private void mergeBlock(BasicBlock to, BasicBlock from, CFGAnalysisResult cfg) {
-		to.instructions.getLast().unregister();
+		to.getLastInstruction().unregister();
 		to.instructions.removeLast();
 		to.instructions.addAll(from.instructions);
 		from.instructions.clear();
 
-		var fromSuccs = cfg.getSuccessors(from);
+		from.replaceAllUsage(to);
+		var fromSuccs = cfg.successors(from);
 		var successors = cfg.successors();
 		successors.put(to, fromSuccs);
 		successors.remove(from);
 		cfg.predecessors().remove(from);
 		for (var succ : fromSuccs) {
-			var succPred = cfg.getPredecessors(succ);
+			var succPred = cfg.predecessors(succ);
 			succPred.remove(from);
 			succPred.add(to);
 		}
@@ -37,12 +39,13 @@ public enum MergeChain implements OptPass {
 		for (var block : function.getBlocks()) {
 			if (toDel.contains(block)) continue;
 			while (true) {
-				var succs = cfg.getSuccessors(block);
+				var succs = cfg.successors(block);
 				if (succs.size() != 1) break;
 				var succ = succs.iterator().next();
 				if (succ == block) break;
 				if (succ == function.getEntryBlock()) break;
-				var succPreds = cfg.getPredecessors(succ);
+				if (succ.getFirstInstruction() instanceof Phi) break;
+				var succPreds = cfg.predecessors(succ);
 				if (succPreds.size() != 1) break;
 
 				toDel.add(succ);

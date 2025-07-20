@@ -5,4 +5,6 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 
 public interface Value extends ITracked {
 	Type getType();
+
+	boolean contentEqual(Value other);
 }

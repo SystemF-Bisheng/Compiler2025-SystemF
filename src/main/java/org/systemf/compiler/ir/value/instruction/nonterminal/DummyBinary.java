@@ -69,4 +69,11 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 		if (x != null) x.unregisterDependant(this);
 		if (y != null) y.unregisterDependant(this);
 	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(this.getClass() == other.getClass())) return false;
+		var otherBinary = (DummyBinary) other;
+		return ValueUtil.trivialInterchangeable(x, otherBinary.x) && ValueUtil.trivialInterchangeable(y, otherBinary.y);
+	}
 }

@@ -76,4 +76,11 @@ public class GetPtr extends DummyValueNonTerminal {
 		this.index = index;
 		index.registerDependant(this);
 	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(other instanceof GetPtr otherGet)) return false;
+		return ValueUtil.trivialInterchangeable(arrayPtr, otherGet.arrayPtr) &&
+		       ValueUtil.trivialInterchangeable(index, otherGet.index);
+	}
 }

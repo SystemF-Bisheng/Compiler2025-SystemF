@@ -17,4 +17,10 @@ public abstract class DummyCompare extends DummyBinary {
 	}
 
 	public abstract String compareOperatorName();
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!super.contentEqual(other)) return false;
+		return method == ((DummyCompare) other).method;
+	}
 }

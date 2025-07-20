@@ -67,4 +67,14 @@ public class Call extends AbstractCall implements Value, INamed {
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
 	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(other instanceof Call otherCall)) return false;
+		if (!ValueUtil.trivialInterchangeable(func, otherCall.func)) return false;
+		if (args.length != otherCall.args.length) return false;
+		for (int i = 0; i < args.length; ++i)
+			if (!ValueUtil.trivialInterchangeable(args[i], otherCall.args[i])) return false;
+		return true;
+	}
 }

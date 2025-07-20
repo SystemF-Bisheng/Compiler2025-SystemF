@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.constant;
 
 import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.value.Value;
 
 public class ConstantInt extends DummyConstant {
 	private static final ConstantInt[] cache = new ConstantInt[1025];
@@ -22,5 +23,12 @@ public class ConstantInt extends DummyConstant {
 	@Override
 	public String toString() {
 		return String.valueOf(value);
+	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!super.contentEqual(other)) return false;
+		var otherInt = (ConstantInt) other;
+		return value == otherInt.value;
 	}
 }

@@ -37,4 +37,10 @@ public class ValueUtil {
 		if (value instanceof Constant c) return c;
 		throw new IllegalArgumentException("Value `" + value + "` is not a constant");
 	}
+
+	public static boolean trivialInterchangeable(Value a, Value b) {
+		if (a == b) return true;
+		if (a instanceof Constant) return a.contentEqual(b);
+		return false;
+	}
 }

@@ -34,4 +34,9 @@ public abstract class DummyValue implements Value {
 	public Type getType() {
 		return type;
 	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		return this == other;
+	}
 }

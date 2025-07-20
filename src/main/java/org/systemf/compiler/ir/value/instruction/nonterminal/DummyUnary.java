@@ -51,4 +51,11 @@ public abstract class DummyUnary extends DummyValueNonTerminal {
 	public void unregister() {
 		if (x != null) x.unregisterDependant(this);
 	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(this.getClass() == other.getClass())) return false;
+		var otherBinary = (DummyUnary) other;
+		return ValueUtil.trivialInterchangeable(x, otherBinary.x);
+	}
 }

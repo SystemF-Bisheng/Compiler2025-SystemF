@@ -14,6 +14,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -248,24 +249,24 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 
 	@Override
 	public Optional<?> visit(Phi inst) {
-		return tryFoldPhi(inst.getIncoming().values());
+		return tryFoldPhi(inst, inst.getIncoming().values());
+	}
+
+	private Optional<Constant> tryFoldPhi(Phi self, Collection<Value> ops) {
+		if (ops.isEmpty()) return Optional.empty();
+		var iter = ops.iterator();
+		Value first;
+		do first = iter.next(); while (iter.hasNext() && first == self);
+		if (first == self) return Optional.empty();
+		if (!(first instanceof Constant firstConst)) return Optional.empty();
+
+		if (ops.stream().allMatch(v -> v == self || ValueUtil.trivialInterchangeable(firstConst, v)))
+			return Optional.of(firstConst);
+		else return Optional.empty();
 	}
 
 	public Optional<Constant> tryFoldPhi(Collection<Value> ops) {
-		if (ops.isEmpty()) return Optional.empty();
-		var first = ops.iterator().next();
-		if (first instanceof ConstantInt firstInt) {
-			var val = firstInt.value;
-			if (ops.stream().allMatch(v -> v instanceof ConstantInt vInt && vInt.value == val))
-				return Optional.of(firstInt);
-			else return Optional.empty();
-		} else if (first instanceof ConstantFloat firstFloat) {
-			var val = (float) firstFloat.value;
-			if (ops.stream().allMatch(v -> v instanceof ConstantFloat vFloat && (float) vFloat.value == val))
-				return Optional.of(firstFloat);
-			else return Optional.empty();
-		}
-		return Optional.empty();
+		return tryFoldPhi(null, ops);
 	}
 
 	public Optional<Terminal> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {

@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractCall extends DummyNonTerminal implements PotentialSideEffect {
-	private Value func;
-	private Value[] args;
+	protected Value func;
+	protected Value[] args;
 
 	protected AbstractCall(Value func, Value... args) {
 		setFunction(func);

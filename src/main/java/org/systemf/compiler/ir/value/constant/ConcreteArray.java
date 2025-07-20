@@ -3,6 +3,7 @@ package org.systemf.compiler.ir.value.constant;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Arrays;
 
@@ -28,5 +29,14 @@ public class ConcreteArray extends DummyArray {
 	public String toString() {
 		return String.format("{%s}",
 				String.join(", ", Arrays.stream(content).map(Object::toString).toArray(String[]::new)));
+	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!super.contentEqual(other)) return false;
+		var otherArray = (ConcreteArray) other;
+		for (int i = 0; i < content.length; ++i)
+			if (!ValueUtil.trivialInterchangeable(content[i], otherArray.content[i])) return false;
+		return true;
 	}
 }

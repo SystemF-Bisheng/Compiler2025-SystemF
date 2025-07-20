@@ -55,7 +55,9 @@ public class Phi extends DummyValueNonTerminal {
 		if (oldValue instanceof BasicBlock && incoming.containsKey(oldValue)) {
 			var val = incoming.get(oldValue);
 			incoming.remove(oldValue);
+			oldValue.unregisterDependant(this);
 			incoming.put((BasicBlock) newValue, val);
+			newValue.registerDependant(this);
 		}
 	}
 

@@ -112,6 +112,26 @@ public class Module {
 		return irBuilderAttached;
 	}
 
+	@Override
+	public String toString() {
+		var res = new StringBuilder();
+		externalFunctions.values().forEach(ext -> {
+			res.append(ext);
+			res.append("\n");
+		});
+		res.append('\n');
+		declarations.values().forEach(decl -> {
+			res.append(decl);
+			res.append("\n");
+		});
+		res.append('\n');
+		functions.values().forEach(func -> {
+			res.append(func);
+			res.append("\n");
+		});
+		return res.toString();
+	}
+
 	public void dump(PrintStream out) {
 		externalFunctions.values().forEach(out::println);
 		out.println();

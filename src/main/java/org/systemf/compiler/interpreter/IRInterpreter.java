@@ -466,7 +466,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public ExecutionValue visit(Phi inst) {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		var res = findValue(inst.getIncoming().get(lastBlock), oldVariables);
-		currentContext.insertValue(inst, res);
+		if (res == null) return null;
+		currentContext.insertValue(inst, res.clone());
 		return null;
 	}
 

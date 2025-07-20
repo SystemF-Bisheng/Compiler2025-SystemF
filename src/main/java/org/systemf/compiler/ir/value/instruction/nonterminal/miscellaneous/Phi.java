@@ -89,6 +89,13 @@ public class Phi extends DummyValueNonTerminal {
 		});
 	}
 
+	public void removeIncoming(BasicBlock block) {
+		if (!incoming.containsKey(block)) return;
+		block.unregisterDependant(this);
+		incoming.get(block).unregisterDependant(this);
+		incoming.remove(block);
+	}
+
 	private void checkIncoming(Value value) {
 		TypeUtil.assertConvertible(value.getType(), type, "Illegal incoming");
 	}

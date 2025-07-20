@@ -6,12 +6,37 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Br;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 public enum RemoveSingleBr implements OptPass {
 	INSTANCE;
+
+	private boolean checkPhi(BasicBlock pred, BasicBlock block, Collection<Phi> phis) {
+		return phis.stream().allMatch(phi -> {
+			var incoming = phi.getIncoming();
+			if (!incoming.containsKey(pred)) return true;
+			return ValueUtil.trivialInterchangeable(incoming.get(pred), incoming.get(block));
+		});
+	}
+
+	private void handlePhi(BasicBlock pred, BasicBlock block, Collection<Phi> phis) {
+		phis.forEach(phi -> {
+			var incoming = phi.getIncoming();
+			if (!incoming.containsKey(pred)) phi.addIncoming(pred, incoming.get(block));
+		});
+		phis.forEach(phi -> phi.removeIncoming(block));
+	}
+
+	private boolean handlePhi(CFGAnalysisResult cfg, BasicBlock block, Collection<Phi> phis) {
+		var preds = cfg.predecessors(block);
+		var res = preds.stream().map(pred -> checkPhi(pred, block, phis)).reduce(true, Boolean::logicalAnd);
+		if (res) preds.forEach(pred -> handlePhi(pred, block, phis));
+		return res;
+	}
 
 	private boolean processFunction(Function function) {
 		var query = QueryManager.getInstance();
@@ -24,7 +49,11 @@ public enum RemoveSingleBr implements OptPass {
 			if (!(block.getTerminator() instanceof Br br)) continue;
 			var target = br.getTarget();
 			if (block == target) continue;
-			if (target.getFirstInstruction() instanceof Phi) continue;
+			if (target.getFirstInstruction() instanceof Phi) {
+				var phis = target.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
+						.toList();
+				if (!handlePhi(cfg, block, phis)) continue;
+			}
 
 			var preds = cfg.predecessors(block);
 			block.replaceAllUsage(target);

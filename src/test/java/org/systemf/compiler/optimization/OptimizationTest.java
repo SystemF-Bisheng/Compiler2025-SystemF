@@ -28,7 +28,7 @@ public class OptimizationTest {
 						a = 5;
 					}
 					while (x) {
-						b = a + a;
+						b = a + a + a;
 						x = x - 1;
 					}
 					b = a + a;

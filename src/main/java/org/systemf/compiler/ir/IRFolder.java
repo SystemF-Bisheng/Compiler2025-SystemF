@@ -270,6 +270,8 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 	}
 
 	public Optional<Terminal> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
+		if (trueTarget == falseTarget) return Optional.of(builder.constructBr(trueTarget));
+
 		if (condition instanceof ConstantInt conditionC) {
 			if (conditionC.value == 0) return Optional.of(builder.constructBr(falseTarget));
 			else return Optional.of(builder.constructBr(trueTarget));

@@ -20,6 +20,13 @@ public record ArrayValue(ExecutionValue[] values) implements ExecutionValue {
 		}
 	}
 
+	@Override
+	public ArrayValue clone() {
+		var resValue = new ExecutionValue[values.length];
+		for (int i = 0; i < values.length; ++i) resValue[i] = values[i].clone();
+		return new ArrayValue(resValue);
+	}
+
 	public int getLength() {
 		return values.length;
 	}

@@ -15,6 +15,11 @@ public class FloatValue implements ExecutionValue {
 		this.value = ((FloatValue) value).value;
 	}
 
+	@Override
+	public ExecutionValue clone() {
+		return new FloatValue(this.value);
+	}
+
 	public float getValue() {
 		return value;
 	}

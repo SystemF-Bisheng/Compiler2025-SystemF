@@ -15,6 +15,11 @@ public class IntValue implements ExecutionValue {
 		this.value = ((IntValue) value).value;
 	}
 
+	@Override
+	public ExecutionValue clone() {
+		return new IntValue(this.value);
+	}
+
 	public int getValue() {
 		return value;
 	}

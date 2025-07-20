@@ -33,6 +33,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
@@ -141,15 +142,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return instruction.accept(this);
 	}
 
-	private ExecutionValue findValue(Value value, ExecutionContext context) {
-		if (value instanceof GlobalVariable) {
-			return globalVarMap.get(value);
-		}
-		if (value instanceof ConstantInt constantInt) return new IntValue((int) constantInt.value);
-		if (value instanceof ConstantFloat constantFloat) return new FloatValue((float) constantFloat.value);
-		if (value instanceof ConstantArray constantArray) return formExecutionValue(value.getType(), constantArray);
-		return context.getValue(value);
-	}
+	private BasicBlock lastBlock;
+	private Map<Value, ExecutionValue> oldVariables;
 
 	@Override
 	public ExecutionValue visit(DummyBinary dummyBinary) {
@@ -275,16 +269,14 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return null;
 	}
 
-	@Override
-	public ExecutionValue visit(Load load) {
-		ExecutionContext context = executionContextsStack.getLast();
-		var src = load.getPointer();
-		var value = findValue(src, context);
-		if (value == null) {
-			throw new IllegalStateException("Value not found for Load instruction: " + src);
+	private ExecutionValue findValue(Value value, Map<Value, ExecutionValue> varMap) {
+		if (value instanceof GlobalVariable) {
+			return globalVarMap.get(value);
 		}
-		context.insertValue(load, value);
-		return null;
+		if (value instanceof ConstantInt constantInt) return new IntValue((int) constantInt.value);
+		if (value instanceof ConstantFloat constantFloat) return new FloatValue((float) constantFloat.value);
+		if (value instanceof ConstantArray constantArray) return formExecutionValue(value.getType(), constantArray);
+		return varMap.get(value);
 	}
 
 	@Override
@@ -432,10 +424,28 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return null;
 	}
 
+	private ExecutionValue findValue(Value value, ExecutionContext context) {
+		return findValue(value, context.getLocalVariables());
+	}
+
+	@Override
+	public ExecutionValue visit(Load load) {
+		ExecutionContext context = executionContextsStack.getLast();
+		var src = load.getPointer();
+		var value = findValue(src, context);
+		if (value == null) {
+			throw new IllegalStateException("Value not found for Load instruction: " + src);
+		}
+		context.insertValue(load, value.clone());
+		return null;
+	}
+
 	@Override
 	public ExecutionValue visit(Br br) {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		BasicBlock targetBlock = br.getTarget();
+		lastBlock = currentContext.getCurrentBlock();
+		oldVariables = new HashMap<>(currentContext.getLocalVariables());
 		currentContext.setCurrentBlock(targetBlock);
 		return null;
 	}
@@ -446,7 +456,17 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		var conditionValue = findValue(condBr.getCondition(), currentContext);
 		int condition = toInt(conditionValue);
 		BasicBlock targetBlock = condition != 0 ? condBr.getTrueTarget() : condBr.getFalseTarget();
+		lastBlock = currentContext.getCurrentBlock();
+		oldVariables = new HashMap<>(currentContext.getLocalVariables());
 		currentContext.setCurrentBlock(targetBlock);
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(Phi inst) {
+		ExecutionContext currentContext = executionContextsStack.getLast();
+		var res = findValue(inst.getIncoming().get(lastBlock), oldVariables);
+		currentContext.insertValue(inst, res);
 		return null;
 	}
 

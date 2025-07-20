@@ -8,6 +8,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
+import java.util.stream.Stream;
 
 public enum MergeChain implements OptPass {
 	INSTANCE;
@@ -31,6 +32,10 @@ public enum MergeChain implements OptPass {
 		}
 	}
 
+	private void handlePhi(BasicBlock cur, Stream<Phi> phis) {
+		phis.forEach(phi -> phi.replaceAllUsage(phi.getIncoming().get(cur)));
+	}
+
 	private boolean processFunction(Function function) {
 		var query = QueryManager.getInstance();
 		var cfg = query.getAttribute(function, CFGAnalysisResult.class);
@@ -44,9 +49,11 @@ public enum MergeChain implements OptPass {
 				var succ = succs.iterator().next();
 				if (succ == block) break;
 				if (succ == function.getEntryBlock()) break;
-				if (succ.getFirstInstruction() instanceof Phi) break;
 				var succPreds = cfg.predecessors(succ);
 				if (succPreds.size() != 1) break;
+
+				handlePhi(block,
+						succ.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst));
 
 				toDel.add(succ);
 				mergeBlock(block, succ, cfg);

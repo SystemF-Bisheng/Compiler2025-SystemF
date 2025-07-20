@@ -10,6 +10,17 @@ public class OptimizationTest {
 		QueryRegistry.registerAll();
 		var query = QueryManager.getInstance();
 		var code = CharStreams.fromString("""
+				int test() {
+					int x = getint();
+					int b;
+					int tmp = getint();
+					if (x > 3) {
+						b = tmp;
+					} else {
+						b = tmp;
+					}
+					return b;
+				}
 				int main()
 				{
 					int cnt = getint();
@@ -32,6 +43,7 @@ public class OptimizationTest {
 						x = x - 1;
 					}
 					b = a + a;
+					b = b + test();
 					return b;
 				}
 				

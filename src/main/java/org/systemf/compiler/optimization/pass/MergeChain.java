@@ -8,7 +8,6 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
-import java.util.stream.Stream;
 
 public enum MergeChain implements OptPass {
 	INSTANCE;
@@ -32,8 +31,13 @@ public enum MergeChain implements OptPass {
 		}
 	}
 
-	private void handlePhi(BasicBlock cur, Stream<Phi> phis) {
-		phis.forEach(phi -> phi.replaceAllUsage(phi.getIncoming().get(cur)));
+	private void handlePhi(BasicBlock cur, BasicBlock succ) {
+		succ.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
+				.forEach(phi -> phi.replaceAllUsage(phi.getIncoming().get(cur)));
+		while (succ.getFirstInstruction() instanceof Phi phi) {
+			phi.unregister();
+			succ.instructions.removeFirst();
+		}
 	}
 
 	private boolean processFunction(Function function) {
@@ -52,8 +56,7 @@ public enum MergeChain implements OptPass {
 				var succPreds = cfg.predecessors(succ);
 				if (succPreds.size() != 1) break;
 
-				handlePhi(block,
-						succ.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst));
+				handlePhi(block, succ);
 
 				toDel.add(succ);
 				mergeBlock(block, succ, cfg);

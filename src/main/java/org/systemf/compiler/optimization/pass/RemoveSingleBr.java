@@ -52,6 +52,7 @@ public enum RemoveSingleBr implements OptPass {
 			var target = br.getTarget();
 			if (block == target) continue;
 			if (target.getFirstInstruction() instanceof Phi) {
+				if (block == function.getEntryBlock()) continue;
 				var phis = target.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
 						.toList();
 				if (!handlePhi(cfg, block, phis)) continue;

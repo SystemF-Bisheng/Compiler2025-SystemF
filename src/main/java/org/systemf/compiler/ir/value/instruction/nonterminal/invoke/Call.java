@@ -10,13 +10,14 @@ import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 public class Call extends AbstractCall implements Value, INamed {
-	private final Set<Instruction> dependant = Collections.newSetFromMap(new WeakHashMap<>());
 	private final String name;
 	private final Type type;
+	private final Map<Instruction, Integer> dependant = new WeakHashMap<>();
 
 	public Call(String name, Value func, Value... args) {
 		super(func, args);
@@ -35,17 +36,21 @@ public class Call extends AbstractCall implements Value, INamed {
 
 	@Override
 	public Set<Instruction> getDependant() {
-		return Collections.unmodifiableSet(dependant);
+		return Collections.unmodifiableSet(dependant.keySet());
 	}
 
 	@Override
 	public void registerDependant(Instruction instruction) {
-		dependant.add(instruction);
+		dependant.compute(instruction, (_, cnt) -> cnt == null ? 1 : cnt + 1);
 	}
 
 	@Override
 	public void unregisterDependant(Instruction instruction) {
-		dependant.remove(instruction);
+		dependant.compute(instruction, (_, cnt) -> {
+			if (cnt == null) return null;
+			if (cnt == 1) return null;
+			return cnt - 1;
+		});
 	}
 
 	@Override

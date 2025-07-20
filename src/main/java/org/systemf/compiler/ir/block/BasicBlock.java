@@ -5,15 +5,12 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class BasicBlock implements INamed, ITracked {
 	public final LinkedList<Instruction> instructions = new LinkedList<>();
 	final private String name;
-	private final Set<Instruction> dependant = Collections.newSetFromMap(new WeakHashMap<>());
+	private final Map<Instruction, Integer> dependant = new WeakHashMap<>();
 
 	public BasicBlock(String name) {
 		this.name = name;
@@ -54,17 +51,21 @@ public class BasicBlock implements INamed, ITracked {
 
 	@Override
 	public Set<Instruction> getDependant() {
-		return Collections.unmodifiableSet(dependant);
+		return Collections.unmodifiableSet(dependant.keySet());
 	}
 
 	@Override
 	public void registerDependant(Instruction instruction) {
-		dependant.add(instruction);
+		dependant.compute(instruction, (_, cnt) -> cnt == null ? 1 : cnt + 1);
 	}
 
 	@Override
 	public void unregisterDependant(Instruction instruction) {
-		dependant.remove(instruction);
+		dependant.compute(instruction, (_, cnt) -> {
+			if (cnt == null) return null;
+			if (cnt == 1) return null;
+			return cnt - 1;
+		});
 	}
 
 	@Override

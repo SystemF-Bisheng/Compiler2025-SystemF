@@ -6,12 +6,13 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.*;
 
-public class Phi extends DummyValueNonTerminal {
+public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable {
 	private Map<BasicBlock, Value> incoming = new HashMap<>();
 
 	public Phi(Type type, String name) {
@@ -108,5 +109,18 @@ public class Phi extends DummyValueNonTerminal {
 		incoming.put(block, value);
 		block.registerDependant(this);
 		value.registerDependant(this);
+	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(other instanceof Phi phi)) return false;
+		if (incoming.size() != phi.incoming.size()) return false;
+		for (var entry : incoming.entrySet()) {
+			var key = entry.getKey();
+			var value = entry.getValue();
+			if (!phi.incoming.containsKey(key)) return false;
+			if (!ValueUtil.trivialInterchangeable(phi.incoming.get(key), value)) return false;
+		}
+		return true;
 	}
 }

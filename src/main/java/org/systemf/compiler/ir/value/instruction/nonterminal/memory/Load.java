@@ -6,13 +6,14 @@ import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class Load extends DummyValueNonTerminal {
+public class Load extends DummyValueNonTerminal implements PotentialNonRepeatable {
 	private Value ptr;
 
 	public Load(String name, Value ptr) {
@@ -59,5 +60,11 @@ public class Load extends DummyValueNonTerminal {
 		if (this.ptr != null) this.ptr.unregisterDependant(this);
 		this.ptr = ptr;
 		ptr.registerDependant(this);
+	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(other instanceof Load load)) return false;
+		return ValueUtil.trivialInterchangeable(ptr, load.ptr);
 	}
 }

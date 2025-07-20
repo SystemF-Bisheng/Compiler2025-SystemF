@@ -1,13 +1,12 @@
-package org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous;
+package org.systemf.compiler.ir.value.instruction.terminal;
 
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class Unreachable extends DummyNonTerminal {
+public class Unreachable extends DummyTerminal {
 	public static final Unreachable INSTANCE = new Unreachable();
 
 	private Unreachable() {}

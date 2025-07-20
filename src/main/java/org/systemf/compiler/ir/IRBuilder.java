@@ -27,7 +27,6 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
 import org.systemf.compiler.ir.value.instruction.terminal.*;
 
 import java.util.ListIterator;

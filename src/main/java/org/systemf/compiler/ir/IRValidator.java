@@ -8,10 +8,10 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.instruction.terminal.Unreachable;
 
 
 public class IRValidator extends InstructionVisitorBase<Boolean> {

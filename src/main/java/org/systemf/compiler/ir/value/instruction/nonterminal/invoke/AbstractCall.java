@@ -54,7 +54,12 @@ public abstract class AbstractCall extends DummyNonTerminal implements Potential
 	@Override
 	public void replaceAll(ITracked oldValue, ITracked newValue) {
 		if (func == oldValue) setFunction((Value) newValue);
-		for (int i = 0; i < args.length; i++) if (args[i] == oldValue) args[i] = (Value) newValue;
+		for (int i = 0; i < args.length; i++)
+			if (args[i] == oldValue) {
+				oldValue.unregisterDependant(this);
+				args[i] = (Value) newValue;
+				newValue.registerDependant(this);
+			}
 	}
 
 	@Override

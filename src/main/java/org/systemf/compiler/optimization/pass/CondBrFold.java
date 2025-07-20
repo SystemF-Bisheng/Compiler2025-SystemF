@@ -1,11 +1,15 @@
 package org.systemf.compiler.optimization.pass;
 
+import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.IRFolder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.query.QueryManager;
+
+import java.util.HashSet;
 
 public enum CondBrFold implements OptPass {
 	INSTANCE;
@@ -25,7 +29,20 @@ public enum CondBrFold implements OptPass {
 			}
 		}
 
-		if (result) QueryManager.getInstance().invalidateAllAttributes(function);
+		if (result) {
+			var query = QueryManager.getInstance();
+			query.invalidateAllAttributes(function);
+			var cfg = query.getAttribute(function, CFGAnalysisResult.class);
+			for (var block : function.getBlocks()) {
+				var preds = cfg.predecessors(block);
+				block.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
+						.forEach(phi -> {
+							var tmp = new HashSet<>(phi.getIncoming().keySet());
+							for (var income : tmp) if (!preds.contains(income)) phi.removeIncoming(income);
+						});
+			}
+		}
+
 		return result;
 	}
 

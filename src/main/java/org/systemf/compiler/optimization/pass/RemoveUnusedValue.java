@@ -7,6 +7,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.query.QueryManager;
 
+// TODO: Reimplement this with graph reachability to remove loops
 public enum RemoveUnusedValue implements OptPass {
 	INSTANCE;
 

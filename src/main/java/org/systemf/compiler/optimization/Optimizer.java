@@ -6,6 +6,7 @@ import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.translator.IRTranslatedResult;
 
+// TODO: Common expr elimination
 public enum Optimizer implements EntityProvider<OptimizedResult> {
 	INSTANCE;
 

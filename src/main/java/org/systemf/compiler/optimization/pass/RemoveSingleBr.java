@@ -28,13 +28,15 @@ public enum RemoveSingleBr implements OptPass {
 			var incoming = phi.getIncoming();
 			if (!incoming.containsKey(pred)) phi.addIncoming(pred, incoming.get(block));
 		});
-		phis.forEach(phi -> phi.removeIncoming(block));
 	}
 
 	private boolean handlePhi(CFGAnalysisResult cfg, BasicBlock block, Collection<Phi> phis) {
 		var preds = cfg.predecessors(block);
 		var res = preds.stream().map(pred -> checkPhi(pred, block, phis)).reduce(true, Boolean::logicalAnd);
-		if (res) preds.forEach(pred -> handlePhi(pred, block, phis));
+		if (res) {
+			preds.forEach(pred -> handlePhi(pred, block, phis));
+			phis.forEach(phi -> phi.removeIncoming(block));
+		}
 		return res;
 	}
 

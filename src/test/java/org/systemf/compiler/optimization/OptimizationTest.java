@@ -27,6 +27,10 @@ public class OptimizationTest {
 					} else {
 						a = 5;
 					}
+					while (x) {
+						b = a + a;
+						x = x - 1;
+					}
 					b = a + a;
 					return b;
 				}

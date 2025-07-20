@@ -15,9 +15,9 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			flag = ConstantFold.INSTANCE.run(module);
 			flag |= CondBrFold.INSTANCE.run(module);
 			flag |= RemoveUnusedValue.INSTANCE.run(module);
+			flag |= RemoveDeadBlock.INSTANCE.run(module);
 			flag |= RemoveSingleBr.INSTANCE.run(module);
 			flag |= MergeChain.INSTANCE.run(module);
-			flag |= RemoveDeadBlock.INSTANCE.run(module);
 		}
 	}
 

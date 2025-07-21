@@ -11,6 +11,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.query.AttributeProvider;
 import org.systemf.compiler.util.GraphClosure;
@@ -111,6 +112,8 @@ public enum PointerAnalysis implements AttributeProvider<Module, PointerAnalysis
 			for (var bb : function.getBlocks())
 				for (var inst : bb.instructions)
 					if (inst instanceof GetPtr getPtr) fromValueToValue(getPtr.getArrayPtr(), getPtr);
+					else if (inst instanceof Phi phi)
+						phi.getIncoming().values().forEach(in -> fromValueToValue(in, phi));
 					else if (inst instanceof Load load) fromPtrToValue(load.getPointer(), load);
 					else if (inst instanceof Store store) fromValueToPtr(store.getSrc(), store.getDest());
 					else if (inst instanceof Call call) {

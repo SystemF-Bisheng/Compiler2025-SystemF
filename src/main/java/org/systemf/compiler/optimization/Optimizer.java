@@ -16,6 +16,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			flag |= CondBrFold.INSTANCE.run(module);
 			flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
 			flag |= MergeCommonValue.INSTANCE.run(module);
+			flag |= InBlockMergeLoad.INSTANCE.run(module);
 			flag |= RemoveUnusedValue.INSTANCE.run(module);
 			flag |= RemoveRedundantCall.INSTANCE.run(module);
 			flag |= RemoveSingleBr.INSTANCE.run(module);

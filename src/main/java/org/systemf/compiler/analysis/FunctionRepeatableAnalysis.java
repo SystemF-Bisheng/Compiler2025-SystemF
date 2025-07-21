@@ -20,7 +20,7 @@ public enum FunctionRepeatableAnalysis implements AttributeProvider<Module, Func
 		if (!Arrays.stream(function.getFormalArgs()).map(DummyValue::getType).allMatch(type -> type instanceof Atom))
 			return true;
 
-		return function.allInstructions().filter(inst -> inst instanceof Load).map(inst -> (Load) inst).allMatch(
+		return function.allInstructions().filter(inst -> inst instanceof Load).map(inst -> (Load) inst).anyMatch(
 				load -> ptrResult.pointTo(load.getPointer()).stream()
 						.anyMatch(alloc -> alloc instanceof GlobalVariable));
 	}

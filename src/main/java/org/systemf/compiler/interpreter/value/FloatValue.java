@@ -1,6 +1,7 @@
 package org.systemf.compiler.interpreter.value;
 
 public class FloatValue implements ExecutionValue {
+	private static final FloatValue ZERO = new FloatValue(0f);
 	private float value;
 
 	public FloatValue(float value) {
@@ -8,15 +9,10 @@ public class FloatValue implements ExecutionValue {
 	}
 
 
-
 	public float getValue() {
 		return value;
 	}
 
-	@Override
-	public void setValue(ExecutionValue value) {
-		this.value = ((FloatValue) value).value;
-	}
 
 	public ExecutionValue clone() {
 		return new FloatValue(this.value);
@@ -27,4 +23,9 @@ public class FloatValue implements ExecutionValue {
 		return String.valueOf(value);
 	}
 
+	public static ExecutionValue valueOf(float value) {
+		if (value == 0) {
+			return ZERO;
+		} else return new FloatValue(value);
+	}
 }

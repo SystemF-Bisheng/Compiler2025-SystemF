@@ -24,10 +24,6 @@ public record ArrayValue(ExecutionValue[] values) implements ExecutionValue {
 		return sb.toString();
 	}
 
-	@Override
-	public void setValue(ExecutionValue value) {
-		throw new UnsupportedOperationException("ArrayValue does not support setValue without index");
-	}
 
 	@Override
 	public ExecutionValue clone() {

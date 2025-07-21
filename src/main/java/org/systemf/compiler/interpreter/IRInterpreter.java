@@ -120,7 +120,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		for (int i = 0; i < constant.getSize(); i++) {
 			if (constant.getContent(i) instanceof ConstantArray nestedArray) {
 				flattenArrayValue(nestedArray, list);
-			}else  {
+			} else {
 				list.add(formExecutionValue(constant.getElementType(), constant.getContent(i)));
 			}
 		}
@@ -139,7 +139,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 				values.add(formExecutionValue(elementType));
 			}
 			int size = values.size();
-			ArrayValue arrayValue =  new ArrayValue(values.toArray(new ExecutionValue[size]));
+			ArrayValue arrayValue = new ArrayValue(values.toArray(new ExecutionValue[size]));
 			return new PointerValue(arrayValue, type);
 		}
 		return switch (type) {
@@ -397,15 +397,17 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			}
 			case "putarray", "putfarray" -> {
 				IntValue lengthValue = (IntValue) findValue(abstractCall.getArgs()[0], context);
-				PointerValue arrayValue = (PointerValue) findValue(abstractCall.getArgs()[1], context);
+				PointerValue pointerValue = (PointerValue) findValue(abstractCall.getArgs()[1], context);
+				int startIndex = pointerValue.getStartIndex();
+				ArrayValue arrayValue = (ArrayValue) pointerValue.value;
 				int length = lengthValue.getValue();
 				output.print(lengthValue);
 				output.print(": ");
-				for (int i = 0; i < length; i++) {
-					if (i > 0) output.print(" ");
-					if (((PointerValue) arrayValue.getValue(i)).getStart() instanceof IntValue intValue) {
+				for (int i = startIndex; i < length + startIndex; i++) {
+					if (i > startIndex) output.print(" ");
+					if ( arrayValue.getValue(i) instanceof IntValue intValue) {
 						output.print(intValue.getValue());
-					} else if (((PointerValue) arrayValue.getValue(i)).getStart() instanceof FloatValue floatValue) {
+					} else if (arrayValue.getValue(i) instanceof FloatValue floatValue) {
 						output.print(formatFloat(floatValue.getValue()));
 					} else {
 						throw new IllegalArgumentException("Unexpected value type in array: " + arrayValue.getValue(i));
@@ -425,7 +427,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		if (baseValue == null) {
 			throw new IllegalStateException("Base pointer not found for GetPtr instruction: " + basePointer);
 		}
-		context.insertValue(getPtr, baseValue.getValue(index));
+		ExecutionValue getPtrValue = baseValue.getValue(index);
+		context.insertValue(getPtr, getPtrValue);
 		return null;
 	}
 
@@ -444,7 +447,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		if (value instanceof PointerValue pointerValue && !(pointerValue.type instanceof Array)) {
 			value = pointerValue.getStart();
 		}
-		context.insertValue(load, value.clone());
+		context.insertValue(load, value);
 		return null;
 	}
 
@@ -493,8 +496,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			array.setValue(executionValue);
 			return;
 		}
-		ExecutionValue value = varMap.get(variable);
-		value.setValue(executionValue);
+		varMap.put(variable, executionValue);
 	}
 
 	private float toFloat(ExecutionValue value) {
@@ -510,11 +512,11 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	public static ExecutionValue newInt(int value) {
-		return new IntValue(value);
+		return IntValue.valueOf(value);
 	}
 
 	public static ExecutionValue newFloat(float value) {
-		return new FloatValue(value);
+		return FloatValue.valueOf(value);
 	}
 
 	public void dumpExecutionContext() {
@@ -542,9 +544,9 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 					if (pointerValue.value instanceof ArrayValue) {
 						System.out.println("PointerValue: " + Arrays.toString(pointerValue.getValues()) +
 						                   pointerValue.getStartIndex() + " to " + pointerValue.getEndIndex());
-					}else if (pointerValue.value instanceof IntValue intValue) {
+					} else if (pointerValue.value instanceof IntValue intValue) {
 						System.out.println("PointerValue: " + intValue.getValue());
-					}else if (pointerValue.value instanceof FloatValue floatValue) {
+					} else if (pointerValue.value instanceof FloatValue floatValue) {
 						System.out.println("PointerValue: " + floatValue.getValue());
 					}
 				}
@@ -552,4 +554,32 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			}
 		}
 	}
+
+	public void dumpGlobalVarMap() {
+    System.out.println("Global Variables:");
+    for (Map.Entry<Value, ExecutionValue> entry : globalVarMap.entrySet()) {
+        System.out.print("  " + entry.getKey() + " = ");
+        ExecutionValue value = entry.getValue();
+        if (value == null) {
+            System.out.println("null");
+            continue;
+        }
+        switch (value) {
+            case IntValue intValue -> System.out.println("IntValue: " + intValue.getValue());
+            case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.getValue());
+            case ArrayValue arrayValue -> System.out.println("ArrayValue: " + Arrays.toString(arrayValue.values()));
+            case PointerValue pointerValue -> {
+                if (pointerValue.value instanceof ArrayValue) {
+                    System.out.println("PointerValue: " + Arrays.toString(pointerValue.getValues()) +
+                            pointerValue.getStartIndex() + " to " + pointerValue.getEndIndex());
+                } else if (pointerValue.value instanceof IntValue intValue) {
+                    System.out.println("PointerValue: " + intValue.getValue());
+                } else if (pointerValue.value instanceof FloatValue floatValue) {
+                    System.out.println("PointerValue: " + floatValue.getValue());
+                }
+            }
+            default -> System.out.println("Unknown Value Type: " + value.getClass().getName());
+        }
+    }
+}
 }

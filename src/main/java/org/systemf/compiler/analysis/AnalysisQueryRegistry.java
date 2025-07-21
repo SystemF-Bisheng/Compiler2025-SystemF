@@ -8,5 +8,7 @@ public class AnalysisQueryRegistry {
 		query.registerProvider(CFGAnalysis.INSTANCE);
 		query.registerProvider(PointerAnalysis.INSTANCE);
 		query.registerProvider(DominanceAnalysis.INSTANCE);
+		query.registerProvider(FunctionRepeatableAnalysis.INSTANCE);
+		query.registerProvider(FunctionSideEffectAnalysis.INSTANCE);
 	}
 }

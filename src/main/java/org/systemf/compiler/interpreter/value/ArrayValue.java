@@ -6,26 +6,6 @@ public record ArrayValue(ExecutionValue[] values) implements ExecutionValue {
 		return values[index];
 	}
 
-	public void setValue(int index, ExecutionValue value) {
-		values[index] = value;
-	}
-
-	public void setValue(ExecutionValue newValue) {
-		if (!(newValue instanceof ArrayValue value)) {
-			throw new IllegalArgumentException("Expected ArrayValue, but got " + newValue.getClass().getSimpleName());
-		}
-		for (int i = 0; i < values.length; i++) {
-			if (value.getValue(i) instanceof ArrayValue arrayValue) values[i].setValue(arrayValue);
-			else setValue(i, (value.getValue(i)));
-		}
-	}
-
-	@Override
-	public ArrayValue clone() {
-		var resValue = new ExecutionValue[values.length];
-		for (int i = 0; i < values.length; ++i) resValue[i] = values[i].clone();
-		return new ArrayValue(resValue);
-	}
 
 	public int getLength() {
 		return values.length;
@@ -42,5 +22,19 @@ public record ArrayValue(ExecutionValue[] values) implements ExecutionValue {
 		}
 		sb.append("]");
 		return sb.toString();
+	}
+
+	@Override
+	public void setValue(ExecutionValue value) {
+		throw new UnsupportedOperationException("ArrayValue does not support setValue without index");
+	}
+
+	@Override
+	public ExecutionValue clone() {
+		ExecutionValue[] clonedValues = new ExecutionValue[values.length];
+		for (int i = 0; i < values.length; i++) {
+			clonedValues[i] = values[i].clone();
+		}
+		return new ArrayValue(clonedValues);
 	}
 }

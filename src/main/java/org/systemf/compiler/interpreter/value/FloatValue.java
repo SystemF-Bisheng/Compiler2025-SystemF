@@ -8,20 +8,18 @@ public class FloatValue implements ExecutionValue {
 	}
 
 
-	public void setValue(ExecutionValue value) {
-		if (!(value instanceof FloatValue)) {
-			throw new IllegalArgumentException("Expected FloatValue, but got " + value.getClass().getSimpleName());
-		}
-		this.value = ((FloatValue) value).value;
-	}
-
-	@Override
-	public ExecutionValue clone() {
-		return new FloatValue(this.value);
-	}
 
 	public float getValue() {
 		return value;
+	}
+
+	@Override
+	public void setValue(ExecutionValue value) {
+		this.value = ((FloatValue) value).value;
+	}
+
+	public ExecutionValue clone() {
+		return new FloatValue(this.value);
 	}
 
 	@Override

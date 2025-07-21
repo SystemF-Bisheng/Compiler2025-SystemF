@@ -18,8 +18,8 @@ public enum ConstantFold implements OptPass {
 
 	private boolean processFunction(Function function, IRFolder folder) {
 		boolean result = false;
-		Deque<Instruction> worklist = function.getBlocks().stream().flatMap(block -> block.instructions.stream())
-				.filter(inst -> inst instanceof Value).collect(Collectors.toCollection(ArrayDeque::new));
+		Deque<Instruction> worklist = function.allInstructions().filter(inst -> inst instanceof Value)
+				.collect(Collectors.toCollection(ArrayDeque::new));
 		while (!worklist.isEmpty()) {
 			var val = worklist.poll();
 			var folded = val.accept(folder);

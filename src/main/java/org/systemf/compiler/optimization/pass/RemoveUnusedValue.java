@@ -17,8 +17,7 @@ public enum RemoveUnusedValue implements OptPass {
 		var res = false;
 		var used = new HashSet<Value>();
 		var worklist = new ArrayDeque<Instruction>();
-		function.getBlocks().stream().flatMap(block -> block.instructions.stream())
-				.filter(inst -> inst instanceof PotentialSideEffect).forEach(worklist::push);
+		function.allInstructions().filter(inst -> inst instanceof PotentialSideEffect).forEach(worklist::push);
 		while (!worklist.isEmpty()) {
 			var inst = worklist.pop();
 			if (inst instanceof Value val) used.add(val);

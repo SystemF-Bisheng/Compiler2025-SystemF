@@ -160,8 +160,7 @@ public enum MemToReg implements OptPass {
 		private boolean processFunction(Function function) {
 			boolean flag = false;
 
-			var toReg = function.getBlocks().stream().flatMap(block -> block.instructions.stream())
-					.filter(inst -> inst instanceof Alloca).map(inst -> (Alloca) inst)
+			var toReg = function.allInstructions().filter(inst -> inst instanceof Alloca).map(inst -> (Alloca) inst)
 					.filter(alloc -> alloc.valueType instanceof Atom).filter(this::checkLocal)
 					.filter(this::checkUnambiguity).toList();
 			if (!toReg.isEmpty()) flag = true;

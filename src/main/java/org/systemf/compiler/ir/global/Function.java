@@ -6,11 +6,13 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.Parameter;
+import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class Function extends DummyValue implements IFunction {
 	final private String name;
@@ -50,6 +52,10 @@ public class Function extends DummyValue implements IFunction {
 
 	public Set<BasicBlock> getBlocks() {
 		return Collections.unmodifiableSet(blocks);
+	}
+
+	public Stream<Instruction> allInstructions() {
+		return blocks.stream().flatMap(block -> block.instructions.stream());
 	}
 
 	public Parameter[] getFormalArgs() {

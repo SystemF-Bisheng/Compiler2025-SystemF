@@ -6,7 +6,6 @@ import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.translator.IRTranslatedResult;
 
-// TODO: Common expr elimination
 public enum Optimizer implements EntityProvider<OptimizedResult> {
 	INSTANCE;
 
@@ -15,8 +14,9 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		while (flag) {
 			flag = ConstantFold.INSTANCE.run(module);
 			flag |= CondBrFold.INSTANCE.run(module);
+			flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
+			flag |= MergeCommonValue.INSTANCE.run(module);
 			flag |= RemoveUnusedValue.INSTANCE.run(module);
-			flag |= RemoveDeadBlock.INSTANCE.run(module);
 			flag |= RemoveSingleBr.INSTANCE.run(module);
 			flag |= MergeChain.INSTANCE.run(module);
 		}

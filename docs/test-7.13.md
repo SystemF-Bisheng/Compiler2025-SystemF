@@ -46,13 +46,11 @@ docker 使用相关问题可查看 docker manual https://docs.docker.com/engine/
 
 ## autotest 介绍
 
-`autotest` 默认使用 `clang -target riscv32-unknown-linux-elf -march=rv32im -mabi=ilp32` 编译编译器生成的 `.S` 文件, `lld.ld` 链接 `.o` 文件, `qemu-riscv64-static` 模拟执行 riscv 代码. `autotest` 默认测试 `testcases/` 目录下的所有文件.
+`autotest` 默认使用 `clang -target riscv64-unknown-linux-elf -march=rv64gc -mabi=lp64d -mno-relax` 编译编译器生成的 `.S` 文件, `lld.ld` 链接 `.o` 文件, `qemu-riscv64-static` 模拟执行 riscv 代码. `autotest` 默认测试 `testcases/` 目录下的所有文件.
 
 执行后, 脚本会将标准输出和程序返回拼接, 并与同名 `.out` 文件进行比对, 判定样例是否通过.
 
 `testcases/custom/` 下存放 PKU 编译原理实验样例, 尽管已经遴选, 仍可能存在不符合 SysY 标准的程序. `testcases/official/` 存放官方提供样例, 目前暂为空.
-
-**比赛使用 rv64, 而目前环境暂不支持, 将在后续逐步提供 64 位支持**.
 
 ## ABI
 
@@ -85,6 +83,6 @@ main:
 
 - [ ] 覆盖浮点测试 (目前无浮点相关测试用例)
 - [ ] 剔除或改写使用 SysY 方言编写的样例
-- [ ] 获取并编制官方测试样例
-- [ ] 升级工具链, 支持 rv64gc
+- [x] 获取并编制官方测试样例
+- [x] 升级工具链, 支持 rv64gc
 - [ ] 完成 builtin 函数实现, 并统一 ABI

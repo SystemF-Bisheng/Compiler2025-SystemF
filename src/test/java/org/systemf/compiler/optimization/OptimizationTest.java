@@ -25,8 +25,16 @@ public class OptimizationTest {
 					arr[1] = 2;
 					return b;
 				}
-				int main()
-				{
+				
+				int test2(int x) {
+					return x + 1;
+				}
+				
+				int test3(int x) {
+					return test2(x + 1);
+				}
+				
+				int main() {
 					int cnt = getint();
 					int x = 5;
 					int y = 3;

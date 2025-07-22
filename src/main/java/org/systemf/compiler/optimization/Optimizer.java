@@ -39,6 +39,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 
 		foldAndCleanup(module);
 
+		RemoveUnusedFunction.INSTANCE.run(module);
+
 		query.invalidate(translated);
 		return new OptimizedResult(module);
 	}

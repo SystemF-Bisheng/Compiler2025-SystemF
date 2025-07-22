@@ -8,7 +8,7 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 import java.util.Collections;
 import java.util.Set;
 
-public class Ret extends DummyTerminal {
+public class Ret extends DummyTerminal implements IReturn {
 	private Value returnValue;
 
 	public Ret(Value returnValue) {

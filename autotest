@@ -309,7 +309,7 @@ def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
   '''
   Converts RISC-V assembly to executable.
   '''
-  asm_flags = '-target riscv32-unknown-linux-elf -march=rv32im -mabi=ilp32'
+  asm_flags = '-target riscv64-unknown-linux-elf -march=rv64gc -mabi=lp64d -mno-relax'
   cmd = f'clang {rv} -c -o {obj} {asm_flags}'
   if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
                        TestStatus.ASM_TIME_EXCEEDED):
@@ -359,7 +359,7 @@ def qemu_run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
   '''
   Runs the generated output executable with qemu and checks the result.
   '''
-  return run_output(mode, case, f'qemu-riscv32-static {exe}')
+  return run_output(mode, case, f'qemu-riscv64-static {exe}')
 
 def run_test_complete(mode: TestMode, compiler: CompilerInfo, case: TestCase):
   '''

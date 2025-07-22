@@ -7,6 +7,9 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 
+/**
+ * Remove functions (including external ones) that are not reachable from main function
+ */
 public enum RemoveUnusedFunction implements OptPass {
 	INSTANCE;
 

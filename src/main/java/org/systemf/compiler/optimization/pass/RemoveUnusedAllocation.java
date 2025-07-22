@@ -15,6 +15,9 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 
+/**
+ * Remove allocation sites that are neither loaded nor used in instructions with side effect other than Store
+ */
 public enum RemoveUnusedAllocation implements OptPass {
 	INSTANCE;
 

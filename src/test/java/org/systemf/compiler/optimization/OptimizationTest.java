@@ -19,6 +19,10 @@ public class OptimizationTest {
 					} else {
 						b = tmp;
 					}
+					int arr[2], arr2[2];
+					arr[1] = 0;
+					arr[2] = 1;
+					arr[1] = 2;
 					return b;
 				}
 				int main()

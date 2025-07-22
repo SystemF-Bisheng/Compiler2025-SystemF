@@ -11,6 +11,9 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 
+/**
+ * Fold CondBr instructions with constant condition
+ */
 public enum CondBrFold implements OptPass {
 	INSTANCE;
 

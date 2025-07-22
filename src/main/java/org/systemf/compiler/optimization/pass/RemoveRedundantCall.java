@@ -7,6 +7,9 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 
+/**
+ * Remove CallVoid instructions without side effect
+ */
 public enum RemoveRedundantCall implements OptPass {
 	INSTANCE;
 

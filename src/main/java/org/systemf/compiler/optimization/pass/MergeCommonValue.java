@@ -6,6 +6,9 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.optimization.pass.util.MergeValueHelper;
 import org.systemf.compiler.query.QueryManager;
 
+/**
+ * Merge repeatable and side-effect-free instructions with trivially interchangeable arguments if possible
+ */
 public enum MergeCommonValue implements OptPass {
 	INSTANCE;
 

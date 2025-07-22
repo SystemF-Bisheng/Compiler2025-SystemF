@@ -9,6 +9,9 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 
+/**
+ * Merge chains on CFG if possible
+ */
 public enum MergeChain implements OptPass {
 	INSTANCE;
 

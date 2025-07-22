@@ -12,6 +12,9 @@ import org.systemf.compiler.query.QueryManager;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * Remove blocks with only a single Br instruction if possible
+ */
 public enum RemoveSingleBr implements OptPass {
 	INSTANCE;
 

@@ -12,6 +12,9 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashMap;
 
+/**
+ * Merge multiple identical loads in one block
+ */
 public enum InBlockMergeLoad implements OptPass {
 	INSTANCE;
 

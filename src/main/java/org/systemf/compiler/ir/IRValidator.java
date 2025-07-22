@@ -2,15 +2,21 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.type.Void;
+import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.terminal.Ret;
+import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.instruction.terminal.Unreachable;
 
 
 public class IRValidator extends InstructionVisitorBase<Boolean> {
 	private StringBuilder errorMessage = new StringBuilder();
+	private Type retType;
 
 	public String getErrorMessage() {
 		return errorMessage.toString();
@@ -25,37 +31,49 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 	}
 
 	public boolean check(Module module) {
+		clearErrorMessage();
 		boolean valid = true;
-		for (int i = 0; i < module.getFunctionCount(); ++i) valid &= check(module.getFunction(i));
+		if (module.getFunction("main") == null) {
+			addErrorInfo("Module must have a main function.");
+			valid = false;
+		}
+		for (var func : module.getFunctions().values()) valid &= check(func);
 		return valid;
 	}
 
 	public boolean check(Function function) {
 		boolean valid = true;
-		if (function.getBlockCount() == 0) {
-			addErrorInfo("Function " + function.getName() + " must have at least one block.");
+		var entry = function.getEntryBlock();
+		if (function.getEntryBlock() == null) {
+			addErrorInfo("Function " + function.getName() + " must have an entry block.");
 			valid = false;
 		}
-		for (int i = 0; i < function.getBlockCount(); ++i) valid &= check(function.getBlock(i));
+		var blocks = function.getBlocks();
+		if (!blocks.contains(entry)) {
+			addErrorInfo("Function " + function.getName() + " have an entry block that doesn't belong to it.");
+			valid = false;
+		}
+		retType = function.getReturnType();
+		for (var block : blocks) valid &= check(block);
 		return valid;
 	}
 
 	public boolean check(BasicBlock block) {
 		boolean valid = true;
 
-		if (block.getInstructionCount() == 0) {
+		var instructions = block.instructions;
+		if (instructions.isEmpty()) {
 			addErrorInfo("Block " + block.getName() + " must have at least one instruction.");
 			valid = false;
 		}
 
-		if (block.getTerminator() == null) {
+		if (block.getTerminator() == null && !(block.getLastInstruction() instanceof Unreachable)) {
 			addErrorInfo("Block " + block.getName() + " must have a terminator.");
 			valid = false;
 		}
 
 		int terminatorCnt = 0;
-		for (int i = 0; i < block.getInstructionCount(); ++i) {
-			var inst = block.getInstruction(i);
+		for (var inst : instructions) {
 			valid &= check(inst);
 			if (inst instanceof Terminal) ++terminatorCnt;
 		}
@@ -105,6 +123,26 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 		if (!(srcType.convertibleTo(destType))) {
 			addErrorInfo(String.format("Store: Src type %s isn't convertible to the element type %s of dest", srcType,
 					destType));
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public Boolean visit(RetVoid inst) {
+		if (Void.INSTANCE != retType) {
+			addErrorInfo(String.format("RetVoid: Return type %s is not void", retType));
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public Boolean visit(Ret inst) {
+		var valueType = inst.getReturnValue().getType();
+		if (!valueType.convertibleTo(retType)) {
+			addErrorInfo(String.format("Ret: Return value of type %s is not convertible to return type %s", valueType,
+					retType));
 			return false;
 		}
 		return true;

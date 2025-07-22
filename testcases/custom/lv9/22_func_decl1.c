@@ -1,10 +1,3 @@
-void f1d(int arr[]);
-void f2d(int arr[][8 + 2]);
-
-int main() {
-  return 33;
-}
-
 void f1d(int arr[]) {
   int i = 0;
   while (i < 10) {
@@ -20,4 +13,8 @@ void f2d(int arr[][8 + 2]) {
     f1d(arr[i]);
     i = i + 1;
   }
+}
+
+int main() {
+  return 33;
 }

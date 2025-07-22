@@ -8,17 +8,22 @@ import java.util.Objects;
 
 public class Array extends DummyIndexableType implements Sized {
 	final public int length;
+	private Array mergedArray = null;
 
 	public Array(int length, Sized elementType) {
 		super(String.format("[%d x %s]", length, elementType.getName()), elementType);
-		assert length >= 0 : String.format("invalid array length `%d`", length);
+		if (length <= 0) throw new IllegalArgumentException("Illegal array length " + length);
 		this.length = length;
 	}
 
 	@Override
 	public boolean convertibleTo(Type otherType) {
 		if (super.convertibleTo(otherType)) return true;
-		if (otherType instanceof UnsizedArray arr) return elementType.equals(arr.getElementType());
+		if (otherType instanceof UnsizedArray arr && elementType.equals(arr.getElementType())) return true;
+		if (elementType instanceof Array innerArr) {
+			if (mergedArray == null) mergedArray = new Array(this.length * innerArr.length, innerArr.elementType);
+			return mergedArray.convertibleTo(otherType);
+		}
 		return false;
 	}
 

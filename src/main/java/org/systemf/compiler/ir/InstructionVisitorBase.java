@@ -16,11 +16,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Unreachable;
-import org.systemf.compiler.ir.value.instruction.terminal.Br;
-import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
-import org.systemf.compiler.ir.value.instruction.terminal.Ret;
-import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.ir.value.instruction.terminal.*;
 
 public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	protected T defaultValue() {

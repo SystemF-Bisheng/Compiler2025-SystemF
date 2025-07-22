@@ -2,7 +2,7 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.global.GlobalDeclaration;
+import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
@@ -21,16 +21,16 @@ public class IRBuilderTest {
 			final Float Float = builder.buildFloatType();
 
 			//GlobalDeclaration
-			GlobalDeclaration globalvar1 = builder.buildGlobalDeclaration("g", I32, builder.buildConstantInt(1));
+			GlobalVariable globalvar1 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt(1));
 
-			GlobalDeclaration globalvar2 = builder.buildGlobalDeclaration("g", I32, builder.buildConstantInt(2));
+			GlobalVariable globalvar2 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt(2));
 
 			Array array = builder.buildArrayType(I32, 10);
 			var arrayPtr = builder.buildPointerType(array);
 
 			var arrContent = new Constant[10];
 			Arrays.fill(arrContent, builder.buildConstantInt(1));
-			GlobalDeclaration globalArrayDeclaration = builder.buildGlobalDeclaration("g", array,
+			GlobalVariable globalArrayDeclaration = builder.buildGlobalVariable("g", array,
 					builder.buildConstantArray(I32, arrContent));
 
 

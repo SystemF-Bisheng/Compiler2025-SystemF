@@ -1,9 +1,9 @@
 package org.systemf.compiler.ir.type;
 
-import org.systemf.compiler.ir.type.interfaces.Sized;
+import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.interfaces.Type;
 
-public enum Float implements Type, Sized {
+public enum Float implements Atom {
 	INSTANCE;
 
 	@Override

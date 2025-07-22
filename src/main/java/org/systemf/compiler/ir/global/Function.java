@@ -1,26 +1,31 @@
 package org.systemf.compiler.ir.global;
 
-import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.Parameter;
+import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Stream;
 
-public class Function extends DummyValue implements IGlobal, INamed {
+public class Function extends DummyValue implements IFunction {
 	final private String name;
-	final private ArrayList<BasicBlock> blocks;
+	final private LinkedHashSet<BasicBlock> blocks = new LinkedHashSet<>();
+	private BasicBlock entryBlock;
+	private final Type returnType;
 	final private Parameter[] formalArgs;
 
 	public Function(String name, Type returnType, Parameter... formalArgs) {
 		super(buildFunctionType(returnType, formalArgs));
 		this.name = name;
+		this.returnType = returnType;
 		this.formalArgs = formalArgs;
-		this.blocks = new ArrayList<>();
 	}
 
 	static private FunctionType buildFunctionType(Type returnType, Parameter[] formalArgs) {
@@ -37,20 +42,24 @@ public class Function extends DummyValue implements IGlobal, INamed {
 		blocks.remove(block);
 	}
 
-	public void deleteBlock(int index) {
-		blocks.remove(index);
-	}
-
 	public BasicBlock getEntryBlock() {
-		return blocks.getFirst();
+		return entryBlock;
 	}
 
-	public int getBlockCount() {
-		return blocks.size();
+	public void setEntryBlock(BasicBlock entryBlock) {
+		this.entryBlock = entryBlock;
 	}
 
-	public BasicBlock getBlock(int index) {
-		return blocks.get(index);
+	public Set<BasicBlock> getBlocks() {
+		return Collections.unmodifiableSet(blocks);
+	}
+
+	public Stream<Instruction> allInstructions() {
+		return blocks.stream().flatMap(block -> block.instructions.stream());
+	}
+
+	public Parameter[] getFormalArgs() {
+		return formalArgs;
 	}
 
 	@Override
@@ -80,5 +89,9 @@ public class Function extends DummyValue implements IGlobal, INamed {
 		}
 		sb.append("}\n");
 		return sb.toString();
+	}
+
+	public Type getReturnType() {
+		return returnType;
 	}
 }

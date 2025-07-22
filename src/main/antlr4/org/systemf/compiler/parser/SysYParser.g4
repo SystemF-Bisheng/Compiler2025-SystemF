@@ -15,7 +15,7 @@ arrayPostfixSingle : L_BRACKT length=expr R_BRACKT;
 arrayPostfix : arrayPostfixSingle*;
 eqInitializeVal : expr # single
                 | L_BRACE (eqInitializeVal (COMMA eqInitializeVal)*)? R_BRACE # array;
-initializer : ASSIGN value=eqInitializeVal # eqInitializer;
+initializer : ASSIGN value=eqInitializeVal;
 varDefEntry : name=IDENT arrayPostfix init=initializer?;
 varDef : constPrefix type=basicType varDefEntry (COMMA varDefEntry)* SEMICOLON;
 
@@ -24,7 +24,8 @@ funcDef : r_type=retType name=IDENT L_PAREN (funcParam (COMMA funcParam)*)? R_PA
 
 varAccess : IDENT arrayPostfix;
 funcRealParam : expr;
-expr : value=INTEGER_CONST # const
+expr : value=INTEGER_CONST # constInt
+     | value=FLOAT_CONST # constFloat
      | func=IDENT L_PAREN (funcRealParam (COMMA funcRealParam)*)? R_PAREN # functionCall
      | varAccess # access
      | L_PAREN expr R_PAREN # paren

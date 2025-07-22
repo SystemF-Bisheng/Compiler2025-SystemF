@@ -1,21 +1,36 @@
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.systemf.compiler.interpreter.IRInterpreter;
+import org.systemf.compiler.ir.Module;
+import org.systemf.compiler.optimization.OptimizedResult;
+import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
 
-public class Compiler {
-	public static void main(String[] args) {
-		CompileArgument compileArgument;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Scanner;
 
-		try {
-			compileArgument = parseArguments(args);
-		}
-		catch (IllegalArgumentException e) {
-			System.err.println(e);
-			System.exit(-1);
-		}
+public class Compiler {
+	public static void main(String[] args) throws IOException {
+		CompileArgument compileArgument = parseArguments(args);
 
 		QueryRegistry.registerAll();
-	}
+		var query = QueryManager.getInstance();
 
-	record CompileArgument(String inputFilePath, String outputFilePath) {}
+		var input = CharStreams.fromFileName(compileArgument.inputFilePath());
+		query.registerProvider(CharStream.class, () -> input);
+		Module module = query.get(OptimizedResult.class).module();
+
+		if (compileArgument.outputFilePath() != null) {
+			module.dump(new PrintStream(compileArgument.outputFilePath()));
+		} else {
+			IRInterpreter irInterpreter = new IRInterpreter();
+			Scanner scanner = new Scanner(System.in);
+			irInterpreter.execute(module, scanner, System.out);
+			scanner.close();
+			System.exit(irInterpreter.getMainRet());
+		}
+	}
 
 	static CompileArgument parseArguments(String[] args) throws IllegalArgumentException {
 		String inputFilePath = null, outputFilePath = null;
@@ -29,15 +44,10 @@ public class Compiler {
 					}
 					outputFilePath = args[i + 1];
 					i++;
-				}
-				else {
+				} else {
 					/* ignore */
 				}
-			}
-			else {
-				if (inputFilePath != null) {
-					throw new IllegalArgumentException("multi input files compiling is not supported so far");
-				}
+			} else {
 				inputFilePath = arg;
 			}
 		}
@@ -45,10 +55,10 @@ public class Compiler {
 		if (inputFilePath == null) {
 			throw new IllegalArgumentException("no input file is provided");
 		}
-		if (outputFilePath == null) {
-			throw new IllegalArgumentException("no output file is provided");
-		}
 
 		return new CompileArgument(inputFilePath, outputFilePath);
+	}
+
+	record CompileArgument(String inputFilePath, String outputFilePath) {
 	}
 }

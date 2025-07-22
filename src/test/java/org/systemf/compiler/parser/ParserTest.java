@@ -15,6 +15,7 @@ public class ParserTest {
 					int b = 1;
 					int c = a + b;
 					c = c + 1;
+					float x = 2.0;
 					return c;
 				}
 				""");

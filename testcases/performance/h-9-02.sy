@@ -1,0 +1,38 @@
+int seed = 0;
+
+int rand() {                  
+  seed = (seed * 19980130 + 23333) % 100000007;
+  if (seed < 0) seed = seed + 100000007;                    
+  return seed;                                                                                                           
+}                       
+
+int fib(int c,int n,int d){
+    if(n == 0 || n==1){
+        return ((c+1)/2 + (d*2)%3);
+    }
+    return fib(c+1    , n-1, (d+1)/2 ) +
+           fib((c-2)/2, n-2, (d-3)%2 ) ;
+}
+
+
+
+int main(){
+    int sum = 0;
+    int i = 0;
+    int n = getint();
+    seed = getint();
+    starttime();
+    while(i < n){
+        if(i % 2 == 0){
+            sum = sum - fib(rand() / 10007  , i, sum) % 256;
+        }else{
+            sum = sum + fib(rand() % (-10007), i, i  ) % 256;
+        }
+        sum = sum % 256;
+        putint(sum);
+        putch(10);
+        i = i + 1;
+    }
+    stoptime();
+    return 0;
+}

@@ -18,6 +18,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			flag |= MergeCommonValue.INSTANCE.run(module);
 			flag |= InBlockMergeLoad.INSTANCE.run(module);
 			flag |= RemoveUnusedValue.INSTANCE.run(module);
+			flag |= InBlockRemoveStore.INSTANCE.run(module);
 			flag |= RemoveRedundantCall.INSTANCE.run(module);
 			flag |= RemoveSingleBr.INSTANCE.run(module);
 			flag |= MergeChain.INSTANCE.run(module);

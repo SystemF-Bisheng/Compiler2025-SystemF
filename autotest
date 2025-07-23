@@ -403,13 +403,14 @@ def run_test_simulated(mode: TestMode, compiler: CompilerInfo, case: TestCase):
   return run_output(mode, case, cmd)
 
 def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, run_mode: RunMode) -> TestResult:
-  match run_mode:
-    case RunMode.COMPLETE:
-      return run_test_complete(mode, compiler, case)
-    case RunMode.BARE_RUN:
-      return run_test_bare(mode, compiler, case)
-    case RunMode.SIMULATED:
-      return run_test_simulated(mode, compiler, case)
+  if run_mode == RunMode.COMPLETE:
+    return run_test_complete(mode, compiler, case)
+  elif run_mode == RunMode.BARE_RUN:
+    return run_test_bare(mode, compiler, case)
+  elif run_mode == RunMode.SIMULATED:
+    return run_test_simulated(mode, compiler, case)
+  else:
+    assert False, f"unknown run_mode `{run_mode}`"
 
 
 def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], run_mode: RunMode):

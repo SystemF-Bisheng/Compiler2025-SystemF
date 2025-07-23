@@ -7,6 +7,7 @@ public class Tree<T> {
 	private final Map<T, T> parent = new HashMap<>();
 	private final Map<T, Integer> dfn = new HashMap<>();
 	private final Map<T, Pair<Integer, Integer>> dfnRange = new HashMap<>();
+	private final Map<T, Integer> depth = new HashMap<>();
 	private final Map<T, List<T>> preparedParent = new HashMap<>();
 	private T root;
 	private int dfnCnt = 0;
@@ -27,13 +28,14 @@ public class Tree<T> {
 			}
 		}
 		if (root == null) throw new IllegalArgumentException();
-		prepare(root);
+		prepare(root, 0);
 	}
 
-	private void prepare(T cur) {
+	private void prepare(T cur, int dep) {
 		var curDfn = dfnCnt++;
 		dfn.put(cur, curDfn);
-		for (var child : children.get(cur)) prepare(child);
+		depth.put(cur, dep);
+		for (var child : children.get(cur)) prepare(child, dep + 1);
 		dfnRange.put(cur, Pair.of(curDfn, dfnCnt - 1));
 
 		if (parent.containsKey(cur)) {
@@ -63,6 +65,14 @@ public class Tree<T> {
 			nxtA = par;
 		}
 		return lca(nxtA, b);
+	}
+
+	public boolean isLeaf(T node) {
+		return getChildren(node).isEmpty();
+	}
+
+	public int getDepth(T node) {
+		return depth.get(node);
 	}
 
 	public List<T> getChildren(T node) {

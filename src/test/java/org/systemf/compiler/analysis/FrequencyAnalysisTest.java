@@ -1,11 +1,12 @@
-package org.systemf.compiler.optimization;
+package org.systemf.compiler.analysis;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
 
-public class OptimizationTest {
+public class FrequencyAnalysisTest {
 	public static void main(String[] args) {
 		QueryRegistry.registerAll();
 		var query = QueryManager.getInstance();
@@ -102,6 +103,12 @@ public class OptimizationTest {
 				
 				""");
 		query.registerProvider(CharStream.class, () -> code);
-		query.get(OptimizedResult.class).module().dump(System.out);
+		var module = query.get(OptimizedResult.class).module();
+		var mainFunc = module.getFunction("mm");
+		var result = query.getAttribute(mainFunc, FrequencyAnalysisResult.class);
+		for (var block : mainFunc.getBlocks()) {
+			System.out.println(result.frequency(block));
+			System.out.println(block);
+		}
 	}
 }

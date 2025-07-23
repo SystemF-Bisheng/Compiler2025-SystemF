@@ -26,7 +26,9 @@ public class SaturationArithmetic {
 	public static int saturatedLerp(int V, int w, int W) {
 		long tmp = V;
 		tmp *= w;
+		long rounding = tmp % W * 2 >= W ? 1 : 0;
 		tmp /= W;
+		tmp += rounding;
 		return saturated(tmp);
 	}
 }

@@ -16,10 +16,14 @@ public class FrequencyAnalysisTest {
 				void mm(int n, int A[][N], int B[][N], int C[][N]){
 				    int i, j, k;
 				
+				    if (n > 5) n = n - 1;
+				
 				    i = 0; j = 0;
 				    while (i < n){
 				        j = 0;
 				        while (j < n){
+				            if (j > 5) j = j + 2;
+				            if (j > 8) j = j + 5;
 				            C[i][j] = 0;
 				            j = j + 1;
 				        }

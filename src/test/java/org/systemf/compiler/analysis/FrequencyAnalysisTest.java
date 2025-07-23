@@ -21,6 +21,20 @@ public class FrequencyAnalysisTest {
 				    i = 0; j = 0;
 				    while (i < n){
 				        j = 0;
+				        while (1) {
+				            j = j + 3;
+				            if (j > 15) break;
+				            while (j < n) {
+				                j = j + 1;
+				                if (j > 100) break;
+				            }
+				            if (j + j > 30) break;
+				            j = j + 5;
+				            if (j > 15) break;
+				            if (j + j > 30) break;
+				        }
+				        j = j + 3;
+				
 				        while (j < n){
 				            if (j > 5) j = j + 2;
 				            if (j > 8) j = j + 5;

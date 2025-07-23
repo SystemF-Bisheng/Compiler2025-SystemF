@@ -26,6 +26,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 		private final Map<BasicBlock, Integer> frequency = new HashMap<>();
 		private final Map<BasicBlock, Integer> loopOccur = new HashMap<>();
 		private Set<BasicBlock> curLoop;
+		private final Set<BasicBlock> curBreak = new HashSet<>();
 
 		public FrequencyAnalysisContext(Function function) {
 			this.function = function;
@@ -64,8 +65,12 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 			if (succs.isEmpty()) return;
 			var curFreq = frequency.get(block);
 			java.util.function.Function<BasicBlock, Integer> calc;
-			if (checkOccur(block)) // Nested loop, don't distribute frequency
-				calc = _ -> curFreq;
+			if (checkOccur(block)) // Nested loop, pass frequency to merging blocks
+				calc = succ -> {
+					if (curBreak.contains(succ)) return 0;
+					curBreak.add(succ);
+					return curFreq;
+				};
 			else { // Nested if, distribute frequency by block size
 				int sumSize = succs.stream().map(succ -> succ.instructions.size()).reduce(0, Integer::sum);
 				calc = succ -> SaturationArithmetic.saturatedLerp(curFreq, succ.instructions.size(), sumSize);
@@ -92,6 +97,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 			loop.forEach(frequency::remove);
 			frequency.put(head, headNew);
 			curLoop = loop;
+			curBreak.clear();
 			var propagateOrder = new HashSet<>(curLoop);
 			while (!propagateOrder.isEmpty()) {
 				var next = chooseNext(propagateOrder);

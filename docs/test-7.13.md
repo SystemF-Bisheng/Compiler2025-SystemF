@@ -8,15 +8,17 @@
 
 需安装 docker, 此处略.
 
-从 https://box.nju.edu.cn/smart-link/68b04124-5757-4a15-b0fb-a90a9e7db364/ 下载镜像.
+从 https://box.nju.edu.cn/f/b777cb17d3a846d7914f/ 下载镜像.
 
 解压后, 使用
 
 ```sh
-docker load -i system-test.tar
+docker load -i system-test-64.tar
 ```
 
-加载镜像. **注意, 这里的压缩包层级有点问题, 外面多套了一层叫 `systemf-test.tar` 的文件夹, 需要进入, 加载里面那个 `.tar`**.
+加载镜像. **注意, 这里的压缩包层级有点问题, 外面多套了一层叫 `systemf-test-64.tar` 的文件夹, 需要进入, 加载里面那个 `.tar`**.
+
+**新镜像与原镜像同名, 如果之前加载过同名镜像, 那么镜像加载可能失败, 需删除原镜像再加载**.
 
 ### 测试
 

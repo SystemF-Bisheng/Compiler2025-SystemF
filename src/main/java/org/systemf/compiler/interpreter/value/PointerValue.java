@@ -3,6 +3,8 @@ package org.systemf.compiler.interpreter.value;
 import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.interfaces.Type;
 
+import java.util.function.Supplier;
+
 public class PointerValue implements ExecutionValue {
 	private final int startIndex;
 	private final int endIndex;
@@ -59,22 +61,21 @@ public class PointerValue implements ExecutionValue {
 		return new PointerValue(new ArrayValue(clonedValues), type, startIndex);
 	}
 
+	private PointerValue getOrProduceCache(int index, Supplier<PointerValue> supplier) {
+		if (0 <= index && index < cache.length) {
+			if (cache[index] != null) return cache[index];
+			var value = supplier.get();
+			cache[index] = value;
+			return value;
+		} else return supplier.get();
+	}
 
 	public ExecutionValue getValue(int index) {
 		Array arrayType = (Array) type;
-		if (arrayType.getElementType() instanceof Array array) {
-			if (cache[index] == null) {
-				cache[index] = new PointerValue((ArrayValue) value, array, startIndex + index * getArrayLength(array));
-			}
-			return cache[index];
-		} else {
-			if (index >= 0 && index < cache.length) {
-				if (cache[index] == null) {
-					cache[index] = new PointerValue((ArrayValue) value, arrayType.getElementType(), startIndex + index);
-				}
-			} else return new PointerValue((ArrayValue) value, arrayType.getElementType(), startIndex + index);
-			return cache[index];
-		}
+		if (arrayType.getElementType() instanceof Array array) return getOrProduceCache(index,
+				() -> new PointerValue((ArrayValue) value, array, startIndex + index * getArrayLength(array)));
+		else return getOrProduceCache(index,
+				() -> new PointerValue((ArrayValue) value, arrayType.getElementType(), startIndex + index));
 	}
 
 	private int getArrayLength(Array array) {

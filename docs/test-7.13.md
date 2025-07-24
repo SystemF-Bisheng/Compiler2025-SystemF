@@ -8,7 +8,7 @@
 
 需安装 docker, 此处略.
 
-从 https://box.nju.edu.cn/f/b777cb17d3a846d7914f/ 下载镜像.
+从 https://box.nju.edu.cn/f/8347da06e7524e5f8041/ 下载镜像.
 
 解压后, 使用
 

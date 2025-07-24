@@ -1,63 +1,81 @@
 package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
+import org.systemf.compiler.analysis.FrequencyAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
-public enum MoveCodeUpwards implements OptPass {
+public enum MoveCodeDownwards implements OptPass {
 	INSTANCE;
 
 	@Override
 	public boolean run(Module module) {
-		return new MoveCodeUpwardsContext(module).run();
+		return new MoveCodeDownwardsContext(module).run();
 	}
 
-	private static class MoveCodeUpwardsContext {
+	private static class MoveCodeDownwardsContext {
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
+		private FrequencyAnalysisResult frequency;
 		private Map<Instruction, BasicBlock> belonging;
 		private Tree<BasicBlock> domTree;
 
-		public MoveCodeUpwardsContext(Module module) {
+		public MoveCodeDownwardsContext(Module module) {
 			this.module = module;
 		}
 
 		private boolean processBlock(BasicBlock block) {
 			var res = false;
-			for (var iter = block.instructions.iterator(); iter.hasNext(); ) {
-				var inst = iter.next();
+			for (var iter = block.instructions.listIterator(block.instructions.size()); iter.hasPrevious(); ) {
+				var inst = iter.previous();
 				if (inst instanceof Terminal) continue;
 				if (inst instanceof PotentialSideEffect) continue;
 				if (inst instanceof PotentialPositionSensitive) continue;
-				var upperBound = CodeMotionHelper.getUpperBound(inst, domTree, belonging);
-				if (upperBound == block) continue;
+
+				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
+				var possibleLower = new ArrayList<BasicBlock>();
+				while (true) {
+					if (lowerBound == null) break;
+					possibleLower.add(lowerBound);
+					if (lowerBound == block) break;
+					lowerBound = domTree.getParent(lowerBound);
+				}
+				if (possibleLower.isEmpty()) continue;
+				var bestLower = possibleLower.stream().min(Comparator.comparingInt(lower -> frequency.frequency(lower)))
+						.orElseThrow();
+				if (bestLower == block) continue;
+
 				res = true;
 				iter.remove();
-
-				var instList = upperBound.instructions;
-				var term = instList.removeLast();
-				instList.addLast(inst);
-				instList.addLast(term);
-				belonging.put(inst, upperBound);
+				for (var iterLower = bestLower.instructions.listIterator(); iterLower.hasNext(); ) {
+					if (iterLower.next() instanceof Phi) continue;
+					iterLower.previous();
+					iterLower.add(inst);
+					break;
+				}
+				belonging.put(inst, bestLower);
 			}
 			return res;
 		}
 
 		private boolean processFunction(Function function) {
+			frequency = query.getAttribute(function, FrequencyAnalysisResult.class);
 			domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
 			belonging = CodeMotionHelper.getBelonging(function);
-			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn))
+			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn).reversed())
 					.map(this::processBlock).reduce(false, (a, b) -> a || b);
 			if (res) query.invalidateAllAttributes(function);
 			return res;

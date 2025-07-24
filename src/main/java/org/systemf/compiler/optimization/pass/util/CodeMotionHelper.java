@@ -4,11 +4,13 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.util.Tree;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class CodeMotionHelper {
 	public static Map<Instruction, BasicBlock> getBelonging(Function function) {
@@ -27,6 +29,12 @@ public class CodeMotionHelper {
 	public static BasicBlock getLowerBound(Instruction instruction, Tree<BasicBlock> domTree,
 			Map<Instruction, BasicBlock> belonging) {
 		if (!(instruction instanceof Value val)) return null;
-		return val.getDependant().stream().map(belonging::get).reduce(domTree::lca).orElse(null);
+		var lower = val.getDependant().stream().flatMap(inst -> {
+			if (inst instanceof Phi phi)
+				return phi.getIncoming().entrySet().stream().filter(entry -> entry.getValue() == val)
+						.map(Map.Entry::getKey);
+			else return Stream.of(belonging.get(inst));
+		}).reduce(domTree::lca);
+		return lower.orElse(null);
 	}
 }

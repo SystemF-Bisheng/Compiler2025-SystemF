@@ -9,25 +9,41 @@ import org.systemf.compiler.translator.IRTranslatedResult;
 public enum Optimizer implements EntityProvider<OptimizedResult> {
 	INSTANCE;
 
-	private void foldAndCleanup(Module module) {
+	private boolean valueFold(Module module) {
+		boolean flag = ConstantFold.INSTANCE.run(module);
+		flag |= CondBrFold.INSTANCE.run(module);
+		flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
+		flag |= MergeCommonValue.INSTANCE.run(module);
+		flag |= InBlockMergeLoad.INSTANCE.run(module);
+		flag |= RemoveUnusedValue.INSTANCE.run(module);
+		flag |= RemoveUnusedAllocation.INSTANCE.run(module);
+		flag |= InBlockRemoveStore.INSTANCE.run(module);
+		flag |= RemoveRedundantCall.INSTANCE.run(module);
+		return flag;
+	}
+
+	private boolean cfgSimplify(Module module) {
+		boolean flag = RemoveSingleBr.INSTANCE.run(module);
+		flag |= MergeChain.INSTANCE.run(module);
+		return flag;
+	}
+
+	private void valueClean(Module module) {
+		boolean flag = true;
+		while (flag) flag = valueFold(module);
+	}
+
+	private void valueAndBlockClean(Module module) {
 		boolean flag = true;
 		while (flag) {
-			flag = ConstantFold.INSTANCE.run(module);
-			flag |= CondBrFold.INSTANCE.run(module);
-			flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
-			flag |= MergeCommonValue.INSTANCE.run(module);
-			flag |= InBlockMergeLoad.INSTANCE.run(module);
-			flag |= RemoveUnusedValue.INSTANCE.run(module);
-			flag |= RemoveUnusedAllocation.INSTANCE.run(module);
-			flag |= InBlockRemoveStore.INSTANCE.run(module);
-			flag |= RemoveRedundantCall.INSTANCE.run(module);
-			flag |= RemoveSingleBr.INSTANCE.run(module);
-			flag |= MergeChain.INSTANCE.run(module);
+			flag = valueFold(module);
+			flag |= cfgSimplify(module);
 		}
 	}
 
 	private void codeMotion(Module module) {
-		while (MoveCodeUpwards.INSTANCE.run(module)) foldAndCleanup(module);
+		while (MoveCodeUpwards.INSTANCE.run(module)) valueClean(module);
+		while (MoveCodeDownwards.INSTANCE.run(module)) valueAndBlockClean(module);
 	}
 
 	@Override
@@ -41,7 +57,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		MergeChain.INSTANCE.run(module);
 		MemToReg.INSTANCE.run(module);
 
-		foldAndCleanup(module);
+		valueAndBlockClean(module);
 
 		codeMotion(module);
 

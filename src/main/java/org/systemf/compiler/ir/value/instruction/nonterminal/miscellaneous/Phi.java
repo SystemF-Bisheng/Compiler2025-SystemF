@@ -7,12 +7,13 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
+import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.*;
 
-public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable {
+public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialPositionSensitive {
 	private Map<BasicBlock, Value> incoming = new HashMap<>();
 
 	public Phi(Type type, String name) {

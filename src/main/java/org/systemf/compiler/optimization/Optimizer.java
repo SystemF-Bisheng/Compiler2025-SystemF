@@ -26,6 +26,10 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		}
 	}
 
+	private void codeMotion(Module module) {
+		while (MoveCodeUpwards.INSTANCE.run(module)) foldAndCleanup(module);
+	}
+
 	@Override
 	public OptimizedResult produce() {
 		var query = QueryManager.getInstance();
@@ -38,6 +42,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		MemToReg.INSTANCE.run(module);
 
 		foldAndCleanup(module);
+
+		codeMotion(module);
 
 		RemoveUnusedFunction.INSTANCE.run(module);
 

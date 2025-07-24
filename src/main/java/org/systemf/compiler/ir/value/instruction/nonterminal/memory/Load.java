@@ -7,13 +7,14 @@ import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
+import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class Load extends DummyValueNonTerminal implements PotentialNonRepeatable {
+public class Load extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialPositionSensitive {
 	private Value ptr;
 
 	public Load(String name, Value ptr) {

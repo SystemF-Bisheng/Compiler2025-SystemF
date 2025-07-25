@@ -376,10 +376,6 @@ public class IRBuilder implements AutoCloseable {
 		return unreachableInst;
 	}
 
-	public Br constructBr(BasicBlock target) {
-		return new Br(target);
-	}
-
 	public Br buildBr(BasicBlock target) {
 		Br brInst = new Br(target);
 		insertInstruction(brInst);
@@ -393,7 +389,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Terminal buildOrFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
-		return folder.tryFoldCondBr(condition, trueTarget, falseTarget)
+		return folder.tryFoldCondBr(condition, trueTarget, falseTarget).map(block -> (Terminal) this.buildBr(block))
 				.orElseGet(() -> buildCondBr(condition, trueTarget, falseTarget));
 	}
 

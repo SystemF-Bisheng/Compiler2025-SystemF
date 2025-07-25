@@ -13,7 +13,6 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
-import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collection;
@@ -269,17 +268,17 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldPhi(null, ops);
 	}
 
-	public Optional<Terminal> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
-		if (trueTarget == falseTarget) return Optional.of(builder.constructBr(trueTarget));
+	public Optional<BasicBlock> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
+		if (trueTarget == falseTarget) return Optional.of(trueTarget);
 
 		if (condition instanceof ConstantInt conditionC) {
-			if (conditionC.value == 0) return Optional.of(builder.constructBr(falseTarget));
-			else return Optional.of(builder.constructBr(trueTarget));
+			if (conditionC.value == 0) return Optional.of(falseTarget);
+			else return Optional.of(trueTarget);
 		} else return Optional.empty();
 	}
 
 	@Override
-	public Optional<Terminal> visit(CondBr inst) {
+	public Optional<BasicBlock> visit(CondBr inst) {
 		return tryFoldCondBr(inst.getCondition(), inst.getTrueTarget(), inst.getFalseTarget());
 	}
 }

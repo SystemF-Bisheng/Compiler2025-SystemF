@@ -15,7 +15,7 @@ public enum ReachabilityAnalysis implements AttributeProvider<Function, Reachabi
 
 	private void dfs(CFGAnalysisResult cfg, BasicBlock cur, Set<BasicBlock> visited) {
 		if (!visited.add(cur)) return;
-		cfg.successors(cur).forEach(nxt -> dfs(cfg, nxt, visited));
+		for (var nxt : cfg.successors(cur)) dfs(cfg, nxt, visited);
 	}
 
 	private Set<BasicBlock> analyzeBlock(CFGAnalysisResult cfg, BasicBlock block) {

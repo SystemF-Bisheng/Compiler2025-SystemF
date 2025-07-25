@@ -9,7 +9,7 @@ import org.systemf.compiler.translator.IRTranslatedResult;
 public enum Optimizer implements EntityProvider<OptimizedResult> {
 	INSTANCE;
 
-	private boolean valueFold(Module module) {
+	private boolean fastValueFoldOnce(Module module) {
 		boolean flag = ConstantFold.INSTANCE.run(module);
 		flag |= CondBrFold.INSTANCE.run(module);
 		flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
@@ -22,23 +22,37 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		return flag;
 	}
 
-	private boolean cfgSimplify(Module module) {
+	private boolean slowValueFoldOnce(Module module) {
+		boolean flag = RemoveDeadBlock.INSTANCE.run(module);
+		flag |= MergeCondBr.INSTANCE.run(module);
+		return flag;
+	}
+
+	private void fastValueFold(Module module) {
+		boolean flag = true;
+		while (flag) flag = fastValueFoldOnce(module);
+	}
+
+	private boolean cfgSimplifyOnce(Module module) {
 		boolean flag = RemoveSingleBr.INSTANCE.run(module);
 		flag |= MergeChain.INSTANCE.run(module);
 		return flag;
 	}
 
-	private void valueClean(Module module) {
+	private void fastValueAndCFGFold(Module module) {
 		boolean flag = true;
-		while (flag) flag = valueFold(module);
+		while (flag) {
+			flag = fastValueFoldOnce(module);
+			flag |= cfgSimplifyOnce(module);
+		}
+	}
+
+	private void valueClean(Module module) {
+		do fastValueFold(module); while (slowValueFoldOnce(module));
 	}
 
 	private void valueAndBlockClean(Module module) {
-		boolean flag = true;
-		while (flag) {
-			flag = valueFold(module);
-			flag |= cfgSimplify(module);
-		}
+		do fastValueAndCFGFold(module); while (slowValueFoldOnce(module));
 	}
 
 	private void codeMotion(Module module) {

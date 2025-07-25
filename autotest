@@ -309,15 +309,7 @@ def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
   '''
   Converts RISC-V assembly to executable.
   '''
-  asm_flags = '-target riscv64-unknown-linux-elf -march=rv64gc -mabi=lp64d -mno-relax'
-  cmd = f'clang {rv} -c -o {obj} {asm_flags}'
-  if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
-                       TestStatus.ASM_TIME_EXCEEDED):
-    return result
-  # TODO: SysY runtime library
-  # lib_flags = f'-L{LIBRARY_PATH}/riscv32 -lsysy'
-  lib_flags = ''
-  cmd = f'ld.lld {obj} {lib_flags} -o {exe}'
+  cmd = f'riscv64-linux-gnu-gcc {rv} lib/libsysy_riscv.a -o {exe}'
   if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
                        TestStatus.ASM_TIME_EXCEEDED):
     return result

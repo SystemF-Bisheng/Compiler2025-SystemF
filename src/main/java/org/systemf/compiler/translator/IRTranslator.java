@@ -79,7 +79,6 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		private final Type VOID;
 		private final Sized I32;
 		private final ConstantInt I32_ZERO;
-		private final ConstantInt I32_NEG_ONE;
 		private final ConstantInt I32_ONE;
 		private final ConstantFloat FLOAT_ZERO;
 		private BasicBlock loopCond;
@@ -95,7 +94,6 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			VOID = builder.buildVoidType();
 			I32 = builder.buildI32Type();
 			I32_ZERO = builder.buildConstantInt(0);
-			I32_NEG_ONE = builder.buildConstantInt(-1);
 			I32_ONE = builder.buildConstantInt(1);
 			FLOAT_ZERO = builder.buildConstantFloat(0);
 			SysYExternalRegistry.registerIR(builder);
@@ -684,7 +682,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			exitRule();
 			return switch (op) {
 				case SysYLexer.PLUS -> handleUnary(ctx, x, v -> v, v -> v);
-				case SysYLexer.MINUS -> handleUnary(ctx, x, v -> builder.buildOrFoldMul(v, I32_NEG_ONE, "iNeg"),
+				case SysYLexer.MINUS -> handleUnary(ctx, x, v -> builder.buildOrFoldSub(I32_ZERO, v, "iNeg"),
 						v -> builder.buildOrFoldFNeg(v, "fNeg"));
 				case SysYLexer.NOT ->
 						handleUnary(ctx, x, v -> builder.buildOrFoldICmp(v, I32_ZERO, "iNot", CompareOp.EQ),

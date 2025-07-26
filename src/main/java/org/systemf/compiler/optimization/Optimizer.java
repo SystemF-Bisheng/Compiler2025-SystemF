@@ -25,6 +25,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 	private boolean slowValueFoldOnce(Module module) {
 		boolean flag = RemoveDeadBlock.INSTANCE.run(module);
 		flag |= MergeCondBr.INSTANCE.run(module);
+		flag |= RemoveDeadBlock.INSTANCE.run(module);
+		flag |= GlobalMergeLoad.INSTANCE.run(module);
 		return flag;
 	}
 

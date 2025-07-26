@@ -8,7 +8,6 @@ import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
@@ -60,12 +59,7 @@ public enum MoveCodeDownwards implements OptPass {
 
 				res = true;
 				iter.remove();
-				for (var iterLower = bestLower.instructions.listIterator(); iterLower.hasNext(); ) {
-					if (iterLower.next() instanceof Phi) continue;
-					iterLower.previous();
-					iterLower.add(inst);
-					break;
-				}
+				CodeMotionHelper.insertHead(bestLower, inst);
 				belonging.put(inst, bestLower);
 			}
 			return res;

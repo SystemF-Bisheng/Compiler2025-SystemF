@@ -2,9 +2,15 @@ package org.systemf.compiler.optimization.pass.util;
 
 import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
+import org.systemf.compiler.analysis.PointerAnalysisResult;
+import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Pair;
 
@@ -91,6 +97,28 @@ public class MergeHelper {
 			worklist.addAll(cfg.successors(front));
 		}
 		return false;
+	}
+
+	public static void manipulateLoadMap(Instruction inst, Map<Value, Value> loadMap, Module module,
+			PointerAnalysisResult ptrResult) {
+		if (inst instanceof Store store) {
+			var ptr = store.getDest();
+			var affected = ptrResult.pointTo(ptr);
+			for (var iter = loadMap.entrySet().iterator(); iter.hasNext(); ) {
+				var entry = iter.next();
+				var entryPtr = entry.getKey();
+				var related = ptrResult.pointTo(entryPtr);
+				if (affected.stream().anyMatch(related::contains)) iter.remove();
+			}
+			loadMap.put(ptr, store.getSrc());
+		} else if (inst instanceof Load load) loadMap.put(load.getPointer(), load);
+		else if (ValueUtil.sideEffect(module, inst)) loadMap.clear();
+	}
+
+	public static Map<Value, Value> constructLoadMap(BasicBlock block, Module module, PointerAnalysisResult ptrResult) {
+		var loadMap = new HashMap<Value, Value>();
+		for (var inst : block.instructions) manipulateLoadMap(inst, loadMap, module, ptrResult);
+		return loadMap;
 	}
 
 	public record PositionInfo(BasicBlock block, int index) {

@@ -45,10 +45,7 @@ public enum MoveCodeUpwards implements OptPass {
 				res = true;
 				iter.remove();
 
-				var instList = upperBound.instructions;
-				var term = instList.removeLast();
-				instList.addLast(inst);
-				instList.addLast(term);
+				CodeMotionHelper.insertTail(upperBound, inst);
 				belonging.put(inst, upperBound);
 			}
 			return res;

@@ -37,4 +37,20 @@ public class CodeMotionHelper {
 		}).reduce(domTree::lca);
 		return lower.orElse(null);
 	}
+
+	public static void insertHead(BasicBlock target, Instruction inst) {
+		for (var iterLower = target.instructions.listIterator(); iterLower.hasNext(); ) {
+			if (iterLower.next() instanceof Phi) continue;
+			iterLower.previous();
+			iterLower.add(inst);
+			break;
+		}
+	}
+
+	public static void insertTail(BasicBlock target, Instruction inst) {
+		var instList = target.instructions;
+		var term = instList.removeLast();
+		instList.addLast(inst);
+		instList.addLast(term);
+	}
 }

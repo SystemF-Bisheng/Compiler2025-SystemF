@@ -48,7 +48,7 @@ public enum MergeCondBr implements OptPass {
 				else if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getFalseTarget()),
 						Collections.singleton(block), Collections.singleton(parent)))
 					realTarget = condBr.getTrueTarget();
-				if (realTarget == null) continue;
+				if (realTarget == null) return false;
 
 				condBr.unregister();
 				block.instructions.removeLast();

@@ -6,6 +6,7 @@ import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
@@ -41,19 +42,27 @@ public enum MergeCondBr implements OptPass {
 				var parentCond = parentCondBr.getCondition();
 				if (cond != parentCond) continue;
 
-				BasicBlock realTarget = null;
+				BasicBlock realTarget = null, fakeTarget = null;
 				if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getTrueTarget()),
-						Collections.singleton(block), Collections.singleton(parent)))
+						Collections.singleton(block), Collections.singleton(parent))) {
 					realTarget = condBr.getFalseTarget();
-				else if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getFalseTarget()),
-						Collections.singleton(block), Collections.singleton(parent)))
+					fakeTarget = condBr.getTrueTarget();
+				} else if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getFalseTarget()),
+						Collections.singleton(block), Collections.singleton(parent))) {
 					realTarget = condBr.getTrueTarget();
+					fakeTarget = condBr.getFalseTarget();
+				}
 				if (realTarget == null) return false;
 
 				condBr.unregister();
 				block.instructions.removeLast();
 				builder.attachToBlockTail(block);
 				builder.buildBr(realTarget);
+
+				cfg.successors(block).remove(fakeTarget);
+				cfg.predecessors(fakeTarget).remove(block);
+				fakeTarget.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
+						.forEach(phi -> phi.removeIncoming(block));
 				return true;
 			}
 			return false;

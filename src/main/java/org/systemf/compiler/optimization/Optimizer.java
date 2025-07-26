@@ -12,6 +12,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 	private boolean fastValueFoldOnce(Module module) {
 		boolean flag = ConstantFold.INSTANCE.run(module);
 		flag |= CondBrFold.INSTANCE.run(module);
+		flag |= CanonicalizeValue.INSTANCE.run(module);
 		flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
 		flag |= MergeCommonValue.INSTANCE.run(module);
 		flag |= InBlockMergeLoad.INSTANCE.run(module);

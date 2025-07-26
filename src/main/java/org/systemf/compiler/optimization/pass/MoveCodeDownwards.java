@@ -6,9 +6,8 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
-import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
@@ -41,8 +40,8 @@ public enum MoveCodeDownwards implements OptPass {
 			for (var iter = block.instructions.listIterator(block.instructions.size()); iter.hasPrevious(); ) {
 				var inst = iter.previous();
 				if (inst instanceof Terminal) continue;
-				if (inst instanceof PotentialSideEffect) continue;
-				if (inst instanceof PotentialPositionSensitive) continue;
+				if (ValueUtil.sideEffect(module, inst)) continue;
+				if (ValueUtil.positionSensitive(module, inst)) continue;
 
 				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
 				var possibleLower = new ArrayList<BasicBlock>();

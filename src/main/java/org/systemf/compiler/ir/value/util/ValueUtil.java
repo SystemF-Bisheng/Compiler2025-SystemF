@@ -12,6 +12,7 @@ import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
+import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.query.QueryManager;
@@ -77,5 +78,14 @@ public class ValueUtil {
 	public static boolean repeatable(Module module, Value value) {
 		if (value instanceof Instruction inst) return repeatable(module, inst);
 		return true;
+	}
+
+	public static boolean positionSensitive(Module module, Instruction inst) {
+		return inst instanceof PotentialPositionSensitive;
+	}
+
+	public static boolean positionSensitive(Module module, Value value) {
+		if (value instanceof Instruction inst) return positionSensitive(module, inst);
+		return false;
 	}
 }

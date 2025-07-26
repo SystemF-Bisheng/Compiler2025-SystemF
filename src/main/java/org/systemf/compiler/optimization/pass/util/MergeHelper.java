@@ -121,6 +121,26 @@ public class MergeHelper {
 		return loadMap;
 	}
 
+	public static void manipulateStoreSet(Instruction inst, Set<Value> storeSet, Module module,
+			PointerAnalysisResult ptrResult) {
+		if (inst instanceof Load load) {
+			var ptr = load.getPointer();
+			var affected = ptrResult.pointTo(ptr);
+			for (var iter = storeSet.iterator(); iter.hasNext(); ) {
+				var storePtr = iter.next();
+				var related = ptrResult.pointTo(storePtr);
+				if (affected.stream().anyMatch(related::contains)) iter.remove();
+			}
+		} else if (inst instanceof Store store) storeSet.add(store.getDest());
+		else if (ValueUtil.sideEffect(module, inst)) storeSet.clear();
+	}
+
+	public static Set<Value> constructStoreSet(BasicBlock block, Module module, PointerAnalysisResult ptrResult) {
+		var storeSet = new HashSet<Value>();
+		for (var inst : block.instructions.reversed()) manipulateStoreSet(inst, storeSet, module, ptrResult);
+		return storeSet;
+	}
+
 	public record PositionInfo(BasicBlock block, int index) {
 	}
 }

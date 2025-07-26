@@ -8,11 +8,9 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
@@ -32,7 +30,6 @@ public enum GlobalMergeLoad implements OptPass {
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private final PointerAnalysisResult ptrResult;
-		private Map<Instruction, BasicBlock> belonging;
 		private CFGAnalysisResult cfg;
 		private ReachabilityAnalysisResult reachability;
 		private Map<BasicBlock, Optional<Set<Value>>> affecting;
@@ -48,7 +45,7 @@ public enum GlobalMergeLoad implements OptPass {
 			var affected = new HashSet<Value>();
 			for (var inst : block.instructions) {
 				if (inst instanceof Store store) affected.addAll(ptrResult.pointTo(store.getDest()));
-				else if (inst instanceof PotentialSideEffect) {
+				else if (ValueUtil.sideEffect(module, inst)) {
 					affected = null;
 					break;
 				}
@@ -64,12 +61,11 @@ public enum GlobalMergeLoad implements OptPass {
 			var res = false;
 			var affected = new HashSet<Value>();
 			for (var inst : block.instructions) {
-				if (inst instanceof Store store) {
-					affected.addAll(ptrResult.pointTo(store.getDest()));
+				if (!(inst instanceof Load load)) {
+					if (inst instanceof Store store) affected.addAll(ptrResult.pointTo(store.getDest()));
+					else if (ValueUtil.sideEffect(module, inst)) break;
 					continue;
 				}
-				if (inst instanceof PotentialSideEffect) break;
-				if (!(inst instanceof Load load)) continue;
 				var loadPtr = load.getPointer();
 				var loadFrom = ptrResult.pointTo(loadPtr);
 				if (loadFrom.stream().anyMatch(affected::contains)) continue;
@@ -91,6 +87,7 @@ public enum GlobalMergeLoad implements OptPass {
 				if (MergeHelper.blockingReachability(cfg, possibleAffect, Collections.singleton(block),
 						Collections.singleton(upper))) continue;
 
+				res = true;
 				load.replaceAllUsage(loading.get(upper).get(loadPtr));
 			}
 			return res;
@@ -104,7 +101,6 @@ public enum GlobalMergeLoad implements OptPass {
 			function.getBlocks().forEach(this::collectAffecting);
 			loading = new HashMap<>();
 			function.getBlocks().forEach(this::collectLoading);
-			belonging = CodeMotionHelper.getBelonging(function);
 
 			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn))
 					.map(this::processBlock).reduce(false, (a, b) -> a || b);

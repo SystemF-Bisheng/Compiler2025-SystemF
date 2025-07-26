@@ -27,6 +27,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= MergeCondBr.INSTANCE.run(module);
 		flag |= RemoveDeadBlock.INSTANCE.run(module);
 		flag |= GlobalMergeLoad.INSTANCE.run(module);
+		flag |= GlobalRemoveStore.INSTANCE.run(module);
 		return flag;
 	}
 
@@ -60,6 +61,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 	private void codeMotion(Module module) {
 		while (MoveCodeUpwards.INSTANCE.run(module)) valueClean(module);
 		while (MoveCodeDownwards.INSTANCE.run(module)) valueAndBlockClean(module);
+		valueAndBlockClean(module);
 	}
 
 	@Override

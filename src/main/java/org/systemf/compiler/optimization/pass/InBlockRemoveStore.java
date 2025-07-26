@@ -5,9 +5,8 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
@@ -38,22 +37,13 @@ public enum InBlockRemoveStore implements OptPass {
 			var storeSet = new HashSet<Value>();
 			for (var instIter = block.instructions.descendingIterator(); instIter.hasNext(); ) {
 				var inst = instIter.next();
-				if (inst instanceof Load load) {
-					var ptr = load.getPointer();
-					var affected = ptrResult.pointTo(ptr);
-					for (var iter = storeSet.iterator(); iter.hasNext(); ) {
-						var storePtr = iter.next();
-						var related = ptrResult.pointTo(storePtr);
-						if (affected.stream().anyMatch(related::contains)) iter.remove();
-					}
-				} else if (inst instanceof Store store) {
-					var ptr = store.getDest();
-					if (storeSet.contains(ptr)) {
-						res = true;
-						store.unregister();
-						instIter.remove();
-					} else storeSet.add(ptr);
-				} else if (ValueUtil.sideEffect(module, inst)) storeSet.clear();
+				if (inst instanceof Store store && storeSet.contains(store.getDest())) {
+					res = true;
+					store.unregister();
+					instIter.remove();
+					continue;
+				}
+				MergeHelper.manipulateStoreSet(inst, storeSet, module, ptrResult);
 			}
 			return res;
 		}

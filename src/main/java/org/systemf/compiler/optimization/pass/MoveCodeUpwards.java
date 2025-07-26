@@ -38,7 +38,7 @@ public enum MoveCodeUpwards implements OptPass {
 				var inst = iter.next();
 				if (inst instanceof Terminal) continue;
 				if (ValueUtil.sideEffect(module, inst)) continue;
-				if (ValueUtil.positionSensitive(module, inst)) continue;
+				if (ValueUtil.blockSensitive(module, inst)) continue;
 				var upperBound = CodeMotionHelper.getUpperBound(inst, domTree, belonging);
 				if (upperBound == block) continue;
 				res = true;

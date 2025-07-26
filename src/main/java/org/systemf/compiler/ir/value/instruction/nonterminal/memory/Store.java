@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
-import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
+import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Store extends DummyNonTerminal implements PotentialSideEffect, PotentialPositionSensitive {
+public class Store extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
 	private Value src;
 	private Value dest;
 

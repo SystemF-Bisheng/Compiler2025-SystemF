@@ -3,10 +3,10 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.PotentialPositionSensitive;
+import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
-public class FDiv extends DummyBinary implements PotentialPositionSensitive /* Divide by zero */ {
+public class FDiv extends DummyBinary implements PotentialBlockSensitive /* Divide by zero */ {
 	public FDiv(String name, Value x, Value y) {
 		super(name, x, y, Float.INSTANCE, Float.INSTANCE, Float.INSTANCE);
 	}

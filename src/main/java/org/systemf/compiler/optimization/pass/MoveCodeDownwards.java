@@ -41,7 +41,7 @@ public enum MoveCodeDownwards implements OptPass {
 				var inst = iter.previous();
 				if (inst instanceof Terminal) continue;
 				if (ValueUtil.sideEffect(module, inst)) continue;
-				if (ValueUtil.positionSensitive(module, inst)) continue;
+				if (ValueUtil.blockSensitive(module, inst)) continue;
 
 				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
 				var possibleLower = new ArrayList<BasicBlock>();

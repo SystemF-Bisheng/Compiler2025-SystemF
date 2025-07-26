@@ -7,6 +7,11 @@ public class SaturationArithmetic {
 		return (int) v;
 	}
 
+	public static boolean isOverflow(long v) {
+		if (v > Integer.MAX_VALUE) return true;
+		return v < Integer.MIN_VALUE;
+	}
+
 	public static int saturatedAdd(int x, int y) {
 		return saturated((long) x + y);
 	}

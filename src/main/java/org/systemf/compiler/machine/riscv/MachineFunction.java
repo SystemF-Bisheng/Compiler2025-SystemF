@@ -46,14 +46,15 @@ public class MachineFunction {
     // + Prologue and Epilogue have been added to the basic blocks
     public String render() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\t.globl ").append(name).append("\n");
-        sb.append("\t.type ").append(name).append(", @function\n");
+        // sb.append(".globl ").append(name).append("\n");
+        // // Will be declared in MachineModule, not here
+        // sb.append(".type ").append(name).append(", @function\n");
         sb.append(name).append(":\n");
         for (MachineBasicBlock block : basicBlocks) {
             sb.append(block.render());
         }
-        // sb.append("\t.size ").append(name).append(", .-").append(name).append("\n");
-        // sb.append("\n");
+        // sb.append(".size ").append(name).append(", .-").append(name).append("\n");
+        sb.append("\n");
         return sb.toString();
     }
 }

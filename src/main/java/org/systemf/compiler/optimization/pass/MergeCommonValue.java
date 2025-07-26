@@ -3,7 +3,7 @@ package org.systemf.compiler.optimization.pass;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.util.ValueUtil;
-import org.systemf.compiler.optimization.pass.util.MergeValueHelper;
+import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
 /**
@@ -13,7 +13,7 @@ public enum MergeCommonValue implements OptPass {
 	INSTANCE;
 
 	private boolean processFunction(Module module, Function function) {
-		var res = MergeValueHelper.handleFunction(function,
+		var res = MergeHelper.handleFunction(function,
 				val -> ValueUtil.repeatable(module, val) && !ValueUtil.sideEffect(module, val));
 		if (res) QueryManager.getInstance().invalidateAllAttributes(function);
 		return res;

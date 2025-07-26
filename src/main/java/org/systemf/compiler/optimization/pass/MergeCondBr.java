@@ -1,14 +1,18 @@
 package org.systemf.compiler.optimization.pass;
 
+import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
-import org.systemf.compiler.analysis.ReachabilityAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
+import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
+
+import java.util.Collections;
+import java.util.Comparator;
 
 public enum MergeCondBr implements OptPass {
 	INSTANCE;
@@ -23,7 +27,7 @@ public enum MergeCondBr implements OptPass {
 		private final Module module;
 		private IRBuilder builder;
 		private Tree<BasicBlock> domTree;
-		private ReachabilityAnalysisResult reachability;
+		private CFGAnalysisResult cfg;
 
 		public MergeCondBrContext(Module module) {
 			this.module = module;
@@ -38,8 +42,11 @@ public enum MergeCondBr implements OptPass {
 				if (cond != parentCond) continue;
 
 				BasicBlock realTarget = null;
-				if (!reachability.reachable(parentCondBr.getTrueTarget(), block)) realTarget = condBr.getFalseTarget();
-				else if (!reachability.reachable(parentCondBr.getFalseTarget(), block))
+				if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getTrueTarget()),
+						Collections.singleton(block), Collections.singleton(parent)))
+					realTarget = condBr.getFalseTarget();
+				else if (!MergeHelper.blockingReachability(cfg, Collections.singleton(parentCondBr.getFalseTarget()),
+						Collections.singleton(block), Collections.singleton(parent)))
 					realTarget = condBr.getTrueTarget();
 				if (realTarget == null) continue;
 
@@ -54,8 +61,9 @@ public enum MergeCondBr implements OptPass {
 
 		private boolean processFunction(Function function) {
 			this.domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
-			this.reachability = query.getAttribute(function, ReachabilityAnalysisResult.class);
-			var res = function.getBlocks().stream().map(this::processBlock).reduce(false, (a, b) -> a || b);
+			this.cfg = query.getAttribute(function, CFGAnalysisResult.class);
+			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn))
+					.map(this::processBlock).reduce(false, (a, b) -> a || b);
 			if (res) query.invalidateAllAttributes(function);
 			return res;
 		}

@@ -1,5 +1,6 @@
 package org.systemf.compiler.optimization.pass.util;
 
+import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -10,7 +11,7 @@ import org.systemf.compiler.util.Pair;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class MergeValueHelper {
+public class MergeHelper {
 	public static boolean mergeValues(DominanceAnalysisResult dom, List<Pair<PositionInfo, Value>> values) {
 		var domTree = dom.dominance();
 		BasicBlock lastBlock = null;
@@ -70,12 +71,26 @@ public class MergeValueHelper {
 				if (!(inst instanceof Value val)) continue;
 				if (!valueFilter.test(val)) continue;
 				valueMap.computeIfAbsent(val.getClass(), _ -> new LinkedList<>())
-						.add(Pair.of(new MergeValueHelper.PositionInfo(block, index), val));
+						.add(Pair.of(new MergeHelper.PositionInfo(block, index), val));
 				++index;
 			}
 		}
 
 		return handleValues(function, valueMap);
+	}
+
+	public static boolean blockingReachability(CFGAnalysisResult cfg, Set<BasicBlock> begin, Set<BasicBlock> end,
+			Set<BasicBlock> blocked) {
+		var visited = new HashSet<>(blocked);
+		var worklist = new ArrayDeque<>(begin);
+		while (!worklist.isEmpty()) {
+			var front = worklist.poll();
+			if (visited.contains(front)) continue;
+			if (end.contains(front)) return true;
+			visited.add(front);
+			worklist.addAll(cfg.successors(front));
+		}
+		return false;
 	}
 
 	public record PositionInfo(BasicBlock block, int index) {

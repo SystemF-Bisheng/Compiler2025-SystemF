@@ -2,10 +2,7 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.value.instruction.nonterminal.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToSi64;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si64ToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
@@ -136,6 +133,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	@Override
 	public T visit(FpToSi32 inst) {
 		return visit((DummyUnary) inst);
+	}
+
+	@Override
+	public T visit(PtrCast inst) {
+		return defaultValue();
 	}
 
 	@Override

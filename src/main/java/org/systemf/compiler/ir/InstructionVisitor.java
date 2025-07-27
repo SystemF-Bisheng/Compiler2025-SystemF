@@ -1,10 +1,7 @@
 package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToSi64;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si64ToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
@@ -42,6 +39,8 @@ public interface InstructionVisitor<T> {
     T visit(AShr inst);
 
     // conversion
+    T visit(PtrCast inst);
+
     T visit(FpToSi32 inst);
 
     T visit(Si32ToFp inst);

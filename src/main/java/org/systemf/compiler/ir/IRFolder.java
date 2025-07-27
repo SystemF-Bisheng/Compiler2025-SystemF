@@ -52,6 +52,15 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldAnd(inst.getX(), inst.getY());
 	}
 
+	public Optional<Constant> tryFoldOr(Value lhs, Value rhs) {
+		return tryFoldIntBinary(lhs, rhs, (l, r) -> l | r);
+	}
+
+	@Override
+	public Optional<Constant> visit(Or inst) {
+		return tryFoldAnd(inst.getX(), inst.getY());
+	}
+
 	public Optional<Constant> tryFoldAShr(Value lhs, Value rhs) {
 		return tryFoldIntBinary(lhs, rhs, (l, r) -> l >> r);
 	}

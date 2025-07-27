@@ -6,7 +6,6 @@ import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.type.IInteger;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
@@ -29,6 +28,7 @@ public enum MergeArithmetic implements OptPass {
 	}
 
 	private static class MergeArithmeticContext extends InstructionVisitorBase<Boolean> {
+		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private IRBuilder builder;
 
@@ -41,7 +41,6 @@ public enum MergeArithmetic implements OptPass {
 		}
 
 		private boolean processFunction(Function function) {
-			var query = QueryManager.getInstance();
 			var domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
 			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn))
 					.map(this::processBlock).reduce(false, (a, b) -> a || b);
@@ -54,7 +53,7 @@ public enum MergeArithmetic implements OptPass {
 				this.builder = builder;
 				var res = module.getFunctions().values().stream().map(this::processFunction)
 						.reduce(false, (a, b) -> a || b);
-				if (res) QueryManager.getInstance().invalidateAllAttributes(module);
+				if (res) query.invalidateAllAttributes(module);
 				return res;
 			}
 		}
@@ -72,7 +71,7 @@ public enum MergeArithmetic implements OptPass {
 			var binaryX = (DummyBinary) x;
 			var otherY = binaryX.getY();
 			if (!ValueUtil.isConstantInt(otherY)) return false;
-			var width = ((IInteger) x.getType()).bitWidth();
+			var width = ValueUtil.getWidth(x);
 			var newValue = func.apply(ValueUtil.getConstantInt(otherY), ValueUtil.getConstantInt(selfY));
 			if (SaturationArithmetic.isOverflow(newValue, width)) return false;
 			inst.setX(binaryX.getX());

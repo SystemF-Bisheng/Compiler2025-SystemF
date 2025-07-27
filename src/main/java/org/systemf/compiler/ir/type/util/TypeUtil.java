@@ -41,4 +41,8 @@ public class TypeUtil {
 		throw new IllegalArgumentException(
 				String.format("%s: the given type %s is not an integer type", message, given));
 	}
+
+	public static int getWidth(Type type) {
+		return assertInteger(type, "Illegal type").bitWidth();
+	}
 }

@@ -2,7 +2,6 @@ package org.systemf.compiler.ir;
 
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.type.IInteger;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
@@ -14,6 +13,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.instruction.terminal.Unreachable;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 
 public class IRValidator extends InstructionVisitorBase<Boolean> {
@@ -152,8 +152,8 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 
 	@Override
 	public Boolean visit(ICmp inst) {
-		var xWidth = ((IInteger) inst.getX().getType()).bitWidth();
-		var yWidth = ((IInteger) inst.getY().getType()).bitWidth();
+		var xWidth = ValueUtil.getWidth(inst.getX());
+		var yWidth = ValueUtil.getWidth(inst.getY());
 		if (xWidth == yWidth) return true;
 		addErrorInfo(String.format("The width of x %d doesn't match with the width of y %d", xWidth, yWidth));
 		return false;

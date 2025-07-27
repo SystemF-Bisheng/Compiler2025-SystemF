@@ -6,6 +6,7 @@ import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.IGlobal;
+import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
@@ -35,6 +36,10 @@ public class ValueUtil {
 		if (value instanceof ConstantInt32 constantInt) return constantInt.value;
 		if (value instanceof ConstantInt64 constantInt) return constantInt.value;
 		throw new IllegalArgumentException("Value " + value + " is not a constant int");
+	}
+
+	public static int getWidth(Value value) {
+		return TypeUtil.getWidth(value.getType());
 	}
 
 	static public double getConstantFloat(Value value) {

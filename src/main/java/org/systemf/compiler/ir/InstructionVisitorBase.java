@@ -1,11 +1,8 @@
 package org.systemf.compiler.ir;
 
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
@@ -17,14 +14,24 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.*;
+import org.systemf.compiler.lower.rv64gc.instruction.*;
 
 public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	protected T defaultValue() {
 		return null;
 	}
 
+	/// IR
 	public T visit(DummyBinary inst) {
 		return defaultValue();
+	}
+
+	public T visit(DummyIntBinary inst) {
+		return visit((DummyBinary) inst);
+	}
+
+	public T visit(DummyFloatBinary inst) {
+		return visit((DummyBinary) inst);
 	}
 
 	public T visit(DummyCompare inst) {
@@ -37,27 +44,27 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(Add inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Sub inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Mul inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(SDiv inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(SRem inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
@@ -67,22 +74,22 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(FAdd inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FSub inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FMul inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FDiv inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
@@ -97,41 +104,56 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(And inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Or inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Xor inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Shl inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(LShr inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(AShr inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
-	public T visit(FpToSi inst) {
+	public T visit(FpToSi32 inst) {
 		return visit((DummyUnary) inst);
 	}
 
 	@Override
-	public T visit(SiToFp inst) {
+	public T visit(PtrCast inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(Si32ToFp inst) {
+		return visit((DummyUnary) inst);
+	}
+
+	@Override
+	public T visit(Si32ToSi64 inst) {
+		return visit((DummyUnary) inst);
+	}
+
+	@Override
+	public T visit(Si64ToSi32 inst) {
 		return visit((DummyUnary) inst);
 	}
 
@@ -196,6 +218,192 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(RetVoid inst) {
+		return defaultValue();
+	}
+
+	/// RV64GC
+	@Override
+	public T visit(RVAdd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVAddWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVAnd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVBranchEq inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVBranchLess inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVCvtWord2Float inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVCvtDWord2Float inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVCvtFloat2Word inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVCvtFloat2DWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVDiv inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVDivWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatAdd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatDiv inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatEq inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatLe inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatLt inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatMul inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatNeg inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatSub inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVLoadDWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVLoadFloat inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVLoadWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVMul inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVMulWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVOr inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVRem inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVRemWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVSetLessThan inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftLeft inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftRightArith inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftRightLogical inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVStoreDWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVStoreFloat inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVStoreWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVSub inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVSubWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVXor inst) {
 		return defaultValue();
 	}
 }

@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.type.util;
 
 import org.systemf.compiler.ir.type.FunctionType;
+import org.systemf.compiler.ir.type.IInteger;
 import org.systemf.compiler.ir.type.interfaces.Dereferenceable;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
@@ -33,5 +34,15 @@ public class TypeUtil {
 	public static Sized assertSized(Type given, String message) {
 		if (given instanceof Sized) return (Sized) given;
 		throw new IllegalArgumentException(String.format("%s: the given type %s is not sized", message, given));
+	}
+
+	public static IInteger assertInteger(Type given, String message) {
+		if (given instanceof IInteger) return (IInteger) given;
+		throw new IllegalArgumentException(
+				String.format("%s: the given type %s is not an integer type", message, given));
+	}
+
+	public static int getWidth(Type type) {
+		return assertInteger(type, "Illegal type").bitWidth();
 	}
 }

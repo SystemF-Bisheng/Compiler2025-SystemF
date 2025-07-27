@@ -57,7 +57,7 @@ public class NonConstantAggregateHelper extends SimpleIRAggregateHelper<Either<C
 			Consumer<Value> res = null;
 			for (int i = 0; i < length; ++i) {
 				var entry = iter.next();
-				var indexI = builder.buildConstantInt(i);
+				var indexI = builder.buildConstantInt32(i);
 				var initializer = valueUtil.toConsumer(entry);
 				Consumer<Value> entryCon = v -> initializer.accept(builder.buildGetPtr(v, indexI, "initArr"));
 

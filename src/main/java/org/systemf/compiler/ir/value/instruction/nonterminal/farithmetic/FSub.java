@@ -3,11 +3,11 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyFloatBinary;
 
-public class FSub extends DummyBinary {
+public class FSub extends DummyFloatBinary {
 	public FSub(String name, Value x, Value y) {
-		super(name, x, y, Float.INSTANCE, Float.INSTANCE, Float.INSTANCE);
+		super(name, x, y, Float.INSTANCE);
 	}
 
 	@Override

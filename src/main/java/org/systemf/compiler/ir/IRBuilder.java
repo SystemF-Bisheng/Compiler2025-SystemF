@@ -16,8 +16,7 @@ import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
@@ -80,8 +79,18 @@ public class IRBuilder implements AutoCloseable {
 		return Undefined.of(type);
 	}
 
-	public ConstantInt buildConstantInt(long value) {
-		return ConstantInt.valueOf(value);
+	public ConstantInt32 buildConstantInt32(long value) {
+		return ConstantInt32.valueOf(value);
+	}
+
+	public ConstantInt64 buildConstantInt64(long value) {
+		return ConstantInt64.valueOf(value);
+	}
+
+	public Constant buildConstantInt(long value, int width) {
+		if (width == 32) return buildConstantInt32(value);
+		else if (width == 64) return buildConstantInt64(value);
+		else throw new IllegalArgumentException("Unsupported width: " + width);
 	}
 
 	public ConstantFloat buildConstantFloat(double value) {
@@ -146,6 +155,16 @@ public class IRBuilder implements AutoCloseable {
 
 	public Value buildOrFoldAnd(Value lhs, Value rhs, String name) {
 		return folder.tryFoldAnd(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildAnd(lhs, rhs, name));
+	}
+
+	public Or buildOr(Value lhs, Value rhs, String name) {
+		Or orInst = new Or(module.getNonConflictName(name), lhs, rhs);
+		insertInstruction(orInst);
+		return orInst;
+	}
+
+	public Value buildOrFoldOr(Value lhs, Value rhs, String name) {
+		return folder.tryFoldOr(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildOr(lhs, rhs, name));
 	}
 
 	public AShr buildAShr(Value lhs, Value rhs, String name) {
@@ -308,24 +327,50 @@ public class IRBuilder implements AutoCloseable {
 		return folder.tryFoldFCmp(lhs, rhs, code).map(c -> (Value) c).orElseGet(() -> buildFCmp(lhs, rhs, name, code));
 	}
 
-	public FpToSi buildFpToSi(Value op, String name) {
-		FpToSi fpToSiInst = new FpToSi(module.getNonConflictName(name), op);
+	public PtrCast buildPtrCast(Value x, Type type, String name) {
+		var inst = new PtrCast(module.getNonConflictName(name), x, type);
+		insertInstruction(inst);
+		return inst;
+	}
+
+	public FpToSi32 buildFpToSi32(Value op, String name) {
+		FpToSi32 fpToSiInst = new FpToSi32(module.getNonConflictName(name), op);
 		insertInstruction(fpToSiInst);
 		return fpToSiInst;
 	}
 
-	public Value buildOrFoldFpToSi(Value op, String name) {
-		return folder.tryFoldFpToSi(op).map(c -> (Value) c).orElseGet(() -> buildFpToSi(op, name));
+	public Value buildOrFoldFpToSi32(Value op, String name) {
+		return folder.tryFoldFpToSi32(op).map(c -> (Value) c).orElseGet(() -> buildFpToSi32(op, name));
 	}
 
-	public SiToFp buildSiToFp(Value op, String name) {
-		SiToFp siToFpInst = new SiToFp(module.getNonConflictName(name), op);
+	public Si32ToFp buildSi32ToFp(Value op, String name) {
+		Si32ToFp siToFpInst = new Si32ToFp(module.getNonConflictName(name), op);
 		insertInstruction(siToFpInst);
 		return siToFpInst;
 	}
 
-	public Value buildOrFoldSiToFp(Value op, String name) {
-		return folder.tryFoldSiToFp(op).map(c -> (Value) c).orElseGet(() -> buildSiToFp(op, name));
+	public Value buildOrFoldSi32ToFp(Value op, String name) {
+		return folder.tryFoldSi32ToFp(op).map(c -> (Value) c).orElseGet(() -> buildSi32ToFp(op, name));
+	}
+
+	public Si32ToSi64 buildSi32ToSi64(Value op, String name) {
+		Si32ToSi64 si32ToSi64Inst = new Si32ToSi64(module.getNonConflictName(name), op);
+		insertInstruction(si32ToSi64Inst);
+		return si32ToSi64Inst;
+	}
+
+	public Value buildOrFoldSi32ToSi64(Value op, String name) {
+		return folder.tryFoldSi32ToSi64(op).map(c -> (Value) c).orElseGet(() -> buildSi32ToSi64(op, name));
+	}
+
+	public Si64ToSi32 buildSi64ToSi32(Value op, String name) {
+		Si64ToSi32 si64ToSi32Inst = new Si64ToSi32(module.getNonConflictName(name), op);
+		insertInstruction(si64ToSi32Inst);
+		return si64ToSi32Inst;
+	}
+
+	public Value buildOrFoldSi64ToSi32(Value op, String name) {
+		return folder.tryFoldSi64ToSi32(op).map(c -> (Value) c).orElseGet(() -> buildSi64ToSi32(op, name));
 	}
 
 	public Call buildCall(IFunction function, String name, Value... args) {
@@ -376,10 +421,6 @@ public class IRBuilder implements AutoCloseable {
 		return unreachableInst;
 	}
 
-	public Br constructBr(BasicBlock target) {
-		return new Br(target);
-	}
-
 	public Br buildBr(BasicBlock target) {
 		Br brInst = new Br(target);
 		insertInstruction(brInst);
@@ -393,7 +434,7 @@ public class IRBuilder implements AutoCloseable {
 	}
 
 	public Terminal buildOrFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
-		return folder.tryFoldCondBr(condition, trueTarget, falseTarget)
+		return folder.tryFoldCondBr(condition, trueTarget, falseTarget).map(block -> (Terminal) this.buildBr(block))
 				.orElseGet(() -> buildCondBr(condition, trueTarget, falseTarget));
 	}
 

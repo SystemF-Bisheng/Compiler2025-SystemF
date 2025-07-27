@@ -10,6 +10,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Remove blocks that are unreachable from function entry
+ * <p>
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum RemoveDeadBlock implements OptPass {
 	INSTANCE;
 

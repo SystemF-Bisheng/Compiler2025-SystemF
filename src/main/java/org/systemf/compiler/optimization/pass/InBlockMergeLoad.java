@@ -6,12 +6,18 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashMap;
 
+/**
+ * Merge multiple identical loads in one block
+ * <p>
+ * Depend on: PointerAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum InBlockMergeLoad implements OptPass {
 	INSTANCE;
 
@@ -39,18 +45,10 @@ public enum InBlockMergeLoad implements OptPass {
 					if (loadMap.containsKey(ptr)) {
 						load.replaceAllUsage(loadMap.get(ptr));
 						res = true;
-					} else loadMap.put(ptr, load);
-				} else if (inst instanceof Store store) {
-					var ptr = store.getDest();
-					var affected = ptrResult.pointTo(ptr);
-					for (var iter = loadMap.entrySet().iterator(); iter.hasNext(); ) {
-						var entry = iter.next();
-						var entryPtr = entry.getKey();
-						var related = ptrResult.pointTo(entryPtr);
-						if (affected.stream().anyMatch(related::contains)) iter.remove();
+						continue;
 					}
-					loadMap.put(ptr, store.getSrc());
-				} else if (ValueUtil.sideEffect(module, inst)) loadMap.clear();
+				}
+				MergeHelper.manipulateLoadMap(inst, loadMap, module, ptrResult);
 			}
 			return res;
 		}

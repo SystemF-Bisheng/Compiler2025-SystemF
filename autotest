@@ -309,15 +309,7 @@ def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
   '''
   Converts RISC-V assembly to executable.
   '''
-  asm_flags = '-target riscv32-unknown-linux-elf -march=rv32im -mabi=ilp32'
-  cmd = f'clang {rv} -c -o {obj} {asm_flags}'
-  if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
-                       TestStatus.ASM_TIME_EXCEEDED):
-    return result
-  # TODO: SysY runtime library
-  # lib_flags = f'-L{LIBRARY_PATH}/riscv32 -lsysy'
-  lib_flags = ''
-  cmd = f'ld.lld {obj} {lib_flags} -o {exe}'
+  cmd = f'riscv64-linux-gnu-gcc {rv} lib/libsysy_riscv.a -o {exe}'
   if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
                        TestStatus.ASM_TIME_EXCEEDED):
     return result
@@ -359,7 +351,7 @@ def qemu_run_output(mode: TestMode, case: TestCase, exe: str) -> TestResult:
   '''
   Runs the generated output executable with qemu and checks the result.
   '''
-  return run_output(mode, case, f'qemu-riscv32-static {exe}')
+  return run_output(mode, case, f'qemu-riscv64-static {exe}')
 
 def run_test_complete(mode: TestMode, compiler: CompilerInfo, case: TestCase):
   '''
@@ -403,13 +395,14 @@ def run_test_simulated(mode: TestMode, compiler: CompilerInfo, case: TestCase):
   return run_output(mode, case, cmd)
 
 def run_test(mode: TestMode, compiler: CompilerInfo, case: TestCase, run_mode: RunMode) -> TestResult:
-  match run_mode:
-    case RunMode.COMPLETE:
-      return run_test_complete(mode, compiler, case)
-    case RunMode.BARE_RUN:
-      return run_test_bare(mode, compiler, case)
-    case RunMode.SIMULATED:
-      return run_test_simulated(mode, compiler, case)
+  if run_mode == RunMode.COMPLETE:
+    return run_test_complete(mode, compiler, case)
+  elif run_mode == RunMode.BARE_RUN:
+    return run_test_bare(mode, compiler, case)
+  elif run_mode == RunMode.SIMULATED:
+    return run_test_simulated(mode, compiler, case)
+  else:
+    assert False, f"unknown run_mode `{run_mode}`"
 
 
 def run_tests(mode: TestMode, compiler: CompilerInfo, cases: List[TestCase], run_mode: RunMode):

@@ -11,6 +11,10 @@ import java.util.HashSet;
 
 /**
  * Build control flow graph
+ * <p>
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
  */
 public enum CFGAnalysis implements AttributeProvider<Function, CFGAnalysisResult> {
 	INSTANCE;

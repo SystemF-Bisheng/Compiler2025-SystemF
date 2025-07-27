@@ -4,16 +4,16 @@ import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyFixedUnary;
 
-public class FpToSi extends DummyUnary {
-	public FpToSi(String name, Value x) {
+public class FpToSi32 extends DummyFixedUnary {
+	public FpToSi32(String name, Value x) {
 		super(name, x, Float.INSTANCE, I32.INSTANCE);
 	}
 
 	@Override
 	public String operatorName() {
-		return "fptosi";
+		return "fptosi32";
 	}
 
 	@Override

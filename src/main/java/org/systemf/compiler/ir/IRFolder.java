@@ -4,16 +4,18 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.constant.ConstantInt32;
+import org.systemf.compiler.ir.value.constant.ConstantInt64;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToSi64;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si64ToSi32;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
-import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collection;
@@ -34,8 +36,10 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 	}
 
 	public Optional<Constant> tryFoldIntBinary(Value l, Value r, BiFunction<Long, Long, Long> fold) {
-		if (l instanceof ConstantInt lC && r instanceof ConstantInt rC)
-			return Optional.of(builder.buildConstantInt(fold.apply(lC.value, rC.value)));
+		if (l instanceof ConstantInt32 lC && r instanceof ConstantInt32 rC)
+			return Optional.of(builder.buildConstantInt32(fold.apply(lC.value, rC.value)));
+		if (l instanceof ConstantInt64 lC && r instanceof ConstantInt64 rC)
+			return Optional.of(builder.buildConstantInt64(fold.apply(lC.value, rC.value)));
 		return Optional.empty();
 	}
 
@@ -45,6 +49,15 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 
 	@Override
 	public Optional<Constant> visit(And inst) {
+		return tryFoldAnd(inst.getX(), inst.getY());
+	}
+
+	public Optional<Constant> tryFoldOr(Value lhs, Value rhs) {
+		return tryFoldIntBinary(lhs, rhs, (l, r) -> l | r);
+	}
+
+	@Override
+	public Optional<Constant> visit(Or inst) {
 		return tryFoldAnd(inst.getX(), inst.getY());
 	}
 
@@ -207,7 +220,7 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 
 	public Optional<Constant> tryFoldFCmpAtom(Value l, Value r, BiFunction<Float, Float, Boolean> fold) {
 		if (l instanceof ConstantFloat lC && r instanceof ConstantFloat rC)
-			return Optional.of(builder.buildConstantInt(fold.apply((float) lC.value, (float) rC.value) ? 1L : 0L));
+			return Optional.of(builder.buildConstantInt32(fold.apply((float) lC.value, (float) rC.value) ? 1L : 0L));
 		return Optional.empty();
 	}
 
@@ -227,24 +240,44 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldFCmp(inst.getX(), inst.getY(), inst.method);
 	}
 
-	public Optional<Constant> tryFoldFpToSi(Value op) {
-		if (op instanceof ConstantFloat opC) return Optional.of(builder.buildConstantInt((long) opC.value));
+	public Optional<Constant> tryFoldFpToSi32(Value op) {
+		if (op instanceof ConstantFloat opC) return Optional.of(builder.buildConstantInt32((long) opC.value));
 		return Optional.empty();
 	}
 
 	@Override
-	public Optional<Constant> visit(FpToSi inst) {
-		return tryFoldFpToSi(inst.getX());
+	public Optional<Constant> visit(FpToSi32 inst) {
+		return tryFoldFpToSi32(inst.getX());
 	}
 
-	public Optional<Constant> tryFoldSiToFp(Value op) {
-		if (op instanceof ConstantInt opC) return Optional.of(builder.buildConstantFloat(opC.value));
+	public Optional<Constant> tryFoldSi32ToFp(Value op) {
+		if (op instanceof ConstantInt32 opC) return Optional.of(builder.buildConstantFloat(opC.value));
 		return Optional.empty();
 	}
 
 	@Override
-	public Optional<Constant> visit(SiToFp inst) {
-		return tryFoldSiToFp(inst.getX());
+	public Optional<Constant> visit(Si32ToFp inst) {
+		return tryFoldSi32ToFp(inst.getX());
+	}
+
+	public Optional<Constant> tryFoldSi32ToSi64(Value op) {
+		if (op instanceof ConstantInt32 opC) return Optional.of(builder.buildConstantInt64(opC.value));
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<Constant> visit(Si32ToSi64 inst) {
+		return tryFoldSi32ToSi64(inst.getX());
+	}
+
+	public Optional<Constant> tryFoldSi64ToSi32(Value op) {
+		if (op instanceof ConstantInt64 opC) return Optional.of(builder.buildConstantInt32((int) opC.value));
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<Constant> visit(Si64ToSi32 inst) {
+		return tryFoldSi64ToSi32(inst.getX());
 	}
 
 	@Override
@@ -269,17 +302,17 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return tryFoldPhi(null, ops);
 	}
 
-	public Optional<Terminal> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
-		if (trueTarget == falseTarget) return Optional.of(builder.constructBr(trueTarget));
+	public Optional<BasicBlock> tryFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {
+		if (trueTarget == falseTarget) return Optional.of(trueTarget);
 
-		if (condition instanceof ConstantInt conditionC) {
-			if (conditionC.value == 0) return Optional.of(builder.constructBr(falseTarget));
-			else return Optional.of(builder.constructBr(trueTarget));
+		if (condition instanceof ConstantInt32 conditionC) {
+			if (conditionC.value == 0) return Optional.of(falseTarget);
+			else return Optional.of(trueTarget);
 		} else return Optional.empty();
 	}
 
 	@Override
-	public Optional<Terminal> visit(CondBr inst) {
+	public Optional<BasicBlock> visit(CondBr inst) {
 		return tryFoldCondBr(inst.getCondition(), inst.getTrueTarget(), inst.getFalseTarget());
 	}
 }

@@ -4,17 +4,24 @@ import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.IRFolder;
 import org.systemf.compiler.ir.Module;
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
-import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 
+/**
+ * Fold CondBr instructions with constant condition
+ * <p>
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
+ */
 public enum CondBrFold implements OptPass {
 	INSTANCE;
 
-	private boolean processFunction(Function function, IRFolder folder) {
+	private boolean processFunction(Function function, IRBuilder builder, IRFolder folder) {
 		boolean result = false;
 
 		for (var block : function.getBlocks()) {
@@ -22,10 +29,11 @@ public enum CondBrFold implements OptPass {
 			var folded = terminator.accept(folder);
 			if (folded.isPresent()) {
 				result = true;
-				var newTerm = (Terminal) folded.get();
+				var newTarget = (BasicBlock) folded.get();
 				terminator.unregister();
 				block.instructions.removeLast();
-				block.instructions.addLast(newTerm);
+				builder.attachToBlockTail(block);
+				builder.buildBr(newTarget);
 			}
 		}
 
@@ -50,7 +58,7 @@ public enum CondBrFold implements OptPass {
 	public boolean run(Module module) {
 		try (var builder = new IRBuilder(module)) {
 			var folder = new IRFolder(builder);
-			var res = module.getFunctions().values().stream().map(func -> processFunction(func, folder))
+			var res = module.getFunctions().values().stream().map(func -> processFunction(func, builder, folder))
 					.reduce(false, (a, b) -> a || b);
 			if (res) QueryManager.getInstance().invalidateAllAttributes(module);
 			return res;

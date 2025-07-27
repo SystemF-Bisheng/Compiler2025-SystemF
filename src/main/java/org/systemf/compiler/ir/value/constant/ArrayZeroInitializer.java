@@ -3,6 +3,7 @@ package org.systemf.compiler.ir.value.constant;
 import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 
 public class ArrayZeroInitializer extends DummyArray {
@@ -15,7 +16,8 @@ public class ArrayZeroInitializer extends DummyArray {
 
 	private Constant genContent() {
 		if (elementType instanceof Array arr) return new ArrayZeroInitializer(arr.getElementType(), arr.length);
-		else if (elementType == I32.INSTANCE) return ConstantInt.valueOf(0);
+		else if (elementType == I32.INSTANCE) return ConstantInt32.valueOf(0);
+		else if (elementType == I64.INSTANCE) return ConstantInt64.valueOf(0);
 		else if (elementType == Float.INSTANCE) return ConstantFloat.valueOf(0);
 		else throw new IllegalArgumentException("Unsupported element type " + elementType);
 	}

@@ -13,6 +13,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.stream.Collectors;
 
+/**
+ * Fold instructions with constant arguments
+ * <p>
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
+ */
 public enum ConstantFold implements OptPass {
 	INSTANCE;
 

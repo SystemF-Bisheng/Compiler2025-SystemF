@@ -12,6 +12,11 @@ import org.systemf.compiler.query.QueryManager;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
+/**
+ * Depend on: PointerAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum FunctionSideEffectAnalysis implements AttributeProvider<Module, FunctionSideEffectResult> {
 	INSTANCE;
 

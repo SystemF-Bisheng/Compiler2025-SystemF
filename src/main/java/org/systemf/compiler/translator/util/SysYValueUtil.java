@@ -24,16 +24,16 @@ public class SysYValueUtil {
 	public Value convertTo(Value v, SysYType from, SysYType to) {
 		if (Objects.equals(from, to)) return v;
 		if (!from.convertibleTo(to)) throw new IllegalArgumentException("Cannot convert " + from + " to " + to);
-		if (from == SysYInt.INT && to == SysYFloat.FLOAT) return builder.buildOrFoldSiToFp(v, "iToF");
-		if (from == SysYFloat.FLOAT && to == SysYInt.INT) return builder.buildOrFoldFpToSi(v, "fToI");
+		if (from == SysYInt.INT && to == SysYFloat.FLOAT) return builder.buildOrFoldSi32ToFp(v, "iToF");
+		if (from == SysYFloat.FLOAT && to == SysYInt.INT) return builder.buildOrFoldFpToSi32(v, "fToI");
 		return v;
 	}
 
 	public Constant constConvertTo(Constant v, SysYType from, SysYType to) {
 		if (Objects.equals(from, to)) return v;
 		if (!from.convertibleTo(to)) throw new IllegalArgumentException("Cannot convert " + from + " to " + to);
-		if (from == SysYInt.INT && to == SysYFloat.FLOAT) return builder.folder.tryFoldSiToFp(v).orElseThrow();
-		if (from == SysYFloat.FLOAT && to == SysYInt.INT) return builder.folder.tryFoldFpToSi(v).orElseThrow();
+		if (from == SysYInt.INT && to == SysYFloat.FLOAT) return builder.folder.tryFoldSi32ToFp(v).orElseThrow();
+		if (from == SysYFloat.FLOAT && to == SysYInt.INT) return builder.folder.tryFoldFpToSi32(v).orElseThrow();
 		return v;
 	}
 
@@ -46,7 +46,7 @@ public class SysYValueUtil {
 	}
 
 	public Constant aggregateDefaultValue(SysYType type) {
-		if (type == SysYInt.INT) return builder.buildConstantInt(0);
+		if (type == SysYInt.INT) return builder.buildConstantInt32(0);
 		if (type == SysYFloat.FLOAT) return builder.buildConstantFloat(0);
 		if (type instanceof SysYArray(SysYType element, long length))
 			return builder.buildConstantArray(memberIRType(element), Math.toIntExact(length));

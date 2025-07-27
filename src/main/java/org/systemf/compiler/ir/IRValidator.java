@@ -6,12 +6,14 @@ import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.instruction.terminal.Unreachable;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 
 
 public class IRValidator extends InstructionVisitorBase<Boolean> {
@@ -146,5 +148,14 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public Boolean visit(ICmp inst) {
+		var xWidth = ValueUtil.getWidth(inst.getX());
+		var yWidth = ValueUtil.getWidth(inst.getY());
+		if (xWidth == yWidth) return true;
+		addErrorInfo(String.format("The width of x %d doesn't match with the width of y %d", xWidth, yWidth));
+		return false;
 	}
 }

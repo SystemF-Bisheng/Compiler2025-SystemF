@@ -15,7 +15,7 @@ import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.constant.ConstantInt32;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.parser.SysYLexer;
@@ -78,9 +78,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		private final NonConstantAggregateBuilder nonConstAggregate;
 		private final Type VOID;
 		private final Sized I32;
-		private final ConstantInt I32_ZERO;
-		private final ConstantInt I32_NEG_ONE;
-		private final ConstantInt I32_ONE;
+		private final ConstantInt32 I32_ZERO;
+		private final ConstantInt32 I32_ONE;
 		private final ConstantFloat FLOAT_ZERO;
 		private BasicBlock loopCond;
 		private BasicBlock loopMerge;
@@ -94,9 +93,8 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			builder = new MyIRBuilder(module);
 			VOID = builder.buildVoidType();
 			I32 = builder.buildI32Type();
-			I32_ZERO = builder.buildConstantInt(0);
-			I32_NEG_ONE = builder.buildConstantInt(-1);
-			I32_ONE = builder.buildConstantInt(1);
+			I32_ZERO = builder.buildConstantInt32(0);
+			I32_ONE = builder.buildConstantInt32(1);
 			FLOAT_ZERO = builder.buildConstantFloat(0);
 			SysYExternalRegistry.registerIR(builder);
 
@@ -455,7 +453,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 				exitRule();
 				return defaultResult();
 			} else {
-				var value = builder.buildConstantInt(val);
+				var value = builder.buildConstantInt32(val);
 				valueMap.put(ctx, value);
 
 				exitRule();
@@ -521,7 +519,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			var oldAsCond = asCond;
 			asCond = false;
 			Value[] params;
-			if (macroFlag) params = new Value[]{builder.buildConstantInt(ctx.getStart().getLine())};
+			if (macroFlag) params = new Value[]{builder.buildConstantInt32(ctx.getStart().getLine())};
 			else params = ctx.funcRealParam().stream().map(param -> {
 				var orgType = query.getAttribute(param.expr(), ValueAndType.class).type();
 				var targetType = query.getAttribute(param, ValueAndType.class).type();
@@ -684,7 +682,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 			exitRule();
 			return switch (op) {
 				case SysYLexer.PLUS -> handleUnary(ctx, x, v -> v, v -> v);
-				case SysYLexer.MINUS -> handleUnary(ctx, x, v -> builder.buildOrFoldMul(v, I32_NEG_ONE, "iNeg"),
+				case SysYLexer.MINUS -> handleUnary(ctx, x, v -> builder.buildOrFoldSub(I32_ZERO, v, "iNeg"),
 						v -> builder.buildOrFoldFNeg(v, "fNeg"));
 				case SysYLexer.NOT ->
 						handleUnary(ctx, x, v -> builder.buildOrFoldICmp(v, I32_ZERO, "iNot", CompareOp.EQ),

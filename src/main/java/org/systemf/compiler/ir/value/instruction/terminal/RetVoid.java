@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.InstructionVisitor;
 import java.util.Collections;
 import java.util.Set;
 
-public class RetVoid extends DummyTerminal {
+public class RetVoid extends DummyTerminal implements IReturn {
 	public static final RetVoid INSTANCE = new RetVoid();
 
 	private RetVoid() {}

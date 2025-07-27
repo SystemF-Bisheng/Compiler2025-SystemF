@@ -1,13 +1,13 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal;
 
-import org.systemf.compiler.ir.type.interfaces.Type;
+import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.value.Value;
 
 public abstract class DummyCompare extends DummyBinary {
-	public final CompareOp method;
+	public CompareOp method;
 
-	public DummyCompare(String name, CompareOp method, Value x, Value y, Type xType, Type yType, Type resultType) {
-		super(name, x, y, xType, yType, resultType);
+	public DummyCompare(String name, CompareOp method, Value x, Value y) {
+		super(name, x, y, I32.INSTANCE);
 		this.method = method;
 	}
 

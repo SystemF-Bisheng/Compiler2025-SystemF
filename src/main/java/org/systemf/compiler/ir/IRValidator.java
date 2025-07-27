@@ -7,7 +7,6 @@ import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
@@ -149,15 +148,6 @@ public class IRValidator extends InstructionVisitorBase<Boolean> {
 			return false;
 		}
 		return true;
-	}
-
-	@Override
-	public Boolean visit(DummyIntBinary inst) {
-		var xWidth = ((IInteger) inst.getX().getType()).bitWidth();
-		var yWidth = ((IInteger) inst.getY().getType()).bitWidth();
-		if (xWidth == yWidth) return true;
-		addErrorInfo(String.format("The width of x %d doesn't match with the width of y %d", xWidth, yWidth));
-		return false;
 	}
 
 	@Override

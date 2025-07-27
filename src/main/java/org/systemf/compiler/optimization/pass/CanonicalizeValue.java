@@ -4,6 +4,7 @@ import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
@@ -70,16 +71,24 @@ public enum CanonicalizeValue implements OptPass {
 			return handleBinary(inst);
 		}
 
+		private boolean checkCondition(Value inst) {
+			return inst.getDependant().stream().allMatch(dep -> dep instanceof CondBr);
+		}
+
+		private void flipAll(Value inst) {
+			inst.getDependant().stream().map(dep -> (CondBr) dep).forEach(condBr -> {
+				var tmp = condBr.getTrueTarget();
+				condBr.setTrueTarget(condBr.getFalseTarget());
+				condBr.setFalseTarget(tmp);
+			});
+		}
+
 		private boolean handleCompare(DummyCompare inst) {
 			return switch (inst.method) {
 				case NE -> {
-					if (!(inst.getDependant().stream().allMatch(dep -> dep instanceof CondBr))) yield false;
+					if (!checkCondition(inst)) yield false;
 					inst.method = CompareOp.EQ;
-					inst.getDependant().stream().map(dep -> (CondBr) dep).forEach(condBr -> {
-						var tmp = condBr.getTrueTarget();
-						condBr.setTrueTarget(condBr.getFalseTarget());
-						condBr.setFalseTarget(tmp);
-					});
+					flipAll(inst);
 					yield true;
 				}
 				case GT -> {
@@ -90,6 +99,12 @@ public enum CanonicalizeValue implements OptPass {
 				case LE -> {
 					inst.method = CompareOp.GE;
 					switchOperand(inst);
+					yield true;
+				}
+				case GE -> {
+					if (!checkCondition(inst)) yield false;
+					inst.method = CompareOp.LT;
+					flipAll(inst);
 					yield true;
 				}
 				default -> false;

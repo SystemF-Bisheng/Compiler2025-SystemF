@@ -12,6 +12,8 @@
 
 - 没有 i1 类型, icmp/fcmp 只会生成 i32, 并用 1 表示真, 0 表示假. 条件跳转也只接受 i32 类型, 置 0 为假, 反之为真.
 
+- 仍然有 i64 类型, 所有整数运算都接受各种位宽的整数, 只要求两个操作数位宽相同.
+
 - 省略 LLVM IR dump 时的类型码, 也省略除操作数的信息, 例如 `store i32 56, i32* %0, align 4` 在 IR 中写作 `store 56, %0`
 
 - 不认为指针为 constant, 只认为 `ConstantInt` 和 `ConstantFloat` 为 constant.
@@ -52,15 +54,14 @@ store %2, %3
 
 大量 LLVM IR 指令(如聚合体操作, 向量操作...)未被实现.
 
-把带/不带条件的 `br` 显式分为了 `condbr` 和 `br` 两条指令, 把带/不带返回值的 `ret` 显式分为了 `ret` 和 `retvoid`.
+把带/不带条件的 `br` 显式分为了 `condbr` 和 `br` 两条指令, 把带/不带返回值的 `ret` 显式分为了 `ret` 和 `retvoid`,
+把带/不带返回值的 `call` 显式分为了 `call` 和 `callvoid`.
 
 具体参考实现.
 
 ### 其他差异
 
 BasicBlock 不被视为 Value 了 (前者也不再是后者的子类).
-
-暂时没有加入 phi 指令, 无法形成 SSA 形式.
 
 ## 进度
 
@@ -76,6 +77,6 @@ BasicBlock 不被视为 Value 了 (前者也不再是后者的子类).
 
 - [x] IRBuilder
 
-- [ ] IRValidator
+- [x] IRValidator
 
 - [x] dump

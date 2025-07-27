@@ -2,7 +2,7 @@ package org.systemf.compiler.ir.type;
 
 import org.systemf.compiler.ir.type.interfaces.Type;
 
-public enum I32 implements IInteger {
+public enum I64 implements IInteger {
 	INSTANCE;
 
 	@Override
@@ -22,6 +22,6 @@ public enum I32 implements IInteger {
 
 	@Override
 	public int bitWidth() {
-		return 32;
+		return 64;
 	}
 }

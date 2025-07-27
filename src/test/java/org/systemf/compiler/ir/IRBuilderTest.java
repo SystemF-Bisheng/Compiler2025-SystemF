@@ -21,15 +21,15 @@ public class IRBuilderTest {
 			final Float Float = builder.buildFloatType();
 
 			//GlobalDeclaration
-			GlobalVariable globalvar1 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt(1));
+			GlobalVariable globalvar1 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt32(1));
 
-			GlobalVariable globalvar2 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt(2));
+			GlobalVariable globalvar2 = builder.buildGlobalVariable("g", I32, builder.buildConstantInt32(2));
 
 			Array array = builder.buildArrayType(I32, 10);
 			var arrayPtr = builder.buildPointerType(array);
 
 			var arrContent = new Constant[10];
-			Arrays.fill(arrContent, builder.buildConstantInt(1));
+			Arrays.fill(arrContent, builder.buildConstantInt32(1));
 			GlobalVariable globalArrayDeclaration = builder.buildGlobalVariable("g", array,
 					builder.buildConstantArray(I32, arrContent));
 
@@ -53,23 +53,23 @@ public class IRBuilderTest {
 			Value pointer1 = builder.buildAlloca(I32, "p1");
 			Value pointer2 = builder.buildAlloca(I32, "p2");
 
-			builder.buildStore(builder.buildConstantInt(5), pointer1);
-			builder.buildStore(builder.buildConstantInt(10), pointer2);
+			builder.buildStore(builder.buildConstantInt32(5), pointer1);
+			builder.buildStore(builder.buildConstantInt32(10), pointer2);
 
 			Value load1 = builder.buildLoad(pointer1, "var1");
 			Value load2 = builder.buildLoad(pointer2, "var2");
 			Value res = builder.buildAnd(load1, load2, "result");
 			Value call = builder.buildCall(function1, "call", res, res);
 
-			Value add = builder.buildAdd(call, builder.buildConstantInt(1), "add");
+			Value add = builder.buildAdd(call, builder.buildConstantInt32(1), "add");
 
 			builder.buildBr(block1);
 
 			builder.attachToBlockTail(entryBlock2);
-			var ptr0 = builder.buildGetPtr(param2, builder.buildConstantInt(0), "indexZero");
+			var ptr0 = builder.buildGetPtr(param2, builder.buildConstantInt32(0), "indexZero");
 			var value0 = builder.buildLoad(ptr0, "var0");
 			Value div = builder.buildSDiv(param1, value0, "div");
-			Value mul = builder.buildMul(div, builder.buildConstantInt(2), "mul");
+			Value mul = builder.buildMul(div, builder.buildConstantInt32(2), "mul");
 
 			builder.buildRet(mul);
 

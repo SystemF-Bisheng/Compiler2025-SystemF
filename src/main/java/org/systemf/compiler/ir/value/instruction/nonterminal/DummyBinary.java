@@ -2,7 +2,6 @@ package org.systemf.compiler.ir.value.instruction.nonterminal;
 
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.type.interfaces.Type;
-import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -11,15 +10,11 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class DummyBinary extends DummyValueNonTerminal {
-	private final Type xType;
-	private final Type yType;
 	private Value x;
 	private Value y;
 
-	protected DummyBinary(String name, Value x, Value y, Type xType, Type yType, Type resultType) {
+	protected DummyBinary(String name, Value x, Value y, Type resultType) {
 		super(resultType, name);
-		this.xType = xType;
-		this.yType = yType;
 		setX(x);
 		setY(y);
 	}
@@ -36,7 +31,6 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 	}
 
 	public void setX(Value x) {
-		TypeUtil.assertConvertible(x.getType(), xType, "Illegal x");
 		if (this.x != null) this.x.unregisterDependant(this);
 		this.x = x;
 		x.registerDependant(this);
@@ -47,7 +41,6 @@ public abstract class DummyBinary extends DummyValueNonTerminal {
 	}
 
 	public void setY(Value y) {
-		TypeUtil.assertConvertible(y.getType(), yType, "Illegal y");
 		if (this.y != null) this.y.unregisterDependant(this);
 		this.y = y;
 		y.registerDependant(this);

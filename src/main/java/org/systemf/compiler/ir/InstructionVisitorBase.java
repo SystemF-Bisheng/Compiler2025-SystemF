@@ -1,11 +1,11 @@
 package org.systemf.compiler.ir;
 
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToSi64;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si64ToSi32;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
@@ -27,6 +27,14 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
+	public T visit(DummyIntBinary inst) {
+		return visit((DummyBinary) inst);
+	}
+
+	public T visit(DummyFloatBinary inst) {
+		return visit((DummyBinary) inst);
+	}
+
 	public T visit(DummyCompare inst) {
 		return visit((DummyBinary) inst);
 	}
@@ -37,27 +45,27 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(Add inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Sub inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Mul inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(SDiv inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(SRem inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
@@ -67,22 +75,22 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(FAdd inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FSub inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FMul inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
 	public T visit(FDiv inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyFloatBinary) inst);
 	}
 
 	@Override
@@ -97,41 +105,51 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(And inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Or inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Xor inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(Shl inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(LShr inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
 	public T visit(AShr inst) {
-		return visit((DummyBinary) inst);
+		return visit((DummyIntBinary) inst);
 	}
 
 	@Override
-	public T visit(FpToSi inst) {
+	public T visit(FpToSi32 inst) {
 		return visit((DummyUnary) inst);
 	}
 
 	@Override
-	public T visit(SiToFp inst) {
+	public T visit(Si32ToFp inst) {
+		return visit((DummyUnary) inst);
+	}
+
+	@Override
+	public T visit(Si32ToSi64 inst) {
+		return visit((DummyUnary) inst);
+	}
+
+	@Override
+	public T visit(Si64ToSi32 inst) {
 		return visit((DummyUnary) inst);
 	}
 

@@ -7,9 +7,7 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.IGlobal;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.constant.Constant;
-import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
@@ -29,11 +27,14 @@ public class ValueUtil {
 		throw new IllegalArgumentException("Value " + value + " is not a named");
 	}
 
-	static public long getConstantInt(Value value) {
-		if (!(value instanceof ConstantInt constantInt))
-			throw new IllegalArgumentException("Value " + value + " is not a constant int");
+	public static boolean isConstantInt(Value value) {
+		return value instanceof ConstantInt;
+	}
 
-		return constantInt.value;
+	static public long getConstantInt(Value value) {
+		if (value instanceof ConstantInt32 constantInt) return constantInt.value;
+		if (value instanceof ConstantInt64 constantInt) return constantInt.value;
+		throw new IllegalArgumentException("Value " + value + " is not a constant int");
 	}
 
 	static public double getConstantFloat(Value value) {

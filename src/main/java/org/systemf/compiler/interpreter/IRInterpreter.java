@@ -15,13 +15,13 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.constant.ConstantInt32;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.SiToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
@@ -110,7 +110,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			return new PointerValue(arrayValue, type);
 		}
 		return switch (constant) {
-			case ConstantInt intValue -> newInt((int) intValue.value);
+			case ConstantInt32 intValue -> newInt((int) intValue.value);
 			case ConstantFloat constantFloat -> newFloat((float) constantFloat.value);
 			default -> newInt(0);
 		};
@@ -250,7 +250,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	@Override
-	public ExecutionValue visit(FpToSi fpToSi) {
+	public ExecutionValue visit(FpToSi32 fpToSi) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(fpToSi.getX(), context);
 		context.insertValue(fpToSi, newInt(toInt(x)));
@@ -258,7 +258,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	@Override
-	public ExecutionValue visit(SiToFp siToFp) {
+	public ExecutionValue visit(Si32ToFp siToFp) {
 		ExecutionContext context = executionContextsStack.getLast();
 		var x = findValue(siToFp.getX(), context);
 		context.insertValue(siToFp, newFloat(toFloat(x)));
@@ -285,7 +285,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		if (value instanceof GlobalVariable) {
 			return globalVarMap.get(value);
 		}
-		if (value instanceof ConstantInt constantInt) return newInt((int) constantInt.value);
+		if (value instanceof ConstantInt32 constantInt) return newInt((int) constantInt.value);
 		if (value instanceof ConstantFloat constantFloat) return newFloat((float) constantFloat.value);
 		if (value instanceof ConstantArray constantArray) return formExecutionValue(value.getType(), constantArray);
 		return varMap.get(value);

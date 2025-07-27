@@ -6,12 +6,14 @@ import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.type.IInteger;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Sub;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 
@@ -62,16 +64,19 @@ public enum MergeArithmetic implements OptPass {
 			return false;
 		}
 
-		private boolean handleBinary(DummyBinary inst, BiFunction<Long, Long, Long> func) {
+		private boolean handleBinary(DummyIntBinary inst, BiFunction<Long, Long, Long> func) {
 			var x = inst.getX();
-			if (!(inst.getY() instanceof ConstantInt selfY)) return false;
+			var selfY = inst.getY();
+			if (!ValueUtil.isConstantInt(selfY)) return false;
 			if (inst.getClass() != x.getClass()) return false;
 			var binaryX = (DummyBinary) x;
-			if (!(binaryX.getY() instanceof ConstantInt otherY)) return false;
-			var newValue = func.apply(otherY.value, selfY.value);
-			if (SaturationArithmetic.isOverflow(newValue)) return false;
+			var otherY = binaryX.getY();
+			if (!ValueUtil.isConstantInt(otherY)) return false;
+			var width = ((IInteger) x.getType()).bitWidth();
+			var newValue = func.apply(ValueUtil.getConstantInt(otherY), ValueUtil.getConstantInt(selfY));
+			if (SaturationArithmetic.isOverflow(newValue, width)) return false;
 			inst.setX(binaryX.getX());
-			inst.setY(builder.buildConstantInt(newValue));
+			inst.setY(builder.buildConstantInt(newValue, width));
 			return true;
 		}
 

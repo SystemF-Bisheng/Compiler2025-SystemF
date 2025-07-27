@@ -22,6 +22,7 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= RemoveUnusedAllocation.INSTANCE.run(module);
 		flag |= InBlockRemoveStore.INSTANCE.run(module);
 		flag |= RemoveRedundantCall.INSTANCE.run(module);
+		flag |= RemoveUnusedFunction.INSTANCE.run(module);
 		return flag;
 	}
 
@@ -82,8 +83,6 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			valueAndBlockClean(module);
 			codeMotion(module);
 		} while (InlineFunction.INSTANCE.run(module));
-
-		RemoveUnusedFunction.INSTANCE.run(module);
 
 		query.invalidate(translated);
 		return new OptimizedResult(module);

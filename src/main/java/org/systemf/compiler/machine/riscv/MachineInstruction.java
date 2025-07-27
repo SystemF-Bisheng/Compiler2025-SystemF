@@ -31,4 +31,16 @@ public class MachineInstruction {
                 .collect(Collectors.joining(", "));
         return String.format("\t%s %s", opcode, renderedOperands);
     }
+
+    public static MachineInstruction Nop() {
+        return new MachineInstruction("nop");
+    }
+
+    public static MachineInstruction Addi(MachineRegister rd, MachineRegister rs1, MachineImmediate imm) {
+        return new MachineInstruction("addi", rd, rs1, imm);
+    }
+
+    public static MachineInstruction Sw(MachineRegister rs1, MachineRegister rs2, MachineImmediate offset) {
+        return new MachineInstruction("sw", rs1, rs2, offset);
+    }
 }

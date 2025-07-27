@@ -1,6 +1,8 @@
 package org.systemf.compiler.machine;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
@@ -24,6 +26,7 @@ import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.constant.ConstantFloat;
 import org.systemf.compiler.ir.value.constant.ConstantInt;
+import org.systemf.compiler.ir.value.instruction.DummyValueInstruction;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
@@ -46,7 +49,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 public enum RISCVGenerator implements EntityProvider<MachineCodeResult> {
 	INSTANCE;
 
-	private final int alignment = 4;
+	private final int alignment = 16;
 	private MachineModule machineModule;
 
 	@Override
@@ -110,13 +113,155 @@ public enum RISCVGenerator implements EntityProvider<MachineCodeResult> {
 		machineModule.clearFunctions();
 		for (var entry : module.getFunctions().entrySet()) {
 			Function function = entry.getValue();
-			
+
 		}
 	}
 
-	public class InstructionVisitor extends InstructionVisitorBase<List<MachineInstruction>> {
-		// TODO: Implement RISC-V Instruction Visitor
+	private class FunctionProcesser {
+		private final Function function;
+		private MachineFunction machineFunction;
 
+		private final Map<Value, Integer> stackOffsetMap = new HashMap<>();
+		private int totalFrameSize = 0;
+
+		public FunctionProcesser(Function function) {
+			this.function = function;
+		}
+
+		public MachineFunction process() {
+			calculateFrameLayout();
+
+			generateMachineCode();
+
+			return machineFunction;
+		}
+
+		private void calculateFrameLayout() {
+			int currentOffset = 0;
+
+			currentOffset -= 8; // for ra
+			// int raOffset = currentOffset;
+
+			currentOffset -= 8; // for fp
+			// int fpOffset = currentOffset;
+
+			for (BasicBlock block : function.getBlocks()) {
+				for (Instruction instruction : block.instructions) {
+					if (instruction instanceof Alloca alloca) {
+						int size = calcSize(alloca.getType());
+						currentOffset -= size;
+						currentOffset -= currentOffset % alignment; // align to 4 bytes
+
+						stackOffsetMap.put(alloca, currentOffset);
+					} else if (instruction instanceof DummyValueInstruction dummyValueInstruction) {
+						// a dummy value instruction, put the result in the stack
+						int size = calcSize(dummyValueInstruction.getType());
+						currentOffset -= size;
+						currentOffset -= currentOffset % alignment; // align to 4 bytes
+
+						stackOffsetMap.put(dummyValueInstruction, currentOffset);
+					}
+				}
+			}
+
+			this.totalFrameSize = -currentOffset;
+			if (totalFrameSize % alignment != 0) {
+				totalFrameSize = (totalFrameSize / alignment + 1) * alignment;
+			}
+		}
+
+		private void generateMachineCode() {
+			this.machineFunction = new MachineFunction(function.getName());
+
+			generatePrologue();
+			
+			generateEpilogue();
+
+			BasicBlockProcesser basicBlockProcesser = new BasicBlockProcesser(function.getEntryBlock(), stackOffsetMap, totalFrameSize, machineFunction.getEpilogueInstructions());
+			machineFunction.addBasicBlock(basicBlockProcesser.process());
+
+			for (BasicBlock block : function.getBlocks()) {
+				if (block == function.getEntryBlock()) continue; // already processed
+				basicBlockProcesser = new BasicBlockProcesser(block, stackOffsetMap, totalFrameSize, machineFunction.getEpilogueInstructions());
+				machineFunction.addBasicBlock(basicBlockProcesser.process());
+			}
+
+		}
+
+		private void generatePrologue() {
+			var prologueInstructions = List.<MachineInstruction>of(
+				// new MachineInstruction("addi", MachineRegister.SP, MachineRegister.SP, new MachineImmediate(-totalFrameSize)),
+				// new MachineInstruction("sw", MachineRegister.RA, MachineRegister.SP, new MachineImmediate(totalFrameSize - 8)),
+				// new MachineInstruction("sw", MachineRegister.FP, MachineRegister.SP, new MachineImmediate(totalFrameSize - 16)),
+				// new MachineInstruction("addi", MachineRegister.FP, MachineRegister.SP, new MachineImmediate(totalFrameSize)),
+				MachineInstruction.Addi(MachineRegister.SP, MachineRegister.SP, new MachineImmediate(-totalFrameSize)),
+				MachineInstruction.Sw(MachineRegister.RA, MachineRegister.SP, new MachineImmediate(totalFrameSize - 8)),
+				MachineInstruction.Sw(MachineRegister.FP, MachineRegister.SP, new MachineImmediate(totalFrameSize - 16)),
+				MachineInstruction.Addi(MachineRegister.FP, MachineRegister.SP, new MachineImmediate(totalFrameSize))
+			);
+
+			machineFunction.setPrologueInstructions(prologueInstructions);
+		}
+		
+		private void generateEpilogue() {
+			var epilogueInstructions = List.<MachineInstruction>of(
+				// TODO
+			);
+
+			machineFunction.setEpilogueInstructions(epilogueInstructions);
+		}
+	}
+
+	private class BasicBlockProcesser {
+		private final BasicBlock basicBlock;
+		private MachineBasicBlock machineBasicBlock;
+		private final Map<Value, Integer> stackOffsetMap = new HashMap<>();
+		private int totalFrameSize = 0;
+		private List<MachineInstruction> epilogueInstructions = List.of();
+
+		public BasicBlockProcesser(BasicBlock basicBlock) {
+			this.basicBlock = basicBlock;
+		}
+
+		public BasicBlockProcesser(BasicBlock basicBlock, Map<Value, Integer> stackOffsetMap, int totalFrameSize, List<MachineInstruction> epilogueInstructions) {
+			this.basicBlock = basicBlock;
+			this.stackOffsetMap.putAll(stackOffsetMap);
+			this.totalFrameSize = totalFrameSize;
+			this.epilogueInstructions = epilogueInstructions;
+		}
+
+		public MachineBasicBlock process() {
+			this.machineBasicBlock = new MachineBasicBlock(basicBlock.getName());
+
+			InstructionVisitor instructionVisitor = new InstructionVisitor(stackOffsetMap, totalFrameSize, epilogueInstructions);
+			for (Instruction instruction : basicBlock.instructions) {
+				List<MachineInstruction> machineInstructions = instruction.accept(instructionVisitor);
+				for (MachineInstruction machineInstruction : machineInstructions) {
+					this.machineBasicBlock.addInstruction(machineInstruction);
+				}
+			}
+
+			return this.machineBasicBlock;
+		}
+	}
+
+	private class InstructionVisitor extends InstructionVisitorBase<List<MachineInstruction>> {
+		private final Map<Value, Integer> stackOffsetMap = new HashMap<>();
+		private List<MachineInstruction> retEpilogue = List.of();
+		private int totalFrameSize = 0;
+		
+		public InstructionVisitor() {
+			super();
+		}
+		
+		public InstructionVisitor(Map<Value, Integer> stackOffsetMap, int totalFrameSize, List<MachineInstruction> retEpilogue) {
+			super();
+			this.stackOffsetMap.putAll(stackOffsetMap);
+			this.totalFrameSize = totalFrameSize;
+			this.retEpilogue = retEpilogue;
+		}
+		
+		// TODO: Implement RISC-V Instruction Translation
 		@Override
 		public List<MachineInstruction> visit(DummyBinary dummyBinary) {
 			return List.of(new MachineInstruction("nop"));

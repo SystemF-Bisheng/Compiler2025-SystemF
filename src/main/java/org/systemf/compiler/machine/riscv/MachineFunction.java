@@ -5,6 +5,8 @@ import java.util.List;
 public class MachineFunction {
     private final String name;
     private final List<MachineBasicBlock> basicBlocks;
+    private List<MachineInstruction> prologueInstructions = List.of();
+    private List<MachineInstruction> epilogueInstructions = List.of();
     private int stackFrameSize = 0;
 
     public MachineFunction(String name, List<MachineBasicBlock> basicBlocks) {
@@ -35,6 +37,22 @@ public class MachineFunction {
         } else {
             this.stackFrameSize = size;
         }
+    }
+
+    public void setPrologueInstructions(List<MachineInstruction> instructions) {
+        this.prologueInstructions = instructions;
+    }
+
+    public void setEpilogueInstructions(List<MachineInstruction> instructions) {
+        this.epilogueInstructions = instructions;
+    }
+
+    public List<MachineInstruction> getPrologueInstructions() {
+        return prologueInstructions;
+    }
+
+    public List<MachineInstruction> getEpilogueInstructions() {
+        return epilogueInstructions;
     }
 
     public int getStackFrameSize() {

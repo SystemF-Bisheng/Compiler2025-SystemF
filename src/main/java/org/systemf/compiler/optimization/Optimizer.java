@@ -78,9 +78,10 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		MergeChain.INSTANCE.run(module);
 		MemToReg.INSTANCE.run(module);
 
-		valueAndBlockClean(module);
-
-		codeMotion(module);
+		do {
+			valueAndBlockClean(module);
+			codeMotion(module);
+		} while (InlineFunction.INSTANCE.run(module));
 
 		RemoveUnusedFunction.INSTANCE.run(module);
 

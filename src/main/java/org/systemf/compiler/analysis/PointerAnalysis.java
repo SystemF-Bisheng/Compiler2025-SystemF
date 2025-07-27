@@ -4,6 +4,7 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.PtrCast;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
@@ -112,6 +113,7 @@ public enum PointerAnalysis implements AttributeProvider<Module, PointerAnalysis
 			for (var bb : function.getBlocks())
 				for (var inst : bb.instructions)
 					if (inst instanceof GetPtr getPtr) fromValueToValue(getPtr.getArrayPtr(), getPtr);
+					else if (inst instanceof PtrCast ptrCast) fromValueToValue(ptrCast.getX(), ptrCast);
 					else if (inst instanceof Phi phi)
 						phi.getIncoming().values().forEach(in -> fromValueToValue(in, phi));
 					else if (inst instanceof Load load) fromPtrToValue(load.getPointer(), load);

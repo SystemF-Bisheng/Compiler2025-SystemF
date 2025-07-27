@@ -21,6 +21,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.PtrCast;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
@@ -309,6 +310,13 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	public ExecutionValue visit(RetVoid retVoid) {
 		ExecutionContext currentContext = executionContextsStack.getLast();
 		executionContextsStack.remove(currentContext);
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(PtrCast inst) {
+		ExecutionContext currentContext = executionContextsStack.getLast();
+		currentContext.insertValue(inst, findValue(inst.getX(), currentContext));
 		return null;
 	}
 

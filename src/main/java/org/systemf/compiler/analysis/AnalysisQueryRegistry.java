@@ -12,6 +12,7 @@ public class AnalysisQueryRegistry {
 		query.registerProvider(PostDominanceAnalysis.INSTANCE);
 		query.registerProvider(FunctionRepeatableAnalysis.INSTANCE);
 		query.registerProvider(FunctionSideEffectAnalysis.INSTANCE);
+		query.registerProvider(FunctionRecursionAnalysis.INSTANCE);
 		query.registerProvider(CallGraphAnalysis.INSTANCE);
 		query.registerProvider(LoopAnalysis.INSTANCE);
 		query.registerProvider(FrequencyAnalysis.INSTANCE);

@@ -9,6 +9,11 @@ import org.systemf.compiler.util.Tree;
 
 import java.util.*;
 
+/**
+ * Depend on: CFGAnalysis, ReachabilityAnalysis, DominanceAnalysis, LoopAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAnalysisResult> {
 	INSTANCE;
 

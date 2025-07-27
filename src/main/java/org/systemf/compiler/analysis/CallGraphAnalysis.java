@@ -9,6 +9,11 @@ import org.systemf.compiler.query.AttributeProvider;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/**
+ * Depend on: No
+ * <p>
+ * Applicable to: IR, RV64GC
+ */
 public enum CallGraphAnalysis implements AttributeProvider<Module, CallGraphAnalysisResult> {
 	INSTANCE;
 

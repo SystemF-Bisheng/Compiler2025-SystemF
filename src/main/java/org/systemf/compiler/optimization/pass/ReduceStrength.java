@@ -19,6 +19,11 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.ListIterator;
 
+/**
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
+ */
 public enum ReduceStrength implements OptPass {
 	INSTANCE;
 

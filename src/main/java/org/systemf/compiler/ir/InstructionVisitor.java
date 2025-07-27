@@ -133,8 +133,6 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVFloatSub inst);
 
-	T visit(RVJ inst);
-
 	T visit(RVLoadDWord inst);
 
 	T visit(RVLoadFloat inst);

@@ -9,6 +9,10 @@ import java.util.HashSet;
 
 /**
  * Remove functions (including external ones) that are not reachable from main function
+ * <p>
+ * Depend on: CallGraphAnalysis
+ * <p>
+ * Applicable to: IR, RV64GC
  */
 public enum RemoveUnusedFunction implements OptPass {
 	INSTANCE;

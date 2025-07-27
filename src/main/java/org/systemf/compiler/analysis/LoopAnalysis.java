@@ -8,6 +8,11 @@ import org.systemf.compiler.util.Tree;
 
 import java.util.*;
 
+/**
+ * Depend on: CFGAnalysis, DominanceAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum LoopAnalysis implements AttributeProvider<Function, LoopAnalysisResult> {
 	INSTANCE;
 

@@ -10,6 +10,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum ReachabilityAnalysis implements AttributeProvider<Function, ReachabilityAnalysisResult> {
 	INSTANCE;
 

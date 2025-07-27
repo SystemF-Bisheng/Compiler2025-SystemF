@@ -17,6 +17,10 @@ import java.util.HashSet;
 
 /**
  * Remove allocation sites that are neither loaded nor used in instructions with side effect other than Store
+ * <p>
+ * Depend on: PointerAnalysis, FunctionSideEffectAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum RemoveUnusedAllocation implements OptPass {
 	INSTANCE;

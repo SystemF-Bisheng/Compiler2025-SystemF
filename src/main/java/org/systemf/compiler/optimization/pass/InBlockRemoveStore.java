@@ -13,6 +13,10 @@ import java.util.HashSet;
 
 /**
  * Remove useless stores in-block
+ * <p>
+ * Depend on: PointerAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum InBlockRemoveStore implements OptPass {
 	INSTANCE;

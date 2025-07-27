@@ -19,6 +19,11 @@ import org.systemf.compiler.util.SaturationArithmetic;
 import java.util.Comparator;
 import java.util.function.BiFunction;
 
+/**
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
+ */
 public enum MergeArithmetic implements OptPass {
 	INSTANCE;
 

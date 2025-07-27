@@ -14,6 +14,11 @@ import org.systemf.compiler.util.Tree;
 import java.util.Comparator;
 import java.util.Map;
 
+/**
+ * Depend on: DominanceAnalysis, FunctionSideEffectAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum MoveCodeUpwards implements OptPass {
 	INSTANCE;
 

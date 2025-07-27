@@ -13,6 +13,10 @@ import java.util.HashMap;
 
 /**
  * Merge multiple identical loads in one block
+ * <p>
+ * Depend on: PointerAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum InBlockMergeLoad implements OptPass {
 	INSTANCE;

@@ -8,6 +8,10 @@ import org.systemf.compiler.query.QueryManager;
 
 /**
  * Remove side-effect-free and unused (unreachable from instructions with side effect) values
+ * <p>
+ * Depend on: FunctionSideEffectAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum RemoveUnusedValue implements OptPass {
 	INSTANCE;

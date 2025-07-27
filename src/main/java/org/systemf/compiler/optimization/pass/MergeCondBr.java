@@ -15,6 +15,11 @@ import org.systemf.compiler.util.Tree;
 import java.util.Collections;
 import java.util.Comparator;
 
+/**
+ * Depend on: CFGAnalysis, DominanceAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum MergeCondBr implements OptPass {
 	INSTANCE;
 

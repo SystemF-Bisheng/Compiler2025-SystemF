@@ -23,6 +23,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Depend on: PointerAnalysis, DominanceAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum MemToReg implements OptPass {
 	INSTANCE;
 

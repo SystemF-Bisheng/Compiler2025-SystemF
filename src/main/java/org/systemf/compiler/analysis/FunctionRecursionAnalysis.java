@@ -9,6 +9,11 @@ import org.systemf.compiler.query.QueryManager;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 
+/**
+ * Depend on: CallGraphAnalysis
+ * <p>
+ * Applicable to: IR, RV64GC
+ */
 public enum FunctionRecursionAnalysis implements AttributeProvider<Module, FunctionRecursionAnalysisResult> {
 	INSTANCE;
 

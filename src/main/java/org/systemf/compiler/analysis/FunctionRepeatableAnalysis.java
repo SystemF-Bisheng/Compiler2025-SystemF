@@ -13,6 +13,11 @@ import org.systemf.compiler.query.QueryManager;
 import java.util.Arrays;
 import java.util.HashSet;
 
+/**
+ * Depend on: PointerAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum FunctionRepeatableAnalysis implements AttributeProvider<Module, FunctionRepeatableResult> {
 	INSTANCE;
 

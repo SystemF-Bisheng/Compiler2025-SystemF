@@ -5,6 +5,11 @@ import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.query.AttributeProvider;
 import org.systemf.compiler.query.QueryManager;
 
+/**
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum DominanceAnalysis implements AttributeProvider<Function, DominanceAnalysisResult> {
 	INSTANCE;
 

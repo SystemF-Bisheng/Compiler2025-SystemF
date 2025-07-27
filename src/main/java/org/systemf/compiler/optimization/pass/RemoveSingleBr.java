@@ -14,6 +14,10 @@ import java.util.HashSet;
 
 /**
  * Remove blocks with only a single Br instruction if possible
+ * <p>
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum RemoveSingleBr implements OptPass {
 	INSTANCE;

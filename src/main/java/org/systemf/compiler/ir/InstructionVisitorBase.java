@@ -318,11 +318,6 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
-	public T visit(RVJ inst) {
-		return defaultValue();
-	}
-
-	@Override
 	public T visit(RVLoadDWord inst) {
 		return defaultValue();
 	}

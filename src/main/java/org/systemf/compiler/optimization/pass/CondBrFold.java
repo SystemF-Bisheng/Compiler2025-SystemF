@@ -13,6 +13,10 @@ import java.util.HashSet;
 
 /**
  * Fold CondBr instructions with constant condition
+ * <p>
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
  */
 public enum CondBrFold implements OptPass {
 	INSTANCE;

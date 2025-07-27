@@ -11,6 +11,10 @@ import java.util.HashSet;
 
 /**
  * Merge chains on CFG if possible
+ * <p>
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum MergeChain implements OptPass {
 	INSTANCE;

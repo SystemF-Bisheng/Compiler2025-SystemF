@@ -8,6 +8,10 @@ import org.systemf.compiler.query.QueryManager;
 
 /**
  * Merge repeatable and side-effect-free instructions with trivially interchangeable arguments if possible
+ * <p>
+ * Depend on: DominanceAnalysis, FunctionRepeatableAnalysis, FunctionSideEffectAnalysis
+ * <p>
+ * Applicable to: IR
  */
 public enum MergeCommonValue implements OptPass {
 	INSTANCE;

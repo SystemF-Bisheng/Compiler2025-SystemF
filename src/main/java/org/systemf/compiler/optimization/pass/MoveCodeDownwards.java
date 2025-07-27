@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
+/**
+ * Depend on: FrequencyAnalysis, DominanceAnalysis, FunctionSideEffectAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum MoveCodeDownwards implements OptPass {
 	INSTANCE;
 

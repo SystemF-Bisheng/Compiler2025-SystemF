@@ -19,6 +19,11 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.query.QueryManager;
 
+/**
+ * Depend on: No
+ * <p>
+ * Applicable to: IR
+ */
 public enum CanonicalizeValue implements OptPass {
 	INSTANCE;
 

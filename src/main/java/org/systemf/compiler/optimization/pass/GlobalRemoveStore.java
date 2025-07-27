@@ -18,6 +18,11 @@ import org.systemf.compiler.util.Tree;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Depend on: CFGAnalysis, PointerAnalysis, ReachabilityAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum GlobalRemoveStore implements OptPass {
 	INSTANCE;
 

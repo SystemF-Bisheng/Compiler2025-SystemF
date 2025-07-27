@@ -10,6 +10,11 @@ import org.systemf.compiler.query.QueryManager;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/**
+ * Depend on: CFGAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum PostDominanceAnalysis implements AttributeProvider<Function, PostDominanceAnalysisResult> {
 	INSTANCE;
 

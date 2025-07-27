@@ -22,6 +22,10 @@ import java.util.HashSet;
 
 /**
  * Interprocedural pointer analysis, inclusion based
+ * <p>
+ * Depend on:No
+ * <p>
+ * Applicable to: IR
  */
 public enum PointerAnalysis implements AttributeProvider<Module, PointerAnalysisResult> {
 	INSTANCE;

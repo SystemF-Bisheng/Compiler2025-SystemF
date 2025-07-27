@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Depend on: CFGAnalysis, FunctionRecursionAnalysis, FrequencyAnalysis
+ * <p>
+ * Applicable to: IR
+ */
 public enum InlineFunction implements OptPass {
 	INSTANCE;
 

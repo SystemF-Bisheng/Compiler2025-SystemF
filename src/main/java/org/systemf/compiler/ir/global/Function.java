@@ -34,6 +34,12 @@ public class Function extends DummyValue implements IFunction {
 		return new FunctionType(returnType, formalTypes);
 	}
 
+	public void destroy() {
+		blocks.forEach(BasicBlock::destroy);
+		blocks.clear();
+		entryBlock = null;
+	}
+
 	public void insertBlock(BasicBlock block) {
 		blocks.add(block);
 	}

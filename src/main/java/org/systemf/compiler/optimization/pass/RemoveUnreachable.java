@@ -89,8 +89,8 @@ public enum RemoveUnreachable implements OptPass {
 					res = true;
 					var unusedInst = new HashSet<Instruction>();
 					unreachableFunction.forEach(func -> ChainedRemoveHelper.markUnused(func, unusedInst));
-					unreachableFunction.stream().flatMap(Function::allInstructions).forEach(Instruction::unregister);
 					unreachableFunction.forEach(module::removeFunction);
+					unreachableFunction.forEach(Function::destroy);
 					ChainedRemoveHelper.cleanModule(module, unusedInst, query);
 				}
 				if (res) query.invalidateAllAttributes(module);

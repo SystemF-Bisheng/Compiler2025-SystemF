@@ -38,6 +38,14 @@ public class Module {
 		occupiedNames.add(name);
 	}
 
+	public void destroy() {
+		functions.values().forEach(Function::destroy);
+		declarations.clear();
+		functions.clear();
+		externalFunctions.clear();
+		occupiedNames.clear();
+	}
+
 	public void addGlobalVariable(GlobalVariable declaration) {
 		var name = declaration.getName();
 		checkGlobalName(name);

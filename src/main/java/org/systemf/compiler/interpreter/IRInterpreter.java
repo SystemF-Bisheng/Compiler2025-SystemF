@@ -10,19 +10,15 @@ import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.constant.Constant;
-import org.systemf.compiler.ir.value.constant.ConstantArray;
-import org.systemf.compiler.ir.value.constant.ConstantFloat;
-import org.systemf.compiler.ir.value.constant.ConstantInt32;
+import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.PtrCast;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
@@ -113,7 +109,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return switch (constant) {
 			case ConstantInt32 intValue -> newInt((int) intValue.value);
 			case ConstantFloat constantFloat -> newFloat((float) constantFloat.value);
-			default -> newInt(0);
+			case ConstantInt64 int64Value -> newInt64(int64Value.value);
+			default -> throw new IllegalArgumentException("Unsupported constant type: " + constant.getClass().getName());
 		};
 	}
 
@@ -146,7 +143,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return switch (type) {
 			case I32 ignored -> newInt(0);
 			case Float ignored -> newFloat(0);
-			default -> throw new IllegalArgumentException("Type is not an I32 or Float type.");
+			case I64 ignored -> newInt64(0);
+			default -> throw new IllegalArgumentException("Unsupported type: " + type.getName());
 		};
 	}
 
@@ -173,35 +171,32 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 
 	private ExecutionValue executeBinaryOperation(ExecutionValue x, ExecutionValue y, DummyBinary dummyBinary) {
 
-		if (x instanceof IntValue leftValue && y instanceof IntValue rightValue) {
-			int left = leftValue.getValue();
-			int right = rightValue.getValue();
-			switch (dummyBinary) {
-				case Add ignored -> {return newInt(left + right);}
-				case Sub ignored -> {return newInt(left - right);}
-				case Mul ignored -> {return newInt(left * right);}
-				case SDiv ignored -> {
-					if (right == 0) {
-						throw new ArithmeticException("Division by zero in SDiv operation.");
-					}
-					return newInt(left / right);
-				}
-				case SRem ignored -> {
-					if (right == 0) {
-						throw new ArithmeticException("Division by zero in SRem operation.");
-					}
-					return newInt(left % right);
-				}
-				case And ignored -> {return newInt(left & right);}
-				case Or ignored -> {return newInt(left | right);}
-				case Xor ignored -> {return newInt(left ^ right);}
-				case Shl ignored -> {return newInt(left << right);}
-				case AShr ignored -> {return newInt(left >> right);}
-				case LShr ignored -> {return newInt(left >>> right);}
-				case ICmp iCmp -> {return executeCmp(iCmp.method, left, right);}
-				default -> throw new IllegalStateException("Unexpected left: " + dummyBinary);
-			}
-		} else {
+		if ((x instanceof IntValue && y instanceof IntValue) || (x instanceof Int64Value && y instanceof Int64Value)) {
+        long left = x instanceof IntValue i ? i.getValue() : ((Int64Value) x).getValue();
+        long right = y instanceof IntValue i ? i.getValue() : ((Int64Value) y).getValue();
+        boolean isInt = x instanceof IntValue;
+        switch (dummyBinary) {
+            case Add ignored -> { return isInt ? newInt((int)(left + right)) : newInt64(left + right); }
+            case Sub ignored -> { return isInt ? newInt((int)(left - right)) : newInt64(left - right); }
+            case Mul ignored -> { return isInt ? newInt((int)(left * right)) : newInt64(left * right); }
+            case SDiv ignored -> {
+                if (right == 0) throw new ArithmeticException("Division by zero in SDiv operation.");
+                return isInt ? newInt((int)(left / right)) : newInt64(left / right);
+            }
+            case SRem ignored -> {
+                if (right == 0) throw new ArithmeticException("Division by zero in SRem operation.");
+                return isInt ? newInt((int)(left % right)) : newInt64(left % right);
+            }
+            case And ignored -> { return isInt ? newInt((int)(left & right)) : newInt64(left & right); }
+            case Or ignored -> { return isInt ? newInt((int)(left | right)) : newInt64(left | right); }
+            case Xor ignored -> { return isInt ? newInt((int)(left ^ right)) : newInt64(left ^ right); }
+            case Shl ignored -> { return isInt ? newInt((int)(left << right)) : newInt64(left << right); }
+            case AShr ignored -> { return isInt ? newInt((int)(left >> right)) : newInt64(left >> right); }
+            case LShr ignored -> { return isInt ? newInt((int)(left >>> right)) : newInt64(left >>> right); }
+            case ICmp iCmp -> { return executeCmp(iCmp.method, left, right); }
+            default -> throw new IllegalStateException("Unexpected left: " + dummyBinary);
+        }
+    } else {
 			float left = toFloat(x);
 			float right = toFloat(y);
 			switch (dummyBinary) {
@@ -227,6 +222,11 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 
 	private ExecutionValue executeCmp(CompareOp compareOp, float x, float y) {
 		int comparisonResult = java.lang.Float.compare(x, y);
+		return getCompareValue(compareOp, comparisonResult);
+	}
+
+	private ExecutionValue executeCmp(CompareOp compareOp, long x, long y) {
+		int comparisonResult = java.lang.Long.compare(x, y);
 		return getCompareValue(compareOp, comparisonResult);
 	}
 
@@ -265,6 +265,23 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		context.insertValue(siToFp, newFloat(toFloat(x)));
 		return null;
 	}
+
+	@Override
+	public ExecutionValue visit(Si32ToSi64 si32ToSi64) {
+		ExecutionContext context = executionContextsStack.getLast();
+		var x = findValue(si32ToSi64.getX(), context);
+		context.insertValue(si32ToSi64, newInt64(toInt64(x)));
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(Si64ToSi32 si64ToSi32) {
+		ExecutionContext context = executionContextsStack.getLast();
+		var x = findValue(si64ToSi32.getX(), context);
+		context.insertValue(si64ToSi32, new IntValue(toInt(x)));
+		return null;
+	}
+
 
 	@Override
 	public ExecutionValue visit(Alloca alloca) {
@@ -516,6 +533,13 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	private int toInt(ExecutionValue value) {
 		if (value instanceof IntValue i) return i.getValue();
 		if (value instanceof FloatValue f) return (int) f.getValue();
+		if (value instanceof Int64Value i64) return (int) i64.getValue();
+		throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
+	}
+
+	private long toInt64(ExecutionValue value) {
+		if (value instanceof Int64Value i) return i.getValue();
+		if (value instanceof IntValue intValue) return intValue.getValue();
 		throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
 	}
 
@@ -525,6 +549,11 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 
 	public static ExecutionValue newFloat(float value) {
 		return FloatValue.valueOf(value);
+	}
+
+	public static  ExecutionValue newInt64(long value) {
+		System.out.println("Creating Int64Value with value: " + value);
+		return Int64Value.valueOf(value);
 	}
 
 	public void dumpExecutionContext() {

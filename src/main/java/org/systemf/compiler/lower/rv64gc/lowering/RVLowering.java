@@ -105,9 +105,8 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 				else {
 					var newInter = new BasicBlock(newName("phiTmp"));
 					curFunction.insertBlock(newInter);
-					var newInterInst = newInter.instructions;
-					newInterInst.addLast(newMove);
-					newInterInst.addLast(new Br(newBlock));
+					newInter.insertInstruction(newMove);
+					newInter.insertInstruction(new Br(newBlock));
 					newPred.getTerminator().replaceAll(newBlock, newInter);
 
 					frequency.put(newInter, oldFrequency.distribute(oldPred, oldBlock));
@@ -187,7 +186,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		}
 
 		private void insertInstruction(Instruction instruction) {
-			curBlock.instructions.addLast(instruction);
+			curBlock.insertInstruction(instruction);
 		}
 
 		private BasicBlock substituted(BasicBlock block) {

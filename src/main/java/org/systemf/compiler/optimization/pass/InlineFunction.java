@@ -132,7 +132,7 @@ public enum InlineFunction implements OptPass {
 				while (iter.hasNext()) {
 					var toMove = iter.next();
 					iter.remove();
-					retBlock.instructions.addLast(toMove);
+					retBlock.insertInstruction(toMove);
 				}
 
 				cfg.successors(block).stream()

@@ -149,6 +149,8 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVParallelMove inst);
 
+	T visit(RVRegPlaceholder inst);
+
 	T visit(RVRem inst);
 
 	T visit(RVRemWord inst);

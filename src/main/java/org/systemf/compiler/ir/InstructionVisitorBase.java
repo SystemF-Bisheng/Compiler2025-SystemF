@@ -416,4 +416,9 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	public T visit(RVParallelMove inst) {
 		return defaultValue();
 	}
+
+	@Override
+	public T visit(RVRegPlaceholder inst) {
+		return defaultValue();
+	}
 }

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 public class QueryManager {
 	private static final QueryManager INSTANCE = new QueryManager();
 	private final HashSet<Object> entities = new HashSet<>();
-	private final HashMap<Object, HashSet<Object>> attributes = new HashMap<>();
+	private final WeakHashMap<Object, HashSet<Object>> attributes = new WeakHashMap<>();
 	private final HashSet<EntityProviderInfo> entityProviders = new HashSet<>();
 	private final HashSet<AttributeProviderInfo> attributeProviders = new HashSet<>();
 

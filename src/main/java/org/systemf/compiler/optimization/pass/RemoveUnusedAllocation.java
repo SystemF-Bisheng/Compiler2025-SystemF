@@ -2,7 +2,6 @@ package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.PointerAnalysisResult;
 import org.systemf.compiler.ir.Module;
-import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.value.Value;
@@ -11,6 +10,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.optimization.pass.util.ChainedRemoveHelper;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
@@ -34,8 +34,6 @@ public enum RemoveUnusedAllocation implements OptPass {
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private final PointerAnalysisResult ptrResult;
-		private final HashSet<Instruction> unusedInst = new HashSet<>();
-		private final HashSet<GlobalVariable> unusedGlobal = new HashSet<>();
 
 		public RemoveUnusedAllocationContext(Module module) {
 			this.module = module;
@@ -51,42 +49,18 @@ public enum RemoveUnusedAllocation implements OptPass {
 			});
 		}
 
-		private void markUnused(Value value) {
-			value.getDependant().forEach(inst -> {
-				if (unusedInst.contains(inst)) return;
-				unusedInst.add(inst);
-				if (inst instanceof Value val) markUnused(val);
-			});
-		}
-
-		private boolean cleanBlock(BasicBlock block) {
-			var res = false;
-			for (var iter = block.instructions.iterator(); iter.hasNext(); ) {
-				var inst = iter.next();
-				if (!unusedInst.contains(inst)) continue;
-				inst.unregister();
-				iter.remove();
-				res = true;
-			}
-			return res;
-		}
-
-		private boolean cleanFunction(Function function) {
-			var res = function.getBlocks().stream().map(this::cleanBlock).reduce(false, (a, b) -> a || b);
-			if (res) query.invalidateAllAttributes(function);
-			return res;
-		}
-
 		public boolean run() {
+			var unusedInst = new HashSet<Instruction>();
+			var unusedGlobal = new HashSet<GlobalVariable>();
 			module.getFunctions().values().stream().flatMap(Function::allInstructions).forEach(inst -> {
 				if (!(inst instanceof Alloca alloca)) return;
 				if (actuallyUsed(alloca)) return;
-				markUnused(alloca);
+				ChainedRemoveHelper.markUnused((Value) alloca, unusedInst);
 			});
 			module.getGlobalDeclarations().values().forEach(global -> {
 				if (actuallyUsed(global)) return;
 				unusedGlobal.add(global);
-				markUnused(global);
+				ChainedRemoveHelper.markUnused(global, unusedInst);
 			});
 
 			var res = false;
@@ -95,7 +69,7 @@ public enum RemoveUnusedAllocation implements OptPass {
 				res = true;
 				unusedGlobal.forEach(module::removeGlobalVariable);
 			}
-			res |= module.getFunctions().values().stream().map(this::cleanFunction).reduce(false, (a, b) -> a || b);
+			res |= ChainedRemoveHelper.cleanModule(module, unusedInst, query);
 
 			if (res) query.invalidateAllAttributes(module);
 			return res;

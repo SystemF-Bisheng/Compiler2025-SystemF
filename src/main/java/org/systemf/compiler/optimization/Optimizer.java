@@ -20,6 +20,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= InBlockMergeLoad.INSTANCE.run(module);
 		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= RemoveUnusedAllocation.INSTANCE.run(module);
+		flag |= RemoveUndefined.INSTANCE.run(module);
+		flag |= RemoveUnreachable.INSTANCE.run(module);
 		flag |= InBlockRemoveStore.INSTANCE.run(module);
 		flag |= RemoveRedundantCall.INSTANCE.run(module);
 		flag |= RemoveUnusedFunction.INSTANCE.run(module);

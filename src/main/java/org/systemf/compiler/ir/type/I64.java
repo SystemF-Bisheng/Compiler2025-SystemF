@@ -12,7 +12,7 @@ public enum I64 implements IInteger {
 
 	@Override
 	public String getName() {
-		return "i32";
+		return "i64";
 	}
 
 	@Override

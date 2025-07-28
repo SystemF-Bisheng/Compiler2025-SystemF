@@ -12,9 +12,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class RVStore extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
+	public long offset;
 	private Value src;
 	private Value dest;
-	public long offset;
 
 	protected RVStore(Value src, Value dest, long offset) {
 		setSrc(src);
@@ -26,8 +26,8 @@ public abstract class RVStore extends DummyNonTerminal implements PotentialSideE
 
 	@Override
 	public String toString() {
-		return String.format("%s %s, %s", operatorName(), ValueUtil.dumpIdentifier(src),
-				ValueUtil.dumpIdentifier(dest));
+		return String.format("%s %s, %s (%d)", operatorName(), ValueUtil.dumpIdentifier(src),
+				ValueUtil.dumpIdentifier(dest), offset);
 	}
 
 	@Override

@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 
 public class RVFloatNeg extends DummyUnary {
-	protected RVFloatNeg(String name, Value x) {
+	public RVFloatNeg(String name, Value x) {
 		super(name, x, Float.INSTANCE);
 	}
 

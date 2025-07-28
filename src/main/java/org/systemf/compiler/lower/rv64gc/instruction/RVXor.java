@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class RVXor extends DummyBinary {
-	protected RVXor(String name, Value x, Value y) {
+	public RVXor(String name, Value x, Value y) {
 		super(name, x, y, I64.INSTANCE);
 	}
 

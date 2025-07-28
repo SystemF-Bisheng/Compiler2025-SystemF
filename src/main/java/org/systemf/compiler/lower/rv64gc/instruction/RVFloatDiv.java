@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class RVFloatDiv extends DummyBinary {
-	protected RVFloatDiv(String name, Value x, Value y) {
+	public RVFloatDiv(String name, Value x, Value y) {
 		super(name, x, y, Float.INSTANCE);
 	}
 

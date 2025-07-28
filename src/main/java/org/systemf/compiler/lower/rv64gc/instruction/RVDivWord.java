@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class RVDivWord extends DummyBinary implements PotentialBlockSensitive /* Divide by zero */ {
-	protected RVDivWord(String name, Value x, Value y) {
+	public RVDivWord(String name, Value x, Value y) {
 		super(name, x, y, I32.INSTANCE);
 	}
 

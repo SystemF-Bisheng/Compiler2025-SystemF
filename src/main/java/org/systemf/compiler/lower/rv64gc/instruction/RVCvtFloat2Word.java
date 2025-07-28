@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 
 public class RVCvtFloat2Word extends DummyUnary {
-	protected RVCvtFloat2Word(String name, Value x) {
+	public RVCvtFloat2Word(String name, Value x) {
 		super(name, x, I32.INSTANCE);
 	}
 

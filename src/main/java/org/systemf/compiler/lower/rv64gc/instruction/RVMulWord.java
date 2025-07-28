@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class RVMulWord extends DummyBinary {
-	protected RVMulWord(String name, Value x, Value y) {
+	public RVMulWord(String name, Value x, Value y) {
 		super(name, x, y, I32.INSTANCE);
 	}
 

@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 
 public class RVAnd extends DummyBinary {
-	protected RVAnd(String name, Value x, Value y) {
+	public RVAnd(String name, Value x, Value y) {
 		super(name, x, y, I64.INSTANCE);
 	}
 

@@ -4,7 +4,7 @@ import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.value.Value;
 
 public class RVStoreFloat extends RVStore {
-	protected RVStoreFloat(Value src, Value dest, long offset) {
+	public RVStoreFloat(Value src, Value dest, long offset) {
 		super(src, dest, offset);
 	}
 

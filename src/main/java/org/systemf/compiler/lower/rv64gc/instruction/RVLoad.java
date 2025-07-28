@@ -25,7 +25,7 @@ public abstract class RVLoad extends DummyValueNonTerminal implements PotentialN
 
 	@Override
 	public String dumpInstructionBody() {
-		return String.format("%s %s", operatorName(), ValueUtil.dumpIdentifier(ptr));
+		return String.format("%s %s (%d)", operatorName(), ValueUtil.dumpIdentifier(ptr), offset);
 	}
 
 	@Override

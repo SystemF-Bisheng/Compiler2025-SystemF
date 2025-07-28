@@ -1,6 +1,7 @@
 package org.systemf.compiler.query;
 
 import org.systemf.compiler.analysis.AnalysisQueryRegistry;
+import org.systemf.compiler.lower.LowerQueryRegistry;
 import org.systemf.compiler.machine.MachineQueryRegistry;
 import org.systemf.compiler.optimization.OptimizationQueryRegistry;
 import org.systemf.compiler.parser.ParserQueryRegistry;
@@ -16,6 +17,7 @@ public class QueryRegistry {
 		TranslatorQueryRegistry.registerAll();
 		AnalysisQueryRegistry.registerAll();
 		OptimizationQueryRegistry.registerAll();
+		LowerQueryRegistry.registerAll();
 		MachineQueryRegistry.registerAll();
 	}
 }

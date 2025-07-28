@@ -99,6 +99,8 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVAddWord inst);
 
+	T visit(RVAlloc inst);
+
 	T visit(RVAnd inst);
 
 	T visit(RVBranchEq inst);
@@ -144,6 +146,8 @@ public interface InstructionVisitor<T> {
 	T visit(RVMulWord inst);
 
 	T visit(RVOr inst);
+
+	T visit(RVParallelMove inst);
 
 	T visit(RVRem inst);
 

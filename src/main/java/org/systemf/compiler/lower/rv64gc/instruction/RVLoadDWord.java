@@ -5,8 +5,8 @@ import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.value.Value;
 
 public class RVLoadDWord extends RVLoad {
-	public RVLoadDWord(String name, Value ptr) {
-		super(name, I64.INSTANCE, ptr);
+	public RVLoadDWord(String name, Value ptr, long offset) {
+		super(name, I64.INSTANCE, ptr, offset);
 	}
 
 	@Override

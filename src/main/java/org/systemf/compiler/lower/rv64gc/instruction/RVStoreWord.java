@@ -4,8 +4,8 @@ import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.value.Value;
 
 public class RVStoreWord extends RVStore {
-	public RVStoreWord(Value src, Value dest) {
-		super(src, dest);
+	public RVStoreWord(Value src, Value dest, long offset) {
+		super(src, dest, offset);
 	}
 
 	@Override

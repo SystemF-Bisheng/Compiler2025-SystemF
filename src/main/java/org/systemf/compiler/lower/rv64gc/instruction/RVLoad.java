@@ -13,10 +13,12 @@ import java.util.Set;
 
 public abstract class RVLoad extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive {
 	private Value ptr;
+	public long offset;
 
-	protected RVLoad(String name, Type type, Value ptr) {
+	protected RVLoad(String name, Type type, Value ptr, long offset) {
 		super(type, name);
 		setPointer(ptr);
+		this.offset = offset;
 	}
 
 	protected abstract String operatorName();

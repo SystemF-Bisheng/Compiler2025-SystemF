@@ -5,8 +5,8 @@ import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.value.Value;
 
 public class RVLoadFloat extends RVLoad {
-	protected RVLoadFloat(String name, Value ptr) {
-		super(name, Float.INSTANCE, ptr);
+	protected RVLoadFloat(String name, Value ptr, long offset) {
+		super(name, Float.INSTANCE, ptr, offset);
 	}
 
 	@Override

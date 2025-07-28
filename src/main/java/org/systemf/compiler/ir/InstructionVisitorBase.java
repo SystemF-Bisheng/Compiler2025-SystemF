@@ -406,4 +406,14 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	public T visit(RVXor inst) {
 		return defaultValue();
 	}
+
+	@Override
+	public T visit(RVAlloc inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVParallelMove inst) {
+		return defaultValue();
+	}
 }

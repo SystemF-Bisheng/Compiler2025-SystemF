@@ -58,7 +58,10 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 			var val = incoming.get(oldValue);
 			incoming.remove(oldValue);
 			oldValue.unregisterDependant(this);
-			incoming.put((BasicBlock) newValue, val);
+			var newBlock = (BasicBlock) newValue;
+			if (incoming.containsKey(newBlock))
+				throw new IllegalStateException("replaceAll overwriting existing block");
+			incoming.put(newBlock, val);
 			newValue.registerDependant(this);
 		}
 	}

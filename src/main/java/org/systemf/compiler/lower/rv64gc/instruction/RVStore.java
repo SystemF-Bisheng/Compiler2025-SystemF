@@ -14,10 +14,12 @@ import java.util.Set;
 public abstract class RVStore extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
 	private Value src;
 	private Value dest;
+	public long offset;
 
-	protected RVStore(Value src, Value dest) {
+	protected RVStore(Value src, Value dest, long offset) {
 		setSrc(src);
 		setDest(dest);
+		this.offset = offset;
 	}
 
 	protected abstract String operatorName();

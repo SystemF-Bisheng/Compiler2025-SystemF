@@ -71,8 +71,7 @@ public enum RemoveUnreachable implements OptPass {
 			var res = !unreachableBlock.isEmpty();
 			if (unreachableBlock.contains(function.getEntryBlock())) unreachableFunction.add(function);
 			else unreachableBlock.forEach(block -> {
-				block.instructions.forEach(Instruction::unregister);
-				block.instructions.clear();
+				block.destroy();
 				function.deleteBlock(block);
 			});
 			if (res) query.invalidateAllAttributes(function);

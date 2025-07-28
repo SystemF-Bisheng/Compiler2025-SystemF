@@ -29,6 +29,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 		private final Tree<BasicBlock> domTree;
 		private final LoopAnalysisResult loops;
 		private final Map<BasicBlock, Integer> frequency = new HashMap<>();
+		private final Map<BasicBlock, Map<BasicBlock, Integer>> distribute = new HashMap<>();
 		private final Map<BasicBlock, Integer> loopOccur = new HashMap<>();
 		private Set<BasicBlock> curLoop;
 		private final Set<BasicBlock> curBreak = new HashSet<>();
@@ -59,8 +60,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 			loops.loops().values().stream().flatMap(Collection::stream).forEach(this::addOccur);
 		}
 
-		private void addFrequency(BasicBlock block, java.util.function.Function<BasicBlock, Integer> freq) {
-			var toAdd = freq.apply(block);
+		private void addFrequency(BasicBlock block, int toAdd) {
 			frequency.compute(block, (_, v) -> v == null ? toAdd : SaturationArithmetic.saturatedAdd(v, toAdd));
 		}
 
@@ -81,10 +81,14 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 				calc = succ -> SaturationArithmetic.saturatedLerp(curFreq, succ.instructions.size(), sumSize);
 			}
 
+			var curDis = new HashMap<BasicBlock, Integer>();
 			for (var succ : succs) {
+				var toAdd = calc.apply(succ);
+				curDis.put(succ, toAdd);
 				if (succ == block) continue;
-				addFrequency(succ, calc);
+				addFrequency(succ, toAdd);
 			}
+			distribute.put(block, curDis);
 		}
 
 		private BasicBlock chooseNext(Set<BasicBlock> toPropagate) {
@@ -131,7 +135,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 			initFrequency();
 			processBlock(domTree.getRoot());
 			fillFrequency();
-			return new FrequencyAnalysisResult(frequency);
+			return new FrequencyAnalysisResult(frequency, distribute);
 		}
 	}
 }

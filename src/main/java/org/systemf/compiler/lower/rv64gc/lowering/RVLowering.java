@@ -143,7 +143,8 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		}
 
 		private void produceNewGlobal(GlobalVariable global) {
-			var newGlobal = new GlobalVariable(global.getName(), global.valueType, global.getInitializer());
+			var newGlobal = new GlobalVariable(global.getName(), global.valueType, global.getInitializer(),
+					I64.INSTANCE);
 			substitute.put(global, newGlobal);
 			newModule.addGlobalVariable(newGlobal);
 		}

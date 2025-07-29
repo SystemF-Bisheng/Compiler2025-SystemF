@@ -18,6 +18,13 @@ public class GlobalVariable extends DummyValue implements IGlobal {
 		setInitializer(initializer);
 	}
 
+	public GlobalVariable(String name, Type type, Constant initializer, Type ptrType) {
+		super(ptrType);
+		this.name = name;
+		this.valueType = type;
+		setInitializer(initializer);
+	}
+
 	@Override
 	public String getName() {
 		return name;

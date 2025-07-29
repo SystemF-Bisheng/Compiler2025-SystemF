@@ -131,7 +131,15 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVFloatMul inst);
 
+	T visit(RVFloatMulAdd inst);
+
+	T visit(RVFloatMulSub inst);
+
 	T visit(RVFloatNeg inst);
+
+	T visit(RVFloatNegMulAdd inst);
+
+	T visit(RVFloatNegMulSub inst);
 
 	T visit(RVFloatSub inst);
 

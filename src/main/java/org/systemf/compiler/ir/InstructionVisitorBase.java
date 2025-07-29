@@ -312,7 +312,27 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVFloatMulAdd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatMulSub inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVFloatNeg inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatNegMulAdd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVFloatNegMulSub inst) {
 		return defaultValue();
 	}
 

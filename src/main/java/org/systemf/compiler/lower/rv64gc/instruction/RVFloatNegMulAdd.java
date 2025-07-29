@@ -6,7 +6,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyTriple;
 
 /**
- * -(x * y + z) = -x * y - z
+ * -x * y - z
  */
 public class RVFloatNegMulAdd extends DummyTriple {
 	public RVFloatNegMulAdd(String name, Value x, Value y, Value z) {

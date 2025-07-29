@@ -307,11 +307,45 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 
 		@Override
 		public Void visit(FAdd inst) {
+			var name = newName(inst.getName());
+			var instX = inst.getX();
+			if (instX instanceof FMul xMul) {
+				var y = substituted(xMul.getY());
+				var z = substituted(inst.getY());
+				var x = xMul.getX();
+				Instruction newInst;
+				if (x instanceof FNeg xNeg) {
+					x = substituted(xNeg.getX());
+					newInst = new RVFloatNegMulSub(name, x, y, z);
+				} else {
+					x = substituted(x);
+					newInst = new RVFloatMulAdd(name, x, y, z);
+				}
+				insertInstruction(newInst);
+				substitute.put(inst, (Value) newInst);
+			}
 			return handleBinary(inst, RVFloatAdd::new);
 		}
 
 		@Override
 		public Void visit(FSub inst) {
+			var name = newName(inst.getName());
+			var instX = inst.getX();
+			if (instX instanceof FMul xMul) {
+				var y = substituted(xMul.getY());
+				var z = substituted(inst.getY());
+				var x = xMul.getX();
+				Instruction newInst;
+				if (x instanceof FNeg xNeg) {
+					x = substituted(xNeg.getX());
+					newInst = new RVFloatNegMulAdd(name, x, y, z);
+				} else {
+					x = substituted(x);
+					newInst = new RVFloatMulSub(name, x, y, z);
+				}
+				insertInstruction(newInst);
+				substitute.put(inst, (Value) newInst);
+			}
 			return handleBinary(inst, RVFloatSub::new);
 		}
 

@@ -19,6 +19,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.constant.ConstantInt64;
+import org.systemf.compiler.ir.value.constant.Undefined;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
@@ -91,35 +92,37 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			for (var inst : oldBlock.instructions) inst.accept(this);
 		}
 
+		private RVParallelMove genParallelMove(BasicBlock oldPred, BasicBlock oldBlock, BasicBlock newBlock) {
+			var newPred = substituted(oldPred);
+			var oldPredSuccs = oldCFG.successors(oldPred);
+			var newMove = new RVParallelMove();
+			if (oldPredSuccs.size() == 1) CodeMotionHelper.insertTail(newPred, newMove);
+			else {
+				var newInter = new BasicBlock(newName("phiTmp"));
+				curFunction.insertBlock(newInter);
+				newInter.insertInstruction(newMove);
+				newInter.insertInstruction(new Br(newBlock));
+				newPred.getTerminator().replaceAll(newBlock, newInter);
+
+				frequency.put(newInter, oldFrequency.distribute(oldPred, oldBlock));
+			}
+			return newMove;
+		}
+
 		private void translatePhi(BasicBlock oldBlock) {
 			if (!(oldBlock.getFirstInstruction() instanceof Phi)) return;
 			var newBlock = substituted(oldBlock);
 			var oldPreds = oldCFG.predecessors(oldBlock);
 
 			var parallels = new HashMap<BasicBlock, RVParallelMove>();
-			for (var oldPred : oldPreds) {
-				var newPred = substituted(oldPred);
-				var oldPredSuccs = oldCFG.successors(oldPred);
-				var newMove = new RVParallelMove();
-				if (oldPredSuccs.size() == 1) CodeMotionHelper.insertTail(newPred, newMove);
-				else {
-					var newInter = new BasicBlock(newName("phiTmp"));
-					curFunction.insertBlock(newInter);
-					newInter.insertInstruction(newMove);
-					newInter.insertInstruction(new Br(newBlock));
-					newPred.getTerminator().replaceAll(newBlock, newInter);
-
-					frequency.put(newInter, oldFrequency.distribute(oldPred, oldBlock));
-				}
-				parallels.put(oldPred, newMove);
-			}
-
 			oldBlock.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
 					.forEach(oldPhi -> {
 						var newHolder = substituted(oldPhi);
 						for (var oldPred : oldPreds) {
 							var newValue = substituted(oldPhi.getIncoming().get(oldPred));
-							parallels.get(oldPred).addMove(newHolder, newValue);
+							if (newValue instanceof Undefined) continue;
+							parallels.computeIfAbsent(oldPred, _ -> genParallelMove(oldPred, oldBlock, newBlock))
+									.addMove(newHolder, newValue);
 						}
 					});
 		}

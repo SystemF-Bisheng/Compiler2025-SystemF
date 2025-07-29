@@ -1,7 +1,6 @@
 package org.systemf.compiler.optimization.pass.util;
 
 import org.systemf.compiler.analysis.CFGAnalysisResult;
-import org.systemf.compiler.analysis.DominanceAnalysisResult;
 import org.systemf.compiler.analysis.PointerAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
@@ -11,15 +10,14 @@ import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.util.ValueUtil;
-import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Pair;
+import org.systemf.compiler.util.Tree;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public class MergeHelper {
-	public static boolean mergeValues(DominanceAnalysisResult dom, List<Pair<PositionInfo, Value>> values) {
-		var domTree = dom.dominance();
+	public static boolean mergeValues(Tree<BasicBlock> domTree, List<Pair<PositionInfo, Value>> values) {
 		BasicBlock lastBlock = null;
 		Value lastValue = null;
 		values.sort((a, b) -> {
@@ -44,7 +42,7 @@ public class MergeHelper {
 		return res;
 	}
 
-	public static boolean handleValues(DominanceAnalysisResult dom, List<Pair<PositionInfo, Value>> values) {
+	public static boolean handleValues(Tree<BasicBlock> domTree, List<Pair<PositionInfo, Value>> values) {
 		boolean res = false;
 		while (!values.isEmpty()) {
 			var iter = values.iterator();
@@ -58,17 +56,17 @@ public class MergeHelper {
 				iter.remove();
 				toMerge.add(next);
 			}
-			res |= mergeValues(dom, toMerge);
+			res |= mergeValues(domTree, toMerge);
 		}
 		return res;
 	}
 
-	public static boolean handleValues(Function function, Map<Class<?>, List<Pair<PositionInfo, Value>>> valueMap) {
-		var dom = QueryManager.getInstance().getAttribute(function, DominanceAnalysisResult.class);
-		return valueMap.values().stream().map(values -> handleValues(dom, values)).reduce(false, (a, b) -> a || b);
+	public static boolean handleValues(Tree<BasicBlock> domTree,
+			Map<Class<?>, List<Pair<PositionInfo, Value>>> valueMap) {
+		return valueMap.values().stream().map(values -> handleValues(domTree, values)).reduce(false, (a, b) -> a || b);
 	}
 
-	public static boolean handleFunction(Function function, Predicate<Value> valueFilter) {
+	public static boolean handleFunction(Function function, Tree<BasicBlock> domTree, Predicate<Value> valueFilter) {
 		var valueMap = new HashMap<Class<?>, List<Pair<PositionInfo, Value>>>();
 
 		for (var block : function.getBlocks()) {
@@ -82,7 +80,7 @@ public class MergeHelper {
 			}
 		}
 
-		return handleValues(function, valueMap);
+		return handleValues(domTree, valueMap);
 	}
 
 	public static boolean blockingReachability(CFGAnalysisResult cfg, Set<BasicBlock> begin, Set<BasicBlock> end,

@@ -1,5 +1,6 @@
 package org.systemf.compiler.optimization.pass;
 
+import org.systemf.compiler.analysis.DominanceAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.util.ValueUtil;
@@ -17,9 +18,11 @@ public enum MergeCommonValue implements OptPass {
 	INSTANCE;
 
 	private boolean processFunction(Module module, Function function) {
-		var res = MergeHelper.handleFunction(function,
+		var query = QueryManager.getInstance();
+		var domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
+		var res = MergeHelper.handleFunction(function, domTree,
 				val -> ValueUtil.repeatable(module, val) && !ValueUtil.sideEffect(module, val));
-		if (res) QueryManager.getInstance().invalidateAllAttributes(function);
+		if (res) query.invalidateAllAttributes(function);
 		return res;
 	}
 

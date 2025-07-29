@@ -12,7 +12,9 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Or;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Xor;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FAdd;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FCmp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FMul;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
@@ -73,6 +75,16 @@ public enum CanonicalizeValue implements OptPass {
 
 		@Override
 		public Boolean visit(Mul inst) {
+			return handleBinary(inst);
+		}
+
+		@Override
+		public Boolean visit(FAdd inst) {
+			return handleBinary(inst);
+		}
+
+		@Override
+		public Boolean visit(FMul inst) {
 			return handleBinary(inst);
 		}
 

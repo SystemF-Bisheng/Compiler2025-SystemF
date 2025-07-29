@@ -7,14 +7,6 @@ public class SaturationArithmetic {
 		return (int) v;
 	}
 
-	public static boolean isOverflow(long v, int width) {
-		if (width == 32) {
-			if (v > Integer.MAX_VALUE) return true;
-			return v < Integer.MIN_VALUE;
-		} else if (width == 64) return false;
-		throw new IllegalArgumentException("Unsupported width: " + width);
-	}
-
 	public static int saturatedAdd(int x, int y) {
 		return saturated((long) x + y);
 	}

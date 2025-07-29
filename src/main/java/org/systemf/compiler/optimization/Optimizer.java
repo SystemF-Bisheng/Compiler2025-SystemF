@@ -15,7 +15,9 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= CanonicalizeValue.INSTANCE.run(module);
 		flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
 		flag |= MergeArithmetic.INSTANCE.run(module);
+		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= ReduceStrength.INSTANCE.run(module);
+		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= MergeCommonValue.INSTANCE.run(module);
 		flag |= InBlockMergeLoad.INSTANCE.run(module);
 		flag |= RemoveUnusedValue.INSTANCE.run(module);

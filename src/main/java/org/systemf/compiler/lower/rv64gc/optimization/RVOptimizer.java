@@ -1,8 +1,7 @@
 package org.systemf.compiler.lower.rv64gc.optimization;
 
 import org.systemf.compiler.lower.rv64gc.lowering.RVLoweringResult;
-import org.systemf.compiler.lower.rv64gc.optimization.pass.RVMergeCommonValue;
-import org.systemf.compiler.lower.rv64gc.optimization.pass.RVRemoveUnusedValue;
+import org.systemf.compiler.lower.rv64gc.optimization.pass.*;
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 
@@ -20,6 +19,9 @@ public enum RVOptimizer implements EntityProvider<RVOptimizedResult> {
 		while (flag) {
 			flag = RVRemoveUnusedValue.INSTANCE.run(module);
 			flag |= RVMergeCommonValue.INSTANCE.run(module);
+			flag |= RVConstantFold.INSTANCE.run(module);
+			flag |= RVReduceStrength.INSTANCE.run(module);
+			flag |= RVMergeArithmetic.INSTANCE.run(module);
 		}
 
 		return new RVOptimizedResult(module);

@@ -1,7 +1,7 @@
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.systemf.compiler.interpreter.IRInterpreter;
-import org.systemf.compiler.lower.rv64gc.lowering.RVLoweringResult;
+import org.systemf.compiler.lower.rv64gc.optimization.RVOptimizedResult;
 import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
@@ -21,7 +21,7 @@ public class Compiler {
 		query.registerProvider(CharStream.class, () -> input);
 
 		if (compileArgument.outputFilePath() != null) {
-			var module = query.get(RVLoweringResult.class).module().module();
+			var module = query.get(RVOptimizedResult.class).module().module();
 			module.dump(new PrintStream(compileArgument.outputFilePath()));
 		} else {
 			var module = query.get(OptimizedResult.class).module();

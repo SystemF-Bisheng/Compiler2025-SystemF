@@ -237,14 +237,18 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
-	@Override
-	public T visit(RVBranchEq inst) {
+	public T visit(RVCompBranch inst) {
 		return defaultValue();
 	}
 
 	@Override
+	public T visit(RVBranchEq inst) {
+		return visit((RVCompBranch) inst);
+	}
+
+	@Override
 	public T visit(RVBranchLess inst) {
-		return defaultValue();
+		return visit((RVCompBranch) inst);
 	}
 
 	@Override
@@ -317,19 +321,23 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
+	public T visit(RVLoad inst) {
+		return defaultValue();
+	}
+
 	@Override
 	public T visit(RVLoadDWord inst) {
-		return defaultValue();
+		return visit((RVLoad) inst);
 	}
 
 	@Override
 	public T visit(RVLoadFloat inst) {
-		return defaultValue();
+		return visit((RVLoad) inst);
 	}
 
 	@Override
 	public T visit(RVLoadWord inst) {
-		return defaultValue();
+		return visit((RVLoad) inst);
 	}
 
 	@Override
@@ -377,19 +385,23 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
+	public T visit(RVStore inst) {
+		return defaultValue();
+	}
+
 	@Override
 	public T visit(RVStoreDWord inst) {
-		return defaultValue();
+		return visit((RVStore) inst);
 	}
 
 	@Override
 	public T visit(RVStoreFloat inst) {
-		return defaultValue();
+		return visit((RVStore) inst);
 	}
 
 	@Override
 	public T visit(RVStoreWord inst) {
-		return defaultValue();
+		return visit((RVStore) inst);
 	}
 
 	@Override

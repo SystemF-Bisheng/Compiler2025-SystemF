@@ -16,6 +16,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SDiv;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.util.MathUtil;
 
 import java.util.ListIterator;
 
@@ -72,17 +73,6 @@ public enum ReduceStrength implements OptPass {
 			return false;
 		}
 
-		public int checkPowerOfTwo(long val) {
-			int res = 0;
-			while (val > 0) {
-				if ((val & 1) == 1) break;
-				++res;
-				val >>= 1;
-			}
-			if (val == 1) return res;
-			return -1;
-		}
-
 		private boolean checkIdentity(DummyBinary inst, long identity) {
 			var y = inst.getY();
 			if (!ValueUtil.isConstantInt(y)) return false;
@@ -130,7 +120,7 @@ public enum ReduceStrength implements OptPass {
 			}
 
 			var yAbs = Math.abs(yVal);
-			var power = checkPowerOfTwo(yAbs);
+			var power = MathUtil.checkPowerOfTwo(yAbs);
 			if (power == -1) return false;
 
 			builder.setPosition(iterator);

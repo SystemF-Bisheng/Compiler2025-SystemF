@@ -80,7 +80,7 @@ public enum RVInBlockSchedule {
 		private final List<Instruction> instructions;
 		private final Map<Instruction, Integer> dfn = new HashMap<>();
 		private final Map<Instruction, Set<Instruction>> in = new HashMap<>();
-		private final Map<Instruction, List<Instruction>> out = new HashMap<>();
+		private final Map<Instruction, Set<Instruction>> out = new HashMap<>();
 		private final Map<Value, Integer> dependants = new HashMap<>();
 		private final int[] pressure;
 		private final int[] bound;
@@ -94,7 +94,7 @@ public enum RVInBlockSchedule {
 			for (var val : canElim) dependants.put(val, 0);
 			for (var inst : instructions) {
 				in.put(inst, new HashSet<>());
-				out.put(inst, new ArrayList<>());
+				out.put(inst, new HashSet<>());
 			}
 			init();
 		}
@@ -144,7 +144,6 @@ public enum RVInBlockSchedule {
 
 			instructions.stream().sorted(Comparator.comparingInt(inst -> out.get(inst).size())).forEach(this::dfs);
 			instructions.sort(Comparator.comparingInt(dfn::get));
-			out.values().forEach(outList -> outList.sort(Comparator.comparingInt(dfn::get)));
 		}
 
 		private boolean checkReady(Instruction inst) {
@@ -175,11 +174,10 @@ public enum RVInBlockSchedule {
 		}
 
 		private void completeInst(LinkedList<Instruction> ready, Instruction inst) {
-			var instOut = out.get(inst);
-			for (var nxt : instOut) {
+			out.get(inst).stream().sorted(Comparator.comparingInt(dfn::get)).forEach(nxt -> {
 				in.get(nxt).remove(inst);
 				if (checkReady(nxt)) ready.add(nxt);
-			}
+			});
 			out.remove(inst);
 
 			for (var dep : inst.getDependency()) {

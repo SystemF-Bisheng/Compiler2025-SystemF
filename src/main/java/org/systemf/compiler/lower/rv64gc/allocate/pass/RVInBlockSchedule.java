@@ -123,9 +123,14 @@ public enum RVInBlockSchedule {
 		}
 
 		private void dfs(Instruction inst) {
-			if (dfn.containsKey(inst)) return;
-			dfn.put(inst, ++dfnCnt);
-			in.get(inst).forEach(this::dfs);
+			var worklist = new ArrayDeque<Instruction>();
+			worklist.add(inst);
+			while (!worklist.isEmpty()) {
+				var head = worklist.pop();
+				if (dfn.containsKey(head)) continue;
+				dfn.put(head, ++dfnCnt);
+				in.get(head).forEach(worklist::push);
+			}
 		}
 
 		private void init() {

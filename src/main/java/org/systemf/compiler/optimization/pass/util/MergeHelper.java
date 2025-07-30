@@ -2,18 +2,22 @@ package org.systemf.compiler.optimization.pass.util;
 
 import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.PointerAnalysisResult;
+import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.util.Pair;
+import org.systemf.compiler.util.SaturationArithmetic;
 import org.systemf.compiler.util.Tree;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public class MergeHelper {
@@ -137,6 +141,25 @@ public class MergeHelper {
 		var storeSet = new HashSet<Value>();
 		for (var inst : block.instructions.reversed()) manipulateStoreSet(inst, storeSet, module, ptrResult);
 		return storeSet;
+	}
+
+	public static boolean mergeIntBinary(IRBuilder builder, DummyBinary inst,
+			BiFunction<Long, Long, Optional<Long>> func) {
+		var x = inst.getX();
+		var selfY = inst.getY();
+		if (!ValueUtil.isConstantInt(selfY)) return false;
+		if (inst.getClass() != x.getClass()) return false;
+		var binaryX = (DummyBinary) x;
+		var otherY = binaryX.getY();
+		if (!ValueUtil.isConstantInt(otherY)) return false;
+		var width = ValueUtil.getWidth(inst);
+		var newValueOpt = func.apply(ValueUtil.getConstantInt(otherY), ValueUtil.getConstantInt(selfY));
+		if (newValueOpt.isEmpty()) return false;
+		long newValue = newValueOpt.get();
+		if (SaturationArithmetic.isOverflow(newValue, width)) return false;
+		inst.setX(binaryX.getX());
+		inst.setY(builder.buildConstantInt(newValue, width));
+		return true;
 	}
 
 	public record PositionInfo(BasicBlock block, int index) {

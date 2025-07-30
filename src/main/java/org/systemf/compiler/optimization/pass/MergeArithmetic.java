@@ -8,19 +8,19 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyFloatBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.util.SaturationArithmetic;
 
 import java.util.Comparator;
 import java.util.ListIterator;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 /**
  * Depend on: No
@@ -77,21 +77,6 @@ public enum MergeArithmetic implements OptPass {
 			return false;
 		}
 
-		private boolean handleBinary(DummyIntBinary inst, BiFunction<Long, Long, Long> func) {
-			var x = inst.getX();
-			var selfY = inst.getY();
-			if (!ValueUtil.isConstantInt(selfY)) return false;
-			if (inst.getClass() != x.getClass()) return false;
-			var binaryX = (DummyBinary) x;
-			var otherY = binaryX.getY();
-			if (!ValueUtil.isConstantInt(otherY)) return false;
-			var width = ValueUtil.getWidth(x);
-			var newValue = func.apply(ValueUtil.getConstantInt(otherY), ValueUtil.getConstantInt(selfY));
-			inst.setX(binaryX.getX());
-			inst.setY(builder.buildConstantInt(newValue, width));
-			return true;
-		}
-
 		private Optional<Value> checkIntNeg(Value value) {
 			if (value instanceof Sub sub) {
 				var subX = sub.getX();
@@ -104,7 +89,7 @@ public enum MergeArithmetic implements OptPass {
 
 		@Override
 		public Boolean visit(Add inst) {
-			if (handleBinary(inst, Long::sum)) return true;
+			if (MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd)) return true;
 
 			var x = inst.getX();
 			var y = inst.getY();
@@ -123,10 +108,25 @@ public enum MergeArithmetic implements OptPass {
 
 		@Override
 		public Boolean visit(Sub inst) {
-			if (handleBinary(inst, Long::sum)) return true;
+			if (MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd)) return true;
 
 			var x = inst.getX();
 			var y = inst.getY();
+
+			if (ValueUtil.isConstantInt(y)) {
+				var width = ValueUtil.getWidth(inst);
+				var yValOpt = SaturationArithmetic.checkedNeg(ValueUtil.getConstantInt(y));
+				if (yValOpt.isPresent()) {
+					long yVal = yValOpt.get();
+					if (!SaturationArithmetic.isOverflow(yVal, width)) {
+						builder.setPosition(iterator);
+						var newInst = builder.buildAdd(x, builder.buildConstantInt(yVal, width), inst.getName());
+						inst.replaceAllUsage(newInst);
+						return true;
+					}
+				}
+			}
+
 			return checkIntNeg(y).map(negY -> {
 				builder.setPosition(iterator);
 				var newInst = builder.buildAdd(x, negY, inst.getName());
@@ -137,7 +137,7 @@ public enum MergeArithmetic implements OptPass {
 
 		@Override
 		public Boolean visit(Mul inst) {
-			if (handleBinary(inst, (x, y) -> x * y)) return true;
+			if (MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedMul)) return true;
 
 			var x = inst.getX();
 			var y = inst.getY();
@@ -179,32 +179,32 @@ public enum MergeArithmetic implements OptPass {
 
 		@Override
 		public Boolean visit(And inst) {
-			return handleBinary(inst, (x, y) -> x & y);
+			return MergeHelper.mergeIntBinary(builder, inst, (x, y) -> Optional.of(x & y));
 		}
 
 		@Override
 		public Boolean visit(Or inst) {
-			return handleBinary(inst, (x, y) -> x | y);
+			return MergeHelper.mergeIntBinary(builder, inst, (x, y) -> Optional.of(x | y));
 		}
 
 		@Override
 		public Boolean visit(Xor inst) {
-			return handleBinary(inst, (x, y) -> x ^ y);
+			return MergeHelper.mergeIntBinary(builder, inst, (x, y) -> Optional.of(x ^ y));
 		}
 
 		@Override
 		public Boolean visit(Shl inst) {
-			return handleBinary(inst, Long::sum);
+			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
 		}
 
 		@Override
 		public Boolean visit(LShr inst) {
-			return handleBinary(inst, Long::sum);
+			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
 		}
 
 		@Override
 		public Boolean visit(AShr inst) {
-			return handleBinary(inst, Long::sum);
+			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
 		}
 
 		private Optional<Value> checkFloatNeg(Value value) {

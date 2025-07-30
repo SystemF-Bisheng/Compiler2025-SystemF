@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Pseudo-instruction for parallel virtual register movement
  * <p>
- * Won't affect the live range of its destinations
+ * Must be placed right before unconditional jump, won't affect the live range of its destinations
  */
 public class RVParallelMove extends DummyNonTerminal implements PotentialSideEffect {
 	private final Map<Value, Value> moves = new HashMap<>();

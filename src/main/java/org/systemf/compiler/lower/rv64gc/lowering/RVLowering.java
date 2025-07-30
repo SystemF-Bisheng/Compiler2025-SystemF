@@ -42,6 +42,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
+import org.systemf.compiler.lower.rv64gc.module.RVStackState;
 import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.EntityProvider;
@@ -79,10 +80,12 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		private final HashMap<Function, Function> newFunctions = new HashMap<>();
 		private final HashMap<BasicBlock, BasicBlock> newBlocks = new HashMap<>();
 		private final HashMap<Value, Value> substitute = new HashMap<>();
+		private final HashMap<Function, RVStackState> stacks = new HashMap<>();
 		private CFGAnalysisResult oldCFG;
 		private FrequencyAnalysisResult oldFrequency;
 		private Function curFunction;
 		private BasicBlock curBlock;
+		private RVStackState curStack;
 
 		public RVLoweringContext(Module oldModule) {
 			this.oldModule = oldModule;
@@ -130,6 +133,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 
 		private void translateFunction(Function oldFunction, Function newFunction) {
 			curFunction = newFunction;
+			curStack = stacks.get(newFunction);
 			oldCFG = query.getAttribute(oldFunction, CFGAnalysisResult.class);
 			oldFrequency = query.getAttribute(oldFunction, FrequencyAnalysisResult.class);
 
@@ -175,6 +179,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			substitute.put(function, newFunc);
 			newFunctions.put(function, newFunc);
 			newModule.addFunction(newFunc);
+			stacks.put(newFunc, new RVStackState());
 		}
 
 		private void translateModule() {
@@ -187,7 +192,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public RVLoweringResult run() {
 			translateModule();
 			oldModule.destroy();
-			return new RVLoweringResult(new RVModule(newModule, frequency));
+			return new RVLoweringResult(new RVModule(newModule, frequency, stacks));
 		}
 
 		private void insertInstruction(Instruction instruction) {
@@ -492,7 +497,8 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public Void visit(Alloca inst) {
 			var name = newName(inst.getName());
 			var type = inst.valueType;
-			var newInst = new RVAlloc(name, RVTypeHelper.sizeOf(type), RVTypeHelper.alignmentOf(type));
+			var pos = curStack.allocate(RVTypeHelper.sizeOf(type), RVTypeHelper.alignmentOf(type));
+			var newInst = new RVAdd(name, curStack.fp, ConstantInt64.valueOf(pos));
 			insertInstruction(newInst);
 			substitute.put(inst, newInst);
 			return null;

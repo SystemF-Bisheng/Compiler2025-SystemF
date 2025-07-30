@@ -2,11 +2,11 @@ package org.systemf.compiler.lower.rv64gc;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
-import org.systemf.compiler.lower.rv64gc.optimization.RVOptimizedResult;
+import org.systemf.compiler.lower.rv64gc.allocate.RVAllocatedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
 
-public class RVOptimizationTest {
+public class RVAllocationTest {
 	public static void main(String[] args) {
 		QueryRegistry.registerAll();
 		var query = QueryManager.getInstance();
@@ -107,6 +107,6 @@ public class RVOptimizationTest {
 				
 				""");
 		query.registerProvider(CharStream.class, () -> code);
-		query.get(RVOptimizedResult.class).module().module().dump(System.out);
+		query.get(RVAllocatedResult.class).module().module().dump(System.out);
 	}
 }

@@ -9,9 +9,7 @@ import org.systemf.compiler.ir.value.constant.ConstantInt64;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.util.ValueUtil;
-import org.systemf.compiler.lower.rv64gc.instruction.RVMul;
-import org.systemf.compiler.lower.rv64gc.instruction.RVMulWord;
-import org.systemf.compiler.lower.rv64gc.instruction.RVShiftLeft;
+import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.MathUtil;
@@ -70,6 +68,16 @@ public enum RVReduceStrength implements RVOptPass {
 			return Optional.empty();
 		}
 
+		private Optional<Value> handleAdd(DummyBinary inst) {
+			var y = inst.getY();
+			if (!ValueUtil.isConstantInt(y)) return Optional.empty();
+
+			var yVal = ValueUtil.getConstantInt(y);
+			if (yVal == 0) return Optional.of(inst.getX());
+
+			return Optional.empty();
+		}
+
 		private Optional<Value> handleMul(DummyBinary inst) {
 			var y = inst.getY();
 			if (!ValueUtil.isConstantInt(y)) return Optional.empty();
@@ -84,6 +92,16 @@ public enum RVReduceStrength implements RVOptPass {
 					ConstantInt64.valueOf(yPow));
 			iterator.add(shl);
 			return Optional.of(shl);
+		}
+
+		@Override
+		public Optional<Value> visit(RVAdd inst) {
+			return handleAdd(inst);
+		}
+
+		@Override
+		public Optional<Value> visit(RVAddWord inst) {
+			return handleAdd(inst);
 		}
 
 		@Override

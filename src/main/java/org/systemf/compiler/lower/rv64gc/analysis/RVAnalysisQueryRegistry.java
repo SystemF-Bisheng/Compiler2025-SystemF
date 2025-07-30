@@ -7,5 +7,6 @@ public class RVAnalysisQueryRegistry {
 		var query = QueryManager.getInstance();
 		query.registerProvider(RVCFGAnalysis.INSTANCE);
 		query.registerProvider(RVDominanceAnalysis.INSTANCE);
+		query.registerProvider(RVLiveRangeAnalysis.INSTANCE);
 	}
 }

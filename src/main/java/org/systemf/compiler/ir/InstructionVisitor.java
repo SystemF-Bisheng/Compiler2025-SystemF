@@ -99,8 +99,6 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVAddWord inst);
 
-	T visit(RVAlloc inst);
-
 	T visit(RVAnd inst);
 
 	T visit(RVBranchEq inst);

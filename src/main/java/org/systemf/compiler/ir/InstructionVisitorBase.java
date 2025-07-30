@@ -440,11 +440,6 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
-	public T visit(RVAlloc inst) {
-		return defaultValue();
-	}
-
-	@Override
 	public T visit(RVParallelMove inst) {
 		return defaultValue();
 	}

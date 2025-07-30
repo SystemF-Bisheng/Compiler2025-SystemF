@@ -9,6 +9,9 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTermin
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Pseudo-instruction for stack allocation, need no virtual register
+ */
 public class RVAlloc extends DummyValueNonTerminal implements PotentialNonRepeatable {
 	public long size;
 	public long alignment;

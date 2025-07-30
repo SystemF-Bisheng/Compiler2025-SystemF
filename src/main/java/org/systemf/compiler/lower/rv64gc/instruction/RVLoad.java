@@ -5,13 +5,15 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
+import org.systemf.compiler.ir.value.instruction.PotentialSequential;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class RVLoad extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive {
+public abstract class RVLoad extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive,
+		PotentialSequential {
 	private Value ptr;
 	public long offset;
 

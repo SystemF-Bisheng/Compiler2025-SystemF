@@ -10,6 +10,11 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTermin
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Placeholder pseudo-instruction, occupy a virtual register without specifying the content
+ * <p>
+ * Should be placed at the header of a basic block
+ */
 public class RVRegPlaceholder extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive {
 	public RVRegPlaceholder(Type type, String name) {
 		super(type, name);

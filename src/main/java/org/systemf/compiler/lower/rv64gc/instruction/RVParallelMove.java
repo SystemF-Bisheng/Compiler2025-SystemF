@@ -14,6 +14,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Pseudo-instruction for parallel virtual register movement
+ * <p>
+ * Won't affect the live range of its destinations
+ */
 public class RVParallelMove extends DummyNonTerminal implements PotentialSideEffect {
 	private final Map<Value, Value> moves = new HashMap<>();
 
@@ -30,6 +35,10 @@ public class RVParallelMove extends DummyNonTerminal implements PotentialSideEff
 		to.registerDependant(this);
 		from.registerDependant(this);
 		moves.put(to, from);
+	}
+
+	public Map<Value, Value> getMoves() {
+		return Collections.unmodifiableMap(moves);
 	}
 
 	@Override

@@ -19,10 +19,6 @@ public class RVStackState {
 		curSize += alignment - mod;
 	}
 
-	public void padForAll() {
-		pad(8);
-	}
-
 	public long getSize() {
 		return curSize;
 	}

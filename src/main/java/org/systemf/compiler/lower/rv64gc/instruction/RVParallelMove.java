@@ -8,10 +8,7 @@ import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +47,9 @@ public class RVParallelMove extends DummyNonTerminal implements PotentialSideEff
 
 	@Override
 	public Set<ITracked> getDependency() {
-		return Collections.unmodifiableSet(moves.keySet());
+		var result = new HashSet<ITracked>(moves.keySet());
+		result.addAll(moves.values());
+		return result;
 	}
 
 	@Override

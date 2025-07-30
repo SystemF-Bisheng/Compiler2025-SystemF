@@ -51,6 +51,7 @@ import org.systemf.compiler.util.TriFunction;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 public enum RVLowering implements EntityProvider<RVLoweringResult> {
@@ -304,49 +305,50 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			return null;
 		}
 
+		private Optional<FloatContractInfo> checkContract(Value a, Value b) {
+			boolean neg = false;
+			while (a instanceof FNeg aNeg) {
+				neg = !neg;
+				a = aNeg.getX();
+			}
+			if (!(a instanceof FMul aMul)) return Optional.empty();
+			var x = aMul.getX();
+			var y = aMul.getY();
+			while (x instanceof FNeg xNeg) {
+				neg = !neg;
+				x = xNeg.getX();
+			}
+			while (y instanceof FNeg yNeg) {
+				neg = !neg;
+				y = yNeg.getX();
+			}
+			return Optional.of(new FloatContractInfo(substituted(x), substituted(y), substituted(b), neg));
+		}
 
 		@Override
 		public Void visit(FAdd inst) {
 			var name = newName(inst.getName());
-			var instX = inst.getX();
-			if (instX instanceof FMul xMul) {
-				var y = substituted(xMul.getY());
-				var z = substituted(inst.getY());
-				var x = xMul.getX();
+			return checkContract(inst.getX(), inst.getY()).map(contract -> {
 				Instruction newInst;
-				if (x instanceof FNeg xNeg) {
-					x = substituted(xNeg.getX());
-					newInst = new RVFloatNegMulSub(name, x, y, z);
-				} else {
-					x = substituted(x);
-					newInst = new RVFloatMulAdd(name, x, y, z);
-				}
+				if (contract.neg()) newInst = new RVFloatNegMulSub(name, contract.x, contract.y, contract.z);
+				else newInst = new RVFloatMulAdd(name, contract.x, contract.y, contract.z);
 				insertInstruction(newInst);
 				substitute.put(inst, (Value) newInst);
-			}
-			return handleBinary(inst, RVFloatAdd::new);
+				return (Void) null;
+			}).orElseGet(() -> handleBinary(inst, RVFloatAdd::new));
 		}
 
 		@Override
 		public Void visit(FSub inst) {
 			var name = newName(inst.getName());
-			var instX = inst.getX();
-			if (instX instanceof FMul xMul) {
-				var y = substituted(xMul.getY());
-				var z = substituted(inst.getY());
-				var x = xMul.getX();
+			return checkContract(inst.getX(), inst.getY()).map(contract -> {
 				Instruction newInst;
-				if (x instanceof FNeg xNeg) {
-					x = substituted(xNeg.getX());
-					newInst = new RVFloatNegMulAdd(name, x, y, z);
-				} else {
-					x = substituted(x);
-					newInst = new RVFloatMulSub(name, x, y, z);
-				}
+				if (contract.neg()) newInst = new RVFloatNegMulAdd(name, contract.x, contract.y, contract.z);
+				else newInst = new RVFloatMulSub(name, contract.x, contract.y, contract.z);
 				insertInstruction(newInst);
 				substitute.put(inst, (Value) newInst);
-			}
-			return handleBinary(inst, RVFloatSub::new);
+				return (Void) null;
+			}).orElseGet(() -> handleBinary(inst, RVFloatSub::new));
 		}
 
 		@Override
@@ -607,6 +609,9 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public Void visit(RetVoid inst) {
 			insertInstruction(RetVoid.INSTANCE);
 			return null;
+		}
+
+		private record FloatContractInfo(Value x, Value y, Value z, boolean neg) {
 		}
 	}
 }

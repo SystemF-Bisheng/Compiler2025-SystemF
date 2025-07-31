@@ -1,4 +1,4 @@
-package org.systemf.compiler.lower.rv64gc.value;
+package org.systemf.compiler.lower.rv64gc.module.register;
 
 import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.value.DummyValue;

@@ -12,6 +12,7 @@ import org.systemf.compiler.lower.rv64gc.analysis.RVLiveRangeAnalysisResult;
 import org.systemf.compiler.lower.rv64gc.instruction.RVParallelMove;
 import org.systemf.compiler.lower.rv64gc.instruction.RVRegPlaceholder;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
+import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.*;
@@ -82,11 +83,12 @@ public enum RVInBlockSchedule {
 		private final Map<Instruction, Set<Instruction>> in = new HashMap<>();
 		private final Map<Instruction, Set<Instruction>> out = new HashMap<>();
 		private final Map<Value, Integer> dependants = new HashMap<>();
-		private final int[] pressure;
-		private final int[] bound;
+		private final Map<RVRegisterType, Integer> pressure;
+		private final Map<RVRegisterType, Integer> bound;
 		private int dfnCnt = 0;
 
-		public InstructionScheduler(Set<Value> input, Set<Value> output, List<Instruction> instructions, int[] bound) {
+		public InstructionScheduler(Set<Value> input, Set<Value> output, List<Instruction> instructions,
+				Map<RVRegisterType, Integer> bound) {
 			this.instructions = new ArrayList<>(instructions);
 			this.pressure = computePressure(input);
 			this.bound = bound;
@@ -99,10 +101,10 @@ public enum RVInBlockSchedule {
 			init();
 		}
 
-		private static int[] computePressure(Set<Value> input) {
-			int[] res = new int[RVRegUtil.REG_TYPE_CNT];
-			Arrays.fill(res, 0);
-			for (var val : input) ++res[RVRegUtil.regType(val)];
+		private static Map<RVRegisterType, Integer> computePressure(Set<Value> input) {
+			var res = new EnumMap<RVRegisterType, Integer>(RVRegisterType.class);
+			for (var type : RVRegisterType.values()) res.put(type, 0);
+			for (var val : input) res.computeIfPresent(RVRegUtil.regType(val), (_, x) -> x + 1);
 			return res;
 		}
 
@@ -155,7 +157,7 @@ public enum RVInBlockSchedule {
 			return in.get(inst).isEmpty();
 		}
 
-		private Instruction findReduce(LinkedList<Instruction> ready, int type) {
+		private Instruction findReduce(LinkedList<Instruction> ready, RVRegisterType type) {
 			for (var iter = ready.iterator(); iter.hasNext(); ) {
 				var inst = iter.next();
 				var flag = false;
@@ -189,7 +191,7 @@ public enum RVInBlockSchedule {
 				if (!(dep instanceof Value depVal)) continue;
 				if (!dependants.containsKey(depVal)) continue;
 				if (dependants.computeIfPresent(depVal, (_, x) -> x == 1 ? null : x - 1) == null)
-					--pressure[RVRegUtil.regType(depVal)];
+					pressure.computeIfPresent(RVRegUtil.regType(depVal), (_, x) -> x - 1);
 			}
 		}
 
@@ -199,14 +201,16 @@ public enum RVInBlockSchedule {
 			for (var inst : instructions) if (checkReady(inst)) ready.add(inst);
 			while (!ready.isEmpty()) {
 				Instruction inst = null;
-				for (int i = 0; i < pressure.length; i++)
-					if (bound[i] - pressure[i] < 3) {
-						var toReduce = findReduce(ready, i);
+				for (var entry : pressure.entrySet()) {
+					var regType = entry.getKey();
+					if (bound.get(regType) - entry.getValue() < 3) {
+						var toReduce = findReduce(ready, regType);
 						if (toReduce != null) {
 							inst = toReduce;
 							break;
 						}
 					}
+				}
 				if (inst == null) inst = ready.removeFirst();
 
 				res.add(inst);

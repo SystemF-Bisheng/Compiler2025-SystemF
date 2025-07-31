@@ -1,6 +1,6 @@
 package org.systemf.compiler.lower.rv64gc.module;
 
-import org.systemf.compiler.lower.rv64gc.value.RVFramePointer;
+import org.systemf.compiler.lower.rv64gc.module.register.RVFramePointer;
 
 public class RVStackState {
 	public final RVFramePointer fp = new RVFramePointer();

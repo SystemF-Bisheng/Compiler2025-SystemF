@@ -16,11 +16,13 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
+import org.systemf.compiler.lower.rv64gc.value.RVZero;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 import org.systemf.compiler.util.TriFunction;
 
+import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Optional;
 
@@ -79,10 +81,16 @@ public enum RVExplicitImm implements RVOptPass {
 
 		private Value loadImm(Constant constant) {
 			return switch (constant) {
-				case ConstantInt32 constI32 ->
-						(Value) insertBefore(new RVLoadImm((int) constI32.value, newName("imm")));
-				case ConstantInt64 constantI64 ->
-						(Value) insertBefore(new RVLoadImm(constantI64.value, newName("imm")));
+				case ConstantInt32 constI32 -> {
+					var value = (int) constI32.value;
+					if (value == 0) yield RVZero.INSTANCE;
+					yield (Value) insertBefore(new RVLoadImm(value, newName("imm")));
+				}
+				case ConstantInt64 constantI64 -> {
+					var value = constantI64.value;
+					if (value == 0) yield RVZero.INSTANCE;
+					yield (Value) insertBefore(new RVLoadImm(constantI64.value, newName("imm")));
+				}
 				case ConstantFloat constantFloat -> {
 					var intRep = new RVLoadImm(Float.floatToIntBits((float) constantFloat.value), newName("fImmInt"));
 					yield (Value) insertBefore(intRep, new RVMoveWord2Float(newName("fImm"), intRep));
@@ -228,6 +236,20 @@ public enum RVExplicitImm implements RVOptPass {
 			inst.setPointer(newPtr);
 			inst.offset = 0;
 			return true;
+		}
+
+		@Override
+		public Boolean visit(RVParallelMove inst) {
+			var oldMoves = new HashMap<>(inst.getMoves());
+			var res = false;
+			for (var entry : oldMoves.entrySet()) {
+				var to = entry.getKey();
+				var from = entry.getValue();
+				var newOpt = handleValue(from);
+				newOpt.ifPresent(newFrom -> inst.setMove(to, newFrom));
+				res |= newOpt.isPresent();
+			}
+			return res;
 		}
 	}
 }

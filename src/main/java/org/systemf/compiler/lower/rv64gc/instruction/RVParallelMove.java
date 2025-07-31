@@ -34,6 +34,13 @@ public class RVParallelMove extends DummyNonTerminal implements PotentialSideEff
 		moves.put(to, from);
 	}
 
+	public void setMove(Value to, Value from) {
+		if (!moves.containsKey(to)) throw new NoSuchElementException();
+		moves.get(to).unregisterDependant(this);
+		moves.put(to, from);
+		from.registerDependant(this);
+	}
+
 	public Map<Value, Value> getMoves() {
 		return Collections.unmodifiableMap(moves);
 	}

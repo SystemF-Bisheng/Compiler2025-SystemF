@@ -21,7 +21,7 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return null;
 	}
 
-	/// IR
+	/// Instruction template
 	public T visit(DummyBinary inst) {
 		return defaultValue();
 	}
@@ -42,6 +42,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
+	public T visit(DummyTriple inst) {
+		return defaultValue();
+	}
+
+	/// IR
 	@Override
 	public T visit(Add inst) {
 		return visit((DummyIntBinary) inst);
@@ -224,32 +229,32 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	/// RV64GC
 	@Override
 	public T visit(RVAdd inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVAddImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVAddWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVAddWordImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVAnd inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVAndImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	public T visit(RVCompBranch inst) {
@@ -268,92 +273,92 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(RVCvtWord2Float inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVCvtDWord2Float inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVCvtFloat2Word inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVCvtFloat2DWord inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVDiv inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVDivWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatAdd inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatDiv inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatEq inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatLe inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatLt inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatMul inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatMulAdd inst) {
-		return defaultValue();
+		return visit((DummyTriple) inst);
 	}
 
 	@Override
 	public T visit(RVFloatMulSub inst) {
-		return defaultValue();
+		return visit((DummyTriple) inst);
 	}
 
 	@Override
 	public T visit(RVFloatNeg inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVFloatNegMulAdd inst) {
-		return defaultValue();
+		return visit((DummyTriple) inst);
 	}
 
 	@Override
 	public T visit(RVFloatNegMulSub inst) {
-		return defaultValue();
+		return visit((DummyTriple) inst);
 	}
 
 	@Override
 	public T visit(RVFloatSub inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
@@ -387,97 +392,97 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(RVMul inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVMulWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVOr inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVOrImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVRem inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVRemWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVSetLessThan inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftLeft inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftLeftImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftLeftWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftLeftWordImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightArith inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightArithImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightArithWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightArithWordImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightLogical inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightLogicalImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightLogicalWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVShiftRightLogicalWordImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 
 	public T visit(RVStore inst) {
@@ -501,17 +506,17 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(RVSub inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVSubWord inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
 	public T visit(RVXor inst) {
-		return defaultValue();
+		return visit((DummyBinary) inst);
 	}
 
 	@Override
@@ -526,6 +531,6 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 
 	@Override
 	public T visit(RVXorImm inst) {
-		return defaultValue();
+		return visit((DummyUnary) inst);
 	}
 }

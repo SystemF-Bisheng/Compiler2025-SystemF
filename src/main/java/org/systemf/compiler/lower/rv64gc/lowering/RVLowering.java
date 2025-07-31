@@ -198,7 +198,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public RVLoweringResult run() {
 			translateModule();
 			oldModule.destroy();
-			return new RVLoweringResult(new RVModule(newModule, frequency, stacks));
+			return new RVLoweringResult(new RVModule(newModule, frequency, stacks, new HashMap<>()));
 		}
 
 		private void insertInstruction(Instruction instruction) {

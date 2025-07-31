@@ -1,22 +1,24 @@
 package org.systemf.compiler.lower.rv64gc.optimization.pass;
 
+import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
-import org.systemf.compiler.lower.rv64gc.analysis.RVDominanceAnalysisResult;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
-public enum RVMergeCommonValue implements RVOptPass {
+public enum RVInBlockMergeCommonValue implements RVOptPass {
 	INSTANCE;
 
-	private boolean processFunction(Function function) {
-		var query = QueryManager.getInstance();
-		var domTree = query.getAttribute(function, RVDominanceAnalysisResult.class).dominance();
-		var res = MergeHelper.handleFunction(function, domTree,
+	private boolean processBlock(BasicBlock block) {
+		return MergeHelper.handleInBlock(block,
 				val -> !(val instanceof PotentialNonRepeatable || val instanceof PotentialSideEffect));
-		if (res) query.invalidateAllAttributes(function);
+	}
+
+	private boolean processFunction(Function function) {
+		var res = function.getBlocks().stream().map(this::processBlock).reduce(false, (a, b) -> a || b);
+		if (res) QueryManager.getInstance().invalidateAllAttributes(function);
 		return res;
 	}
 

@@ -46,6 +46,57 @@ public class MergeHelper {
 		return res;
 	}
 
+	public static boolean mergeValuesInBlock(List<Pair<Integer, Value>> values) {
+		values.sort(Comparator.comparingInt(Pair::left));
+		var res = false;
+		Value lastValue = null;
+		for (var valInfo : values) {
+			var val = valInfo.right();
+			if (lastValue != null) {
+				val.replaceAllUsage(lastValue);
+				res = true;
+			} else lastValue = val;
+		}
+		return res;
+	}
+
+	public static boolean handleValuesInBlock(List<Pair<Integer, Value>> values) {
+		boolean res = false;
+		while (!values.isEmpty()) {
+			var iter = values.iterator();
+			var val = iter.next();
+			iter.remove();
+			var toMerge = new ArrayList<Pair<Integer, Value>>();
+			toMerge.add(val);
+			while (iter.hasNext()) {
+				var next = iter.next();
+				if (!val.right().contentEqual(next.right())) continue;
+				iter.remove();
+				toMerge.add(next);
+			}
+			res |= mergeValuesInBlock(toMerge);
+		}
+		return res;
+	}
+
+	public static boolean handleValuesInBlock(Map<Class<?>, List<Pair<Integer, Value>>> valueMap) {
+		return valueMap.values().stream().map(MergeHelper::handleValuesInBlock).reduce(false, (a, b) -> a || b);
+	}
+
+	public static boolean handleInBlock(BasicBlock block, Predicate<Value> valueFilter) {
+		var valueMap = new HashMap<Class<?>, List<Pair<Integer, Value>>>();
+
+		var index = 0;
+		for (var inst : block.instructions) {
+			if (!(inst instanceof Value val)) continue;
+			if (!valueFilter.test(val)) continue;
+			valueMap.computeIfAbsent(val.getClass(), _ -> new LinkedList<>()).add(Pair.of(index, val));
+			++index;
+		}
+
+		return handleValuesInBlock(valueMap);
+	}
+
 	public static boolean handleValues(Tree<BasicBlock> domTree, List<Pair<PositionInfo, Value>> values) {
 		boolean res = false;
 		while (!values.isEmpty()) {

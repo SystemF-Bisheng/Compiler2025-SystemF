@@ -32,7 +32,10 @@ public enum RVOptimizer implements EntityProvider<RVOptimizedResult> {
 
 	private void inBlockMerge(RVModule module) {
 		boolean flag = true;
-		while (flag) flag = RVInBlockMergeCommonValue.INSTANCE.run(module);
+		while (flag) {
+			flag = RVInBlockMergeCommonValue.INSTANCE.run(module);
+			flag |= RVRemoveUnusedValue.INSTANCE.run(module);
+		}
 	}
 
 	@Override

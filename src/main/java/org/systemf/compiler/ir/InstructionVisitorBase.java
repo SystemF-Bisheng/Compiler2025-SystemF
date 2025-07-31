@@ -356,6 +356,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 		return defaultValue();
 	}
 
+	@Override
+	public T visit(RVLoadAddress inst) {
+		return defaultValue();
+	}
+
 	public T visit(RVLoad inst) {
 		return defaultValue();
 	}
@@ -368,6 +373,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	@Override
 	public T visit(RVLoadFloat inst) {
 		return visit((RVLoad) inst);
+	}
+
+	@Override
+	public T visit(RVLoadImm inst) {
+		return defaultValue();
 	}
 
 	@Override

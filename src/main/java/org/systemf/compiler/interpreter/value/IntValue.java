@@ -2,12 +2,11 @@ package org.systemf.compiler.interpreter.value;
 
 public class IntValue implements ExecutionValue {
 	private static final IntValue[] cache = new IntValue[2049];
-	private int value;
+	private final int value;
 
 	public IntValue(int value) {
 		this.value = value;
 	}
-
 
 	@Override
 	public ExecutionValue clone() {

@@ -5,11 +5,13 @@ import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.value.Value;
 
 public abstract class DummyArray extends DummyConstant implements ConstantArray {
+	private final Array arrayType;
 	protected final Sized elementType;
 	protected final int size;
 
 	protected DummyArray(Sized elementType, int size) {
 		super(new Array(size, elementType));
+		this.arrayType = new Array(size, elementType);
 		this.elementType = elementType;
 		this.size = size;
 	}
@@ -29,5 +31,10 @@ public abstract class DummyArray extends DummyConstant implements ConstantArray 
 		if (!super.contentEqual(other)) return false;
 		var otherArray = (DummyArray) other;
 		return elementType.equals(otherArray.elementType) && size == otherArray.size;
+	}
+
+	@Override
+	public Array getType() {
+		return arrayType;
 	}
 }

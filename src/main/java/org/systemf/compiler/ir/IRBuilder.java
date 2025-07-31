@@ -75,7 +75,7 @@ public class IRBuilder implements AutoCloseable {
 		return new UnsizedArray(elementType);
 	}
 
-	public Undefined buildUndefined(Type type) {
+	public Undefined buildUndefined(Sized type) {
 		return Undefined.of(type);
 	}
 

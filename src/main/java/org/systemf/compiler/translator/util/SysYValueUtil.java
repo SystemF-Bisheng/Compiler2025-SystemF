@@ -57,7 +57,7 @@ public class SysYValueUtil {
 		if (type == SysYInt.INT) return content.getFirst();
 		if (type == SysYFloat.FLOAT) return content.getFirst();
 		if (type instanceof SysYArray)
-			return builder.buildConstantArray((Sized) content.getFirst().getType(), content.toArray(new Constant[0]));
+			return builder.buildConstantArray(content.getFirst().getType(), content.toArray(new Constant[0]));
 		throw new IllegalArgumentException("Invalid aggregate type " + type);
 	}
 

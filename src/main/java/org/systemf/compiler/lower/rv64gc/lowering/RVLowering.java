@@ -542,21 +542,67 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			return null;
 		}
 
-		private void processStore(Value src, Value dest, Type type, long offset) {
-			if (type instanceof Array arr) {
-				var overallSize = RVTypeHelper.sizeOf(arr);
-				var inner = arr.getElementType();
-				var step = RVTypeHelper.sizeOf(inner);
-				var srcArray = (ConstantArray) src;
-				if (srcArray instanceof ArrayZeroInitializer && overallSize >= 64) {
-					var offsetDest = new RVAdd(newName("storeAdd"), dest, ConstantInt64.valueOf(offset));
-					insertInstruction(offsetDest);
-					insertInstruction(new CallVoid(memZero, offsetDest, ConstantInt64.valueOf(overallSize)));
-				} else for (int i = 0; i < arr.length; ++i) {
-					var content = srcArray.getContent(i);
-					processStore(content, dest, inner, offset + step * i);
+		private void fullStoreArray(ConstantArray srcArray, Value dest, long offset) {
+			var inner = srcArray.getElementType();
+			var length = srcArray.getSize();
+			var step = RVTypeHelper.sizeOf(inner);
+			for (int i = 0; i < length; ++i) {
+				var content = srcArray.getContent(i);
+				processStore(content, dest, inner, offset + step * i);
+			}
+		}
+
+		private void zeroArray(long size, Value dest, long offset) {
+			var offsetDest = new RVAdd(newName("storeAdd"), dest, ConstantInt64.valueOf(offset));
+			insertInstruction(offsetDest);
+			insertInstruction(new CallVoid(memZero, offsetDest, ConstantInt64.valueOf(size)));
+		}
+
+		private long calcSparseSize(Constant constant) {
+			var type = constant.getType();
+			return switch (type) {
+				case I32 _, I64 _ -> ValueUtil.getConstantInt(constant) == 0 ? RVTypeHelper.sizeOf(type) : 0;
+				case Float _ -> ValueUtil.getConstantFloat(constant) == 0 ? RVTypeHelper.sizeOf(type) : 0;
+				case Array _ -> {
+					var constArr = (ConstantArray) constant;
+					if (constArr instanceof ArrayZeroInitializer) yield RVTypeHelper.sizeOf(type);
+					var length = constArr.getSize();
+					long res = 0;
+					for (int i = 0; i < length; ++i) res += calcSparseSize(constArr.getContent(i));
+					yield res;
 				}
-			} else {
+				case null, default -> throw new UnsupportedOperationException();
+			};
+		}
+
+		private void sparseStore(Constant src, Value dest, long offset) {
+			var type = src.getType();
+			if (calcSparseSize(src) == RVTypeHelper.sizeOf(type)) return;
+			if (src instanceof ConstantArray srcArray) {
+				var inner = srcArray.getElementType();
+				var length = srcArray.getSize();
+				var step = RVTypeHelper.sizeOf(inner);
+				for (int i = 0; i < length; ++i) {
+					var content = srcArray.getContent(i);
+					sparseStore(content, dest, offset + step * i);
+				}
+			} else processStore(src, dest, type, offset);
+		}
+
+		private double calcSparseRate(ConstantArray srcArray) {
+			return (double) calcSparseSize(srcArray) / RVTypeHelper.sizeOf(srcArray.getType());
+		}
+
+		private void storeArray(ConstantArray srcArray, Value dest, long offset) {
+			if (calcSparseRate(srcArray) >= 0.7) {
+				zeroArray(RVTypeHelper.sizeOf(srcArray.getType()), dest, offset);
+				sparseStore(srcArray, dest, offset);
+			} else fullStoreArray(srcArray, dest, offset);
+		}
+
+		private void processStore(Value src, Value dest, Type type, long offset) {
+			if (type instanceof Array) storeArray((ConstantArray) src, dest, offset);
+			else {
 				var newInst = switch (type) {
 					case I32 _ -> new RVStoreWord(src, dest, offset);
 					case I64 _ -> new RVStoreDWord(src, dest, offset);

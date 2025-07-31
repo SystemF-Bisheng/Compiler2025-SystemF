@@ -2,12 +2,11 @@ package org.systemf.compiler.interpreter.value;
 
 public class Int64Value implements ExecutionValue {
 	private static final Int64Value[] cache = new Int64Value[2049];
-	private long value;
+	private final long value;
 
 	public Int64Value(long value) {
 		this.value = value;
 	}
-
 
 	@Override
 	public ExecutionValue clone() {

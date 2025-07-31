@@ -1,9 +1,8 @@
 package org.systemf.compiler.interpreter;
 
-import org.systemf.compiler.interpreter.value.*;
+import org.systemf.compiler.interpreter.value.ExecutionValue;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 

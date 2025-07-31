@@ -13,6 +13,8 @@ import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyTriple;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
+import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
@@ -250,6 +252,27 @@ public enum RVExplicitImm implements RVOptPass {
 				res |= newOpt.isPresent();
 			}
 			return res;
+		}
+
+		@Override
+		public Boolean visit(AbstractCall inst) {
+			var args = inst.getArgs();
+			var res = false;
+			for (int i = 0; i < args.length; i++) {
+				var newArgOpt = handleValue(args[i]);
+				var finalI = i;
+				newArgOpt.ifPresent(newArg -> args[finalI] = newArg);
+				res |= newArgOpt.isPresent();
+			}
+			if (res) inst.setArgs(args);
+			return res;
+		}
+
+		@Override
+		public Boolean visit(Ret inst) {
+			var newRetOpt = handleValue(inst.getReturnValue());
+			newRetOpt.ifPresent(inst::setReturnValue);
+			return newRetOpt.isPresent();
 		}
 	}
 }

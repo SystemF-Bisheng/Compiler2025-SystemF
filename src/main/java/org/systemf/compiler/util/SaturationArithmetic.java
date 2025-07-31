@@ -24,9 +24,12 @@ public class SaturationArithmetic {
 	}
 
 	public static boolean isOverflow(long v, int width) {
-		if (width == 32) {
-			if (v > Integer.MAX_VALUE) return true;
-			return v < Integer.MIN_VALUE;
+		if (width < 64) {
+			--width;
+			var max = (1L << width) - 1;
+			var min = -(1L << width);
+			if (v > max) return true;
+			return v < min;
 		} else if (width == 64) return false;
 		throw new IllegalArgumentException("Unsupported width: " + width);
 	}

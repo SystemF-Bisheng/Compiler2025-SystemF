@@ -9,6 +9,7 @@ import org.systemf.compiler.util.Tree;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -52,5 +53,12 @@ public class CodeMotionHelper {
 		var term = instList.removeLast();
 		instList.addLast(inst);
 		instList.addLast(term);
+	}
+
+	public static Instruction insertBefore(ListIterator<Instruction> iterator, Instruction... newInst) {
+		iterator.previous();
+		for (var inst : newInst) iterator.add(inst);
+		iterator.next();
+		return newInst[newInst.length - 1];
 	}
 }

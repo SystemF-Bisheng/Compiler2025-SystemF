@@ -5,6 +5,7 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.ConstantInt32;
 import org.systemf.compiler.ir.value.constant.ConstantInt64;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
@@ -78,22 +79,6 @@ public enum RVReduceStrength implements RVOptPass {
 			return Optional.empty();
 		}
 
-		private Optional<Value> handleMul(DummyBinary inst) {
-			var y = inst.getY();
-			if (!ValueUtil.isConstantInt(y)) return Optional.empty();
-
-			var yVal = ValueUtil.getConstantInt(y);
-			if (yVal == 1) return Optional.of(inst.getX());
-
-			var yPow = MathUtil.checkPowerOfTwo(yVal);
-			if (yPow == -1) return Optional.empty();
-
-			var shl = new RVShiftLeft(module.getNonConflictName(inst.getName() + "Shl"), inst.getX(),
-					ConstantInt64.valueOf(yPow));
-			iterator.add(shl);
-			return Optional.of(shl);
-		}
-
 		@Override
 		public Optional<Value> visit(RVAdd inst) {
 			return handleAdd(inst);
@@ -104,14 +89,43 @@ public enum RVReduceStrength implements RVOptPass {
 			return handleAdd(inst);
 		}
 
+		private Optional<Integer> extractPow(Value y) {
+			if (!ValueUtil.isConstantInt(y)) return Optional.empty();
+
+			var yVal = ValueUtil.getConstantInt(y);
+			if (yVal <= 0) return Optional.empty();
+
+			var yPow = MathUtil.checkPowerOfTwo(yVal);
+			if (yPow == -1) return Optional.empty();
+			return Optional.of(yPow);
+		}
+
 		@Override
 		public Optional<Value> visit(RVMul inst) {
-			return handleMul(inst);
+			var y = inst.getY();
+			var powOpt = extractPow(y);
+			if (powOpt.isEmpty()) return Optional.empty();
+			int yPow = powOpt.get();
+			if (yPow == 0) return Optional.of(inst.getX());
+
+			var shl = new RVShiftLeft(module.getNonConflictName(inst.getName() + "Shl"), inst.getX(),
+					ConstantInt64.valueOf(yPow));
+			iterator.add(shl);
+			return Optional.of(shl);
 		}
 
 		@Override
 		public Optional<Value> visit(RVMulWord inst) {
-			return handleMul(inst);
+			var y = inst.getY();
+			var powOpt = extractPow(y);
+			if (powOpt.isEmpty()) return Optional.empty();
+			int yPow = powOpt.get();
+			if (yPow == 0) return Optional.of(inst.getX());
+
+			var shl = new RVShiftLeftWord(module.getNonConflictName(inst.getName() + "Shl"), inst.getX(),
+					ConstantInt32.valueOf(yPow));
+			iterator.add(shl);
+			return Optional.of(shl);
 		}
 	}
 }

@@ -423,17 +423,17 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 
 		@Override
 		public Void visit(Shl inst) {
-			return handleBinary(inst, RVShiftLeft::new);
+			return handleIntBinary(inst, RVShiftLeft::new, RVShiftLeftWord::new);
 		}
 
 		@Override
 		public Void visit(AShr inst) {
-			return handleBinary(inst, RVShiftRightArith::new);
+			return handleIntBinary(inst, RVShiftRightArith::new, RVShiftRightArithWord::new);
 		}
 
 		@Override
 		public Void visit(LShr inst) {
-			return handleBinary(inst, RVShiftRightLogical::new);
+			return handleIntBinary(inst, RVShiftRightLogical::new, RVShiftRightLogicalWord::new);
 		}
 
 		private Void handleUnary(DummyUnary inst, BiFunction<String, Value, Instruction> getInst) {

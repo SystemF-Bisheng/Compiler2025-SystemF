@@ -165,9 +165,15 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVShiftLeft inst);
 
+	T visit(RVShiftLeftWord inst);
+
 	T visit(RVShiftRightArith inst);
 
+	T visit(RVShiftRightArithWord inst);
+
 	T visit(RVShiftRightLogical inst);
+
+	T visit(RVShiftRightLogicalWord inst);
 
 	T visit(RVStoreDWord inst);
 

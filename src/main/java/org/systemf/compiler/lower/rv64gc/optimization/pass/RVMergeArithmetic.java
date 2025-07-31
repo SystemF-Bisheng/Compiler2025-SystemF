@@ -84,6 +84,11 @@ public enum RVMergeArithmetic implements RVOptPass {
 			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
 		}
 
+		@Override
+		public Boolean visit(RVShiftLeftWord inst) {
+			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+		}
+
 		private Optional<Pair<Value, Long>> extractOffset(Value ptr) {
 			if (!(ptr instanceof RVAdd ptrAdd)) return Optional.empty();
 			var addOffset = ptrAdd.getY();

@@ -396,12 +396,27 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVShiftLeftWord inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVShiftRightArith inst) {
 		return defaultValue();
 	}
 
 	@Override
+	public T visit(RVShiftRightArithWord inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVShiftRightLogical inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftRightLogicalWord inst) {
 		return defaultValue();
 	}
 

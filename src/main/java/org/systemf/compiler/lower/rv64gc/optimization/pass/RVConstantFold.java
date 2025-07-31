@@ -85,5 +85,10 @@ public enum RVConstantFold implements RVOptPass {
 		public Optional<Constant> visit(RVShiftLeft inst) {
 			return handleBinary64(inst, (x, y) -> x << y);
 		}
+
+		@Override
+		public Optional<Constant> visit(RVShiftLeftWord inst) {
+			return handleBinary32(inst, (x, y) -> x << y);
+		}
 	}
 }

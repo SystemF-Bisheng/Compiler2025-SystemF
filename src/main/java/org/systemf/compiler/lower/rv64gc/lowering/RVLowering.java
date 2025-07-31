@@ -16,10 +16,7 @@ import org.systemf.compiler.ir.type.interfaces.Indexable;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.constant.Constant;
-import org.systemf.compiler.ir.value.constant.ConstantArray;
-import org.systemf.compiler.ir.value.constant.ConstantInt64;
-import org.systemf.compiler.ir.value.constant.Undefined;
+import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
@@ -86,6 +83,8 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		private Function curFunction;
 		private BasicBlock curBlock;
 		private RVStackState curStack;
+
+		private ExternalFunction memZero;
 
 		public RVLoweringContext(Module oldModule) {
 			this.oldModule = oldModule;
@@ -182,9 +181,16 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			stacks.put(newFunc, new RVStackState());
 		}
 
+		private void addIntrinsicFunctions() {
+			memZero = new ExternalFunction("_rv64gc_memzero",
+					new FunctionType(Void.INSTANCE, I64.INSTANCE, I64.INSTANCE));
+			newModule.addExternalFunction(memZero);
+		}
+
 		private void translateModule() {
 			oldModule.getGlobalDeclarations().values().forEach(this::produceNewGlobal);
 			oldModule.getExternalFunctions().values().forEach(this::produceNewExternal);
+			addIntrinsicFunctions();
 			oldModule.getFunctions().values().forEach(this::produceNewFunction);
 			newFunctions.forEach(this::translateFunction);
 		}
@@ -538,10 +544,15 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 
 		private void processStore(Value src, Value dest, Type type, long offset) {
 			if (type instanceof Array arr) {
+				var overallSize = RVTypeHelper.sizeOf(arr);
 				var inner = arr.getElementType();
 				var step = RVTypeHelper.sizeOf(inner);
 				var srcArray = (ConstantArray) src;
-				for (int i = 0; i < arr.length; ++i) {
+				if (srcArray instanceof ArrayZeroInitializer && overallSize >= 64) {
+					var offsetDest = new RVAdd(newName("storeAdd"), dest, ConstantInt64.valueOf(offset));
+					insertInstruction(offsetDest);
+					insertInstruction(new CallVoid(memZero, offsetDest, ConstantInt64.valueOf(overallSize)));
+				} else for (int i = 0; i < arr.length; ++i) {
 					var content = srcArray.getContent(i);
 					processStore(content, dest, inner, offset + step * i);
 				}

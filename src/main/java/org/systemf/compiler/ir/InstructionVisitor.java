@@ -210,4 +210,6 @@ public interface InstructionVisitor<T> {
 	T visit(RVSubWord inst);
 
 	T visit(RVXor inst);
+
+	T visit(RVXorImm inst);
 }

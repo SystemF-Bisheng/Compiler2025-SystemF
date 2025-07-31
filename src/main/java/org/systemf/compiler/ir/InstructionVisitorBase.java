@@ -523,4 +523,9 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	public T visit(RVRegPlaceholder inst) {
 		return defaultValue();
 	}
+
+	@Override
+	public T visit(RVXorImm inst) {
+		return defaultValue();
+	}
 }

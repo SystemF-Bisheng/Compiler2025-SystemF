@@ -4,6 +4,7 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.type.I64;
+import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -51,5 +52,11 @@ public class RVLoadAddress extends DummyValueNonTerminal {
 	@Override
 	public void unregister() {
 		if (global != null) global.unregisterDependant(this);
+	}
+
+	@Override
+	public boolean contentEqual(Value other) {
+		if (!(other instanceof RVLoadAddress otherAddress)) return false;
+		return global == otherAddress.global;
 	}
 }

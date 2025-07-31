@@ -533,4 +533,9 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	public T visit(RVXorImm inst) {
 		return visit((DummyUnary) inst);
 	}
+
+	@Override
+	public T visit(RVMoveWord2Float inst) {
+		return visit((DummyUnary) inst);
+	}
 }

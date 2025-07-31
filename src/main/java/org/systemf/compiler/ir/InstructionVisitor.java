@@ -157,6 +157,8 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVLoadWord inst);
 
+	T visit(RVMoveWord2Float inst);
+
 	T visit(RVMul inst);
 
 	T visit(RVMulWord inst);

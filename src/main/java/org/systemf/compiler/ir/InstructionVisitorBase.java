@@ -228,12 +228,27 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVAddImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVAddWord inst) {
 		return defaultValue();
 	}
 
 	@Override
+	public T visit(RVAddWordImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVAnd inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVAndImm inst) {
 		return defaultValue();
 	}
 
@@ -376,6 +391,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVOrImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVRem inst) {
 		return defaultValue();
 	}
@@ -396,7 +416,17 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVShiftLeftImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVShiftLeftWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftLeftWordImm inst) {
 		return defaultValue();
 	}
 
@@ -406,7 +436,17 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVShiftRightArithImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVShiftRightArithWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftRightArithWordImm inst) {
 		return defaultValue();
 	}
 
@@ -416,7 +456,17 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVShiftRightLogicalImm inst) {
+		return defaultValue();
+	}
+
+	@Override
 	public T visit(RVShiftRightLogicalWord inst) {
+		return defaultValue();
+	}
+
+	@Override
+	public T visit(RVShiftRightLogicalWordImm inst) {
 		return defaultValue();
 	}
 

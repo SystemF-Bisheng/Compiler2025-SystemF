@@ -97,9 +97,15 @@ public interface InstructionVisitor<T> {
 	/// RV64GC
 	T visit(RVAdd inst);
 
+	T visit(RVAddImm inst);
+
 	T visit(RVAddWord inst);
 
+	T visit(RVAddWordImm inst);
+
 	T visit(RVAnd inst);
+
+	T visit(RVAndImm inst);
 
 	T visit(RVBranchEq inst);
 
@@ -153,6 +159,8 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVOr inst);
 
+	T visit(RVOrImm inst);
+
 	T visit(RVParallelMove inst);
 
 	T visit(RVRegPlaceholder inst);
@@ -165,15 +173,27 @@ public interface InstructionVisitor<T> {
 
 	T visit(RVShiftLeft inst);
 
+	T visit(RVShiftLeftImm inst);
+
 	T visit(RVShiftLeftWord inst);
+
+	T visit(RVShiftLeftWordImm inst);
 
 	T visit(RVShiftRightArith inst);
 
+	T visit(RVShiftRightArithImm inst);
+
 	T visit(RVShiftRightArithWord inst);
+
+	T visit(RVShiftRightArithWordImm inst);
 
 	T visit(RVShiftRightLogical inst);
 
+	T visit(RVShiftRightLogicalImm inst);
+
 	T visit(RVShiftRightLogicalWord inst);
+
+	T visit(RVShiftRightLogicalWordImm inst);
 
 	T visit(RVStoreDWord inst);
 

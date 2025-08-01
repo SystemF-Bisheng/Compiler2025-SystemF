@@ -2,6 +2,7 @@ package org.systemf.compiler.lower.rv64gc;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.lower.rv64gc.allocate.RVAllocatedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
@@ -107,6 +108,8 @@ public class RVAllocationTest {
 				
 				""");
 		query.registerProvider(CharStream.class, () -> code);
-		query.get(RVAllocatedResult.class).module().module().dump(System.out);
+		var rvModule = query.get(RVAllocatedResult.class).module();
+		rvModule.module().dump(System.out);
+		rvModule.position().forEach((val, pos) -> System.out.printf("%s: %s\n", ValueUtil.dumpIdentifier(val), pos));
 	}
 }

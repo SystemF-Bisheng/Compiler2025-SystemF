@@ -7,12 +7,12 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.PotentialSequential;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
-import org.systemf.compiler.lower.rv64gc.allocate.util.RVRegUtil;
 import org.systemf.compiler.lower.rv64gc.analysis.RVLiveRangeAnalysisResult;
 import org.systemf.compiler.lower.rv64gc.instruction.RVParallelMove;
 import org.systemf.compiler.lower.rv64gc.instruction.RVRegPlaceholder;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
+import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.*;
@@ -59,7 +59,7 @@ public enum RVInBlockSchedule {
 				} else body.add(inst);
 			}
 
-			var newBody = new InstructionScheduler(input, output, body, RVRegUtil.AVAILABLE_CNT).schedule();
+			var newBody = new InstructionScheduler(input, output, liveRange, body, RVRegUtil.AVAILABLE_CNT).schedule();
 			instructions.addAll(head);
 			instructions.addAll(newBody);
 			instructions.addAll(tail);
@@ -85,10 +85,12 @@ public enum RVInBlockSchedule {
 		private final Map<Value, Integer> dependants = new HashMap<>();
 		private final Map<RVRegisterType, Integer> pressure;
 		private final Map<RVRegisterType, Integer> bound;
+		private final RVLiveRangeAnalysisResult liveRange;
 		private int dfnCnt = 0;
 
-		public InstructionScheduler(Set<Value> input, Set<Value> output, List<Instruction> instructions,
-				Map<RVRegisterType, Integer> bound) {
+		public InstructionScheduler(Set<Value> input, Set<Value> output, RVLiveRangeAnalysisResult liveRange,
+				List<Instruction> instructions, Map<RVRegisterType, Integer> bound) {
+			this.liveRange = liveRange;
 			this.instructions = new ArrayList<>(instructions);
 			this.pressure = computePressure(input);
 			this.bound = bound;
@@ -163,9 +165,9 @@ public enum RVInBlockSchedule {
 				var flag = false;
 				for (var dep : inst.getDependency()) {
 					if (!(dep instanceof Value depVal)) continue;
-					if (RVRegUtil.regType(depVal) != type) continue;
 					var cnt = dependants.get(depVal);
 					if (cnt == null) continue;
+					if (RVRegUtil.regType(depVal) != type) continue;
 					if (cnt == 1) {
 						flag = true;
 						break;
@@ -186,6 +188,9 @@ public enum RVInBlockSchedule {
 				if (checkReady(nxt)) ready.add(nxt);
 			});
 			out.remove(inst);
+
+			if (inst instanceof Value val && !liveRange.aliveBeforeInst(val).isEmpty())
+				pressure.computeIfPresent(RVRegUtil.regType(val), (_, x) -> x + 1);
 
 			for (var dep : inst.getDependency()) {
 				if (!(dep instanceof Value depVal)) continue;

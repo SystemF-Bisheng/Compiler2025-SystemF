@@ -1,4 +1,4 @@
-package org.systemf.compiler.lower.rv64gc.module;
+package org.systemf.compiler.lower.rv64gc.module.stack;
 
 import org.systemf.compiler.lower.rv64gc.module.register.RVFramePointer;
 

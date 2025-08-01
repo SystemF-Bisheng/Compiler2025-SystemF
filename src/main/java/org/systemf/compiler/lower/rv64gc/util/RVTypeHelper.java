@@ -1,4 +1,4 @@
-package org.systemf.compiler.lower.rv64gc.lowering;
+package org.systemf.compiler.lower.rv64gc.util;
 
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;

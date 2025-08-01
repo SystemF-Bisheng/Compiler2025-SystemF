@@ -22,6 +22,9 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 		private final Function function;
 		private final RVCFGAnalysisResult cfg;
 		private final Map<Instruction, Set<Value>> aliveBefore = new HashMap<>();
+		private final Map<Instruction, Set<Value>> aliveAfter = new HashMap<>();
+		private final Map<Value, Set<Instruction>> aliveBeforeInst = new HashMap<>();
+		private final Map<Instruction, List<Instruction>> instSuccs = new HashMap<>();
 		private final Map<Instruction, List<Instruction>> instPred = new HashMap<>();
 
 		public RVLiveRangeAnalysisContext(Function function) {
@@ -32,6 +35,7 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 		private void markAlive(Instruction inst, Value value, Instruction stopOn) {
 			if (inst == stopOn) return;
 			if (!aliveBefore.get(inst).add(value)) return;
+			aliveBeforeInst.computeIfAbsent(value, _ -> new HashSet<>()).add(inst);
 			instPred.get(inst).forEach(pred -> markAlive(pred, value, stopOn));
 		}
 
@@ -54,6 +58,23 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 					lastInst = inst;
 				}
 			}
+			for (var block : function.getBlocks()) {
+				var succBegins = cfg.successors(block).stream().map(BasicBlock::getFirstInstruction).toList();
+				Instruction lastInst = null;
+				for (var inst : block.instructions) {
+					if (lastInst != null) instSuccs.put(lastInst, List.of(inst));
+					lastInst = inst;
+				}
+				instSuccs.put(block.getTerminator(), succBegins);
+			}
+		}
+
+		private void collectAliveAfter() {
+			instSuccs.forEach((inst, succs) -> {
+				var after = new HashSet<Value>();
+				aliveAfter.put(inst, after);
+				for (var succ : succs) after.addAll(aliveBefore.getOrDefault(succ, Collections.emptySet()));
+			});
 		}
 
 		public RVLiveRangeAnalysisResult run() {
@@ -61,7 +82,8 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 			for (var parameter : function.getFormalArgs()) markAlive(parameter, null);
 			function.allInstructions().filter(inst -> inst instanceof Value)
 					.forEach(inst -> markAlive((Value) inst, inst));
-			return new RVLiveRangeAnalysisResult(aliveBefore);
+			collectAliveAfter();
+			return new RVLiveRangeAnalysisResult(aliveBefore, aliveBeforeInst, aliveAfter);
 		}
 	}
 }

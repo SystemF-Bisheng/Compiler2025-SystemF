@@ -17,6 +17,9 @@ import java.util.*;
 public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAnalysisResult> {
 	INSTANCE;
 
+	public static final int BASE_FREQUENCY = 16;
+	public static final int LOOP_SCALE = 8;
+
 	@Override
 	public FrequencyAnalysisResult getAttribute(Function entity) {
 		return new FrequencyAnalysisContext(entity).run();
@@ -31,8 +34,8 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 		private final Map<BasicBlock, Integer> frequency = new HashMap<>();
 		private final Map<BasicBlock, Map<BasicBlock, Integer>> distribute = new HashMap<>();
 		private final Map<BasicBlock, Integer> loopOccur = new HashMap<>();
-		private Set<BasicBlock> curLoop;
 		private final Set<BasicBlock> curBreak = new HashSet<>();
+		private Set<BasicBlock> curLoop;
 
 		public FrequencyAnalysisContext(Function function) {
 			this.function = function;
@@ -101,7 +104,7 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 		}
 
 		private void handleLoop(BasicBlock head, Set<BasicBlock> loop, boolean occurs) {
-			var headNew = SaturationArithmetic.saturatedMul(frequency.getOrDefault(head, 0), 8);
+			var headNew = SaturationArithmetic.saturatedMul(frequency.getOrDefault(head, 0), LOOP_SCALE);
 			if (occurs) loop.forEach(this::removeOccur);
 			loop.forEach(frequency::remove);
 			frequency.put(head, headNew);
@@ -117,12 +120,12 @@ public enum FrequencyAnalysis implements AttributeProvider<Function, FrequencyAn
 
 		private void initFrequency() {
 			var entry = function.getEntryBlock();
-			frequency.put(entry, 2);
+			frequency.put(entry, BASE_FREQUENCY / LOOP_SCALE);
 			handleLoop(entry, function.getBlocks(), false);
 		}
 
 		private void fillFrequency() {
-			function.getBlocks().forEach(block -> frequency.putIfAbsent(block, 16));
+			function.getBlocks().forEach(block -> frequency.putIfAbsent(block, BASE_FREQUENCY));
 		}
 
 		private void processBlock(BasicBlock block) {

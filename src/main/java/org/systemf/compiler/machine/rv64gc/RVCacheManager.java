@@ -128,6 +128,7 @@ public class RVCacheManager {
 				res = alloc(out);
 				pos.load(res.pos, out);
 			}
+			res.locked = true;
 			res.cached = pos;
 			return res;
 		}
@@ -138,6 +139,7 @@ public class RVCacheManager {
 				invalidate(pos.position(), out);
 				res = alloc(out);
 			}
+			res.locked = true;
 			res.dirty = true;
 			res.cached = pos;
 			return res;

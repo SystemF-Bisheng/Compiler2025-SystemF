@@ -218,20 +218,20 @@ public class RVGenerateHelper {
 			var id = typeCnt.get(regType);
 			typeCnt.computeIfPresent(regType, (_, cnt) -> cnt + 1);
 
-			if (pos == null) continue;
 			var paramRegs = RVRegUtil.PARAMETER_REGISTERS.get(regType);
 			if (paramRegs.size() <= id) {
 				inStack.add(param);
 				continue;
 			}
+			if (pos == null) continue;
 			parMove.put(pos, pos.with(new RVRegister(regType, paramRegs.get(id))));
 		}
 		parallelMove(parMove, cacheManager, out);
 
 		long offset = 0;
 		for (var param : inStack) {
-			var pos = Objects.requireNonNull(typedPositionOf(rvModule, param));
-			loadFromSp(pos, offset, cacheManager, out);
+			var pos = typedPositionOf(rvModule, param);
+			if (pos != null) loadFromSp(pos, offset, cacheManager, out);
 			offset += RVRegUtil.REG_SIZE;
 		}
 	}

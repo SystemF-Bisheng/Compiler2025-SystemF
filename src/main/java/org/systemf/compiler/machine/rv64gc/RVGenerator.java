@@ -369,13 +369,17 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			return null;
 		}
 
-		private Void handleUnary(DummyUnary inst, String operator) {
+		private Void handleUnary(DummyUnary inst, String operator, String suffix) {
 			var regX = loadRegister(inst.getX());
 			cacheManager.unlock(regX);
 			var regCur = currentRegister(inst);
-			result.addLine(String.format("%s %s, %s", operator, regCur, regX));
+			result.addLine(String.format("%s %s, %s%s", operator, regCur, regX, suffix));
 			cacheManager.unlock(regCur);
 			return null;
+		}
+
+		private Void handleUnary(DummyUnary inst, String operator) {
+			return handleUnary(inst, operator, "");
 		}
 
 		private Void handleTriple(DummyTriple inst, String operator) {
@@ -433,12 +437,12 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 
 		@Override
 		public Void visit(RVCvtFloat2Word inst) {
-			return handleUnary(inst, "fcvt.w.s");
+			return handleUnary(inst, "fcvt.w.s", ", rtz");
 		}
 
 		@Override
 		public Void visit(RVCvtFloat2DWord inst) {
-			return handleUnary(inst, "fcvt.l.s");
+			return handleUnary(inst, "fcvt.l.s", ", rtz");
 		}
 
 		@Override

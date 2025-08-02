@@ -11,4 +11,16 @@ public class MathUtil {
 		if (val == 1) return res;
 		return -1;
 	}
+
+	public static int roundTo(int val, int d) {
+		var mod = val % d;
+		if (mod == 0) return val;
+		return val + (d - mod);
+	}
+
+	public static long roundTo(long val, long d) {
+		var mod = val % d;
+		if (mod == 0) return val;
+		return val + (d - mod);
+	}
 }

@@ -19,6 +19,7 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
 import org.systemf.compiler.lower.rv64gc.module.register.RVZero;
+import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
@@ -37,7 +38,6 @@ public enum RVExplicitImm implements RVOptPass {
 	}
 
 	private static class RVExplicitImmContext extends InstructionVisitorBase<Boolean> {
-		private static final int IMM_WIDTH = 12;
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private ListIterator<Instruction> iterator;
@@ -144,10 +144,19 @@ public enum RVExplicitImm implements RVOptPass {
 			var y = inst.getY();
 			if (!ValueUtil.isConstantInt(y)) return false;
 			var yVal = ValueUtil.getConstantInt(y);
-			if (SaturationArithmetic.isOverflow(yVal, IMM_WIDTH)) return false;
+			if (SaturationArithmetic.isOverflow(yVal, RVRegUtil.IMM_WIDTH)) return false;
 			var newInst = immProducer.apply(inst.getName(), inst.getX(), yVal);
 			replaceInstruction(inst, newInst);
 			return true;
+		}
+
+		@Override
+		public Boolean visit(RVCompBranch inst) {
+			var xOpt = handleValue(inst.getX());
+			xOpt.ifPresent(inst::setX);
+			var yOpt = handleValue(inst.getY());
+			yOpt.ifPresent(inst::setY);
+			return xOpt.isPresent() || yOpt.isPresent();
 		}
 
 		@Override
@@ -218,20 +227,28 @@ public enum RVExplicitImm implements RVOptPass {
 
 		@Override
 		public Boolean visit(RVStore inst) {
+			var res = false;
 			var offset = inst.offset;
-			if (!SaturationArithmetic.isOverflow(offset, IMM_WIDTH)) return false;
-			var offsetVal = new RVLoadImm(offset, newName("storeOffset"));
-			var newDest = new RVAdd(newName("storeDest"), inst.getDest(), offsetVal);
-			insertBefore(offsetVal, newDest);
-			inst.setDest(newDest);
-			inst.offset = 0;
-			return true;
+			if (SaturationArithmetic.isOverflow(offset, RVRegUtil.IMM_WIDTH)) {
+				var offsetVal = new RVLoadImm(offset, newName("storeOffset"));
+				var newDest = new RVAdd(newName("storeDest"), inst.getDest(), offsetVal);
+				insertBefore(offsetVal, newDest);
+				inst.setDest(newDest);
+				inst.offset = 0;
+				res = true;
+			}
+
+			var srcOpt = handleValue(inst.getSrc());
+			srcOpt.ifPresent(inst::setSrc);
+			res |= srcOpt.isPresent();
+
+			return res;
 		}
 
 		@Override
 		public Boolean visit(RVLoad inst) {
 			var offset = inst.offset;
-			if (!SaturationArithmetic.isOverflow(offset, IMM_WIDTH)) return false;
+			if (!SaturationArithmetic.isOverflow(offset, RVRegUtil.IMM_WIDTH)) return false;
 			var offsetVal = new RVLoadImm(offset, newName("loadOffset"));
 			var newPtr = new RVAdd(newName("loadPtr"), inst.getPointer(), offsetVal);
 			insertBefore(offsetVal, newPtr);

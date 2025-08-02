@@ -1,5 +1,6 @@
 package org.systemf.compiler.lower.rv64gc.allocate.pass;
 
+import org.systemf.compiler.analysis.FrequencyAnalysis;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -31,6 +32,7 @@ public enum RVRegAlloc {
 	}
 
 	private static class RVRegAllocContext {
+		private static final int NON_SAVED_PRIORITY_THRESHOLD = FrequencyAnalysis.BASE_FREQUENCY * 4;
 		private final QueryManager query = QueryManager.getInstance();
 		private final Map<Value, RVPosition> position;
 		private final Map<Function, RVStackState> stacks;
@@ -109,7 +111,15 @@ public enum RVRegAlloc {
 			while (!colorVals.isEmpty()) {
 				RVPosition pos;
 				int color;
-				if (!leftSaved.isEmpty()) {
+				if (!leftNonSaved.isEmpty() &&
+				    colorVals.keySet().stream().anyMatch(col -> saveCostSum.get(col) <= NON_SAVED_PRIORITY_THRESHOLD)) {
+					var regIndex = leftNonSaved.iterator().next();
+					leftNonSaved.remove(regIndex);
+					pos = new RVRegister(regType, regIndex);
+					color = colorVals.keySet().stream()
+							.filter(col -> saveCostSum.get(col) <= NON_SAVED_PRIORITY_THRESHOLD)
+							.max(Comparator.comparingInt(spillCostSum::get)).orElseThrow();
+				} else if (!leftSaved.isEmpty()) {
 					var regIndex = leftSaved.iterator().next();
 					leftSaved.remove(regIndex);
 					pos = new RVRegister(regType, regIndex);

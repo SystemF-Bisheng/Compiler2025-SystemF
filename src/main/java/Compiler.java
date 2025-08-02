@@ -1,7 +1,7 @@
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.systemf.compiler.interpreter.IRInterpreter;
-import org.systemf.compiler.lower.rv64gc.allocate.RVAllocatedResult;
+import org.systemf.compiler.machine.rv64gc.RVMachineCodeResult;
 import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.query.QueryRegistry;
@@ -20,10 +20,11 @@ public class Compiler {
 		var input = CharStreams.fromFileName(compileArgument.inputFilePath());
 		query.registerProvider(CharStream.class, () -> input);
 
-		if (compileArgument.outputFilePath() != null) {
-			var module = query.get(RVAllocatedResult.class).module().module();
-			module.dump(new PrintStream(compileArgument.outputFilePath()));
-		} else {
+		if (compileArgument.outputFilePath() != null)
+			try (var stream = new PrintStream(compileArgument.outputFilePath())) {
+				stream.print(query.get(RVMachineCodeResult.class).code());
+			}
+		else {
 			var module = query.get(OptimizedResult.class).module();
 			IRInterpreter irInterpreter = new IRInterpreter();
 			Scanner scanner = new Scanner(System.in);

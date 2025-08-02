@@ -1,6 +1,7 @@
 package org.systemf.compiler.lower.rv64gc.module.stack;
 
 import org.systemf.compiler.lower.rv64gc.module.register.RVFramePointer;
+import org.systemf.compiler.util.MathUtil;
 
 public class RVStackState {
 	public final RVFramePointer fp = new RVFramePointer();
@@ -14,9 +15,7 @@ public class RVStackState {
 	}
 
 	public void pad(long alignment) {
-		var mod = curSize % alignment;
-		if (mod == 0) return;
-		curSize += alignment - mod;
+		curSize = MathUtil.roundTo(curSize, alignment);
 	}
 
 	public long getSize() {

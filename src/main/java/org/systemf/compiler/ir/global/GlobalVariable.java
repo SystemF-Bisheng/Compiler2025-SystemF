@@ -1,24 +1,25 @@
 package org.systemf.compiler.ir.global;
 
 import org.systemf.compiler.ir.type.Pointer;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.DummyValue;
 import org.systemf.compiler.ir.value.constant.Constant;
 
 public class GlobalVariable extends DummyValue implements IGlobal {
-	public final Type valueType;
+	public final Sized valueType;
 	private final String name;
 	private Constant initializer;
 
-	public GlobalVariable(String name, Type type, Constant initializer) {
+	public GlobalVariable(String name, Sized type, Constant initializer) {
 		super(new Pointer(type));
 		this.name = name;
 		this.valueType = type;
 		setInitializer(initializer);
 	}
 
-	public GlobalVariable(String name, Type type, Constant initializer, Type ptrType) {
+	public GlobalVariable(String name, Sized type, Constant initializer, Type ptrType) {
 		super(ptrType);
 		this.name = name;
 		this.valueType = type;

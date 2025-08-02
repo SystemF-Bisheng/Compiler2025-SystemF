@@ -8,5 +8,6 @@ public class RVAnalysisQueryRegistry {
 		query.registerProvider(RVCFGAnalysis.INSTANCE);
 		query.registerProvider(RVDominanceAnalysis.INSTANCE);
 		query.registerProvider(RVLiveRangeAnalysis.INSTANCE);
+		query.registerProvider(RVRegUsageAnalysis.INSTANCE);
 	}
 }

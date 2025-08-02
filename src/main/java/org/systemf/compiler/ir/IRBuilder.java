@@ -105,7 +105,7 @@ public class IRBuilder implements AutoCloseable {
 		return new ArrayZeroInitializer(elementType, size);
 	}
 
-	public GlobalVariable buildGlobalVariable(String name, Type type, Constant initializer) {
+	public GlobalVariable buildGlobalVariable(String name, Sized type, Constant initializer) {
 		GlobalVariable declaration = new GlobalVariable(name, type, initializer);
 		module.addGlobalVariable(declaration);
 		return declaration;

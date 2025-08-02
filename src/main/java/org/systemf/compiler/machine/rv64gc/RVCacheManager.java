@@ -28,6 +28,12 @@ public class RVCacheManager {
 		return res.pos;
 	}
 
+	public RVRegister allocLoad(RVTypedPosition pos, RVAsmCode out) {
+		var res = tempRegs.get(RVRegUtil.regType(pos.type())).allocForLoad(pos, out);
+		locked.add(res);
+		return res.pos;
+	}
+
 	public RVRegister allocForStore(RVTypedPosition pos, RVAsmCode out) {
 		if (pos.position() instanceof RVRegister reg) return reg;
 		var res = tempRegs.get(RVRegUtil.regType(pos.type())).allocForStore(pos, out);

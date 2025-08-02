@@ -190,7 +190,11 @@ public class RVGenerateHelper {
 			} else { // Disconnect a loop: copy one node and redirect all out edges
 				var toDis = inMap.keySet().iterator().next();
 				var toDisTyped = inMap.get(toDis);
-				var toDisCopy = cacheManager.allocLoad(toDisTyped, out);
+				var toDisLoad = cacheManager.load(toDisTyped, out);
+				cacheManager.unlock(toDisLoad);
+				var toDisCopy = cacheManager.alloc(RVRegUtil.regType(toDisTyped.type()), out);
+				moveRegister(toDisCopy, toDisLoad, out);
+
 				for (var entry : moves.entrySet()) {
 					var value = entry.getValue();
 					if (!toDis.equals(value.position())) continue;

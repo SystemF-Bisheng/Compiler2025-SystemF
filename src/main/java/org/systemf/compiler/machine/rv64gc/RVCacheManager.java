@@ -4,6 +4,7 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
+import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
 
 import java.util.*;
 
@@ -23,12 +24,6 @@ public class RVCacheManager {
 
 	public RVRegister load(RVTypedPosition pos, RVAsmCode out) {
 		if (pos.position() instanceof RVRegister reg) return reg;
-		var res = tempRegs.get(RVRegUtil.regType(pos.type())).allocForLoad(pos, out);
-		locked.add(res);
-		return res.pos;
-	}
-
-	public RVRegister allocLoad(RVTypedPosition pos, RVAsmCode out) {
 		var res = tempRegs.get(RVRegUtil.regType(pos.type())).allocForLoad(pos, out);
 		locked.add(res);
 		return res.pos;
@@ -81,11 +76,11 @@ public class RVCacheManager {
 			var oldClock = clock;
 			do {
 				var candidate = regs.get(clock);
+				clock = (clock + 1) % regs.size();
 				if (!candidate.locked) {
 					res = candidate;
 					break;
 				}
-				clock = (clock + 1) % regs.size();
 			} while (clock != oldClock);
 			if (res == null) throw new IllegalStateException("No enough temporary registers");
 
@@ -114,7 +109,15 @@ public class RVCacheManager {
 		}
 
 		private RVTempReg find(RVTypedPosition pos) {
-			for (var reg : regs) if (pos.equals(reg.cached)) return reg;
+			var targetPosition = pos.position();
+			var targetSize = RVTypeHelper.sizeOf(pos.type());
+			for (var reg : regs) {
+				var cached = reg.cached;
+				if (cached == null) continue;
+				if (!targetPosition.equals(cached.position())) continue;
+				if (RVTypeHelper.sizeOf(cached.type()) < targetSize) continue;
+				return reg;
+			}
 			return null;
 		}
 

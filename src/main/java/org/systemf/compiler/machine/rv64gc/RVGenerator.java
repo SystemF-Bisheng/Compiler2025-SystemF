@@ -317,6 +317,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			size = MathUtil.roundTo(size, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
 			RVGenerateHelper.subtractSp(size, result);
 			RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
+			cacheManager.invalidateAll(result);
 
 			result.addLine(String.format("call %s", ((IFunction) inst.getFunction()).getName()));
 

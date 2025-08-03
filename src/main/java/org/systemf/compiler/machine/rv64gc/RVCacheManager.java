@@ -9,8 +9,8 @@ import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
 import java.util.*;
 
 public class RVCacheManager {
-	private final Map<RVRegisterType, RVTempRegList> tempRegs = new HashMap<>();
-	private final Set<RVTempReg> locked = new HashSet<>();
+	private final Map<RVRegisterType, RVTempRegList> tempRegs = new EnumMap<>(RVRegisterType.class);
+	private final Set<RVTempReg> locked = new LinkedHashSet<>();
 
 	public RVCacheManager() {
 		for (var type : RVRegisterType.values()) tempRegs.put(type, new RVTempRegList(type));

@@ -160,7 +160,7 @@ public class RVGenerateHelper {
 		cacheManager.unlock(storeTo);
 	}
 
-	public static void parallelMove(Map<RVTypedPosition, RVTypedPosition> moves, RVCacheManager cacheManager,
+	public static void parallelMove(SequencedMap<RVTypedPosition, RVTypedPosition> moves, RVCacheManager cacheManager,
 			RVAsmCode out) {
 		var inMap = new LinkedHashMap<RVPosition, RVTypedPosition>();
 		var outMap = new HashMap<RVPosition, Integer>();
@@ -214,7 +214,7 @@ public class RVGenerateHelper {
 		for (var type : RVRegisterType.values()) typeCnt.put(type, 0);
 
 		var inStack = new ArrayList<Parameter>();
-		var parMove = new HashMap<RVTypedPosition, RVTypedPosition>();
+		var parMove = new LinkedHashMap<RVTypedPosition, RVTypedPosition>();
 		for (var param : params) {
 			var pos = typedPositionOf(rvModule, param);
 			var regType = RVRegUtil.regType(param);
@@ -278,7 +278,7 @@ public class RVGenerateHelper {
 		for (var type : RVRegisterType.values()) typeCnt.put(type, 0);
 
 		var onStack = new ArrayList<Value>();
-		var parMove = new HashMap<RVTypedPosition, RVTypedPosition>();
+		var parMove = new LinkedHashMap<RVTypedPosition, RVTypedPosition>();
 		for (var arg : args) {
 			var regType = RVRegUtil.regType(arg);
 			var id = typeCnt.get(regType);

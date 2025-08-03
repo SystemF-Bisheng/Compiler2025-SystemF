@@ -5,10 +5,10 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
 
-public record RVRegUsageAnalysisResult(Map<Function, Set<RVRegister>> usage) {
-	public Set<RVRegister> usage(Function function) {
-		return Collections.unmodifiableSet(usage.getOrDefault(function, Collections.emptySet()));
+public record RVRegUsageAnalysisResult(Map<Function, SortedSet<RVRegister>> usage) {
+	public SortedSet<RVRegister> usage(Function function) {
+		return Collections.unmodifiableSortedSet(usage.getOrDefault(function, Collections.emptySortedSet()));
 	}
 }

@@ -701,7 +701,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 
 		@Override
 		public Void visit(RVParallelMove inst) {
-			var move = new HashMap<RVTypedPosition, RVTypedPosition>();
+			var move = new LinkedHashMap<RVTypedPosition, RVTypedPosition>();
 			inst.getMoves().forEach((to, from) -> {
 				var posTo = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, to));
 				var posFrom = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, from));

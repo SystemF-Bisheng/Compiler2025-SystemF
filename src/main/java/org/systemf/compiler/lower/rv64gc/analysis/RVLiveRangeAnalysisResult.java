@@ -5,20 +5,21 @@ import org.systemf.compiler.ir.value.instruction.Instruction;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
+import java.util.SequencedSet;
 
-public record RVLiveRangeAnalysisResult(Map<Instruction, Set<Value>> aliveBefore,
-                                        Map<Value, Set<Instruction>> aliveBeforeInst,
-                                        Map<Instruction, Set<Value>> aliveAfter) {
-	public Set<Value> aliveBefore(Instruction instruction) {
-		return Collections.unmodifiableSet(aliveBefore.getOrDefault(instruction, Collections.emptySet()));
+public record RVLiveRangeAnalysisResult(Map<Instruction, SequencedSet<Value>> aliveBefore,
+                                        Map<Value, SequencedSet<Instruction>> aliveBeforeInst,
+                                        Map<Instruction, SequencedSet<Value>> aliveAfter) {
+	public SequencedSet<Value> aliveBefore(Instruction instruction) {
+		return Collections.unmodifiableSequencedSet(
+				aliveBefore.getOrDefault(instruction, Collections.emptySortedSet()));
 	}
 
-	public Set<Instruction> aliveBeforeInst(Value value) {
-		return Collections.unmodifiableSet(aliveBeforeInst.getOrDefault(value, Collections.emptySet()));
+	public SequencedSet<Instruction> aliveBeforeInst(Value value) {
+		return Collections.unmodifiableSequencedSet(aliveBeforeInst.getOrDefault(value, Collections.emptySortedSet()));
 	}
 
-	public Set<Value> aliveAfter(Instruction instruction) {
-		return Collections.unmodifiableSet(aliveAfter.getOrDefault(instruction, Collections.emptySet()));
+	public SequencedSet<Value> aliveAfter(Instruction instruction) {
+		return Collections.unmodifiableSequencedSet(aliveAfter.getOrDefault(instruction, Collections.emptySortedSet()));
 	}
 }

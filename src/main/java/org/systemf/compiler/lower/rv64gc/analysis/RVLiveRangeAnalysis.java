@@ -21,9 +21,9 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 	private static class RVLiveRangeAnalysisContext {
 		private final Function function;
 		private final RVCFGAnalysisResult cfg;
-		private final Map<Instruction, Set<Value>> aliveBefore = new HashMap<>();
-		private final Map<Instruction, Set<Value>> aliveAfter = new HashMap<>();
-		private final Map<Value, Set<Instruction>> aliveBeforeInst = new HashMap<>();
+		private final Map<Instruction, SequencedSet<Value>> aliveBefore = new HashMap<>();
+		private final Map<Instruction, SequencedSet<Value>> aliveAfter = new HashMap<>();
+		private final Map<Value, SequencedSet<Instruction>> aliveBeforeInst = new HashMap<>();
 		private final Map<Instruction, List<Instruction>> instSuccs = new HashMap<>();
 		private final Map<Instruction, List<Instruction>> instPred = new HashMap<>();
 
@@ -35,7 +35,7 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 		private void markAlive(Instruction inst, Value value, Instruction stopOn) {
 			if (inst == stopOn) return;
 			if (!aliveBefore.get(inst).add(value)) return;
-			aliveBeforeInst.computeIfAbsent(value, _ -> new HashSet<>()).add(inst);
+			aliveBeforeInst.computeIfAbsent(value, _ -> new LinkedHashSet<>()).add(inst);
 			instPred.get(inst).forEach(pred -> markAlive(pred, value, stopOn));
 		}
 
@@ -47,7 +47,7 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 		}
 
 		private void init() {
-			function.allInstructions().forEach(inst -> aliveBefore.put(inst, new HashSet<>()));
+			function.allInstructions().forEach(inst -> aliveBefore.put(inst, new LinkedHashSet<>()));
 			for (var block : function.getBlocks()) {
 				var predEnds = cfg.predecessors(block).stream().map(BasicBlock::getTerminator)
 						.map(term -> (Instruction) term).toList();
@@ -71,9 +71,9 @@ public enum RVLiveRangeAnalysis implements AttributeProvider<Function, RVLiveRan
 
 		private void collectAliveAfter() {
 			instSuccs.forEach((inst, succs) -> {
-				var after = new HashSet<Value>();
+				var after = new LinkedHashSet<Value>();
 				aliveAfter.put(inst, after);
-				for (var succ : succs) after.addAll(aliveBefore.getOrDefault(succ, Collections.emptySet()));
+				for (var succ : succs) after.addAll(aliveBefore.getOrDefault(succ, Collections.emptySortedSet()));
 			});
 		}
 

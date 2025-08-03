@@ -75,7 +75,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		private final Module oldModule;
 		private final Module newModule = new Module();
 		private final HashMap<BasicBlock, Integer> frequency = new HashMap<>();
-		private final HashMap<Function, Function> newFunctions = new HashMap<>();
+		private final LinkedHashMap<Function, Function> newFunctions = new LinkedHashMap<>();
 		private final HashMap<BasicBlock, BasicBlock> newBlocks = new HashMap<>();
 		private final HashMap<Value, Value> substitute = new HashMap<>();
 		private final HashMap<Function, RVStackState> stacks = new HashMap<>();

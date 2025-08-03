@@ -7,15 +7,15 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 import org.systemf.compiler.query.AttributeProvider;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public enum RVRegUsageAnalysis implements AttributeProvider<RVModule, RVRegUsageAnalysisResult> {
 	INSTANCE;
 
-	private void collect(RVModule rvModule, Function function, Map<Function, Set<RVRegister>> usage) {
-		var curUsage = new HashSet<RVRegister>();
+	private void collect(RVModule rvModule, Function function, Map<Function, SortedSet<RVRegister>> usage) {
+		var curUsage = new TreeSet<RVRegister>();
 		for (var param : function.getFormalArgs())
 			if (rvModule.position().get(param) instanceof RVRegister reg) curUsage.add(reg);
 		function.allInstructions().filter(inst -> inst instanceof Value).map(inst -> rvModule.position().get(inst))
@@ -25,7 +25,7 @@ public enum RVRegUsageAnalysis implements AttributeProvider<RVModule, RVRegUsage
 
 	@Override
 	public RVRegUsageAnalysisResult getAttribute(RVModule entity) {
-		var res = new HashMap<Function, Set<RVRegister>>();
+		var res = new HashMap<Function, SortedSet<RVRegister>>();
 		entity.module().getFunctions().values().forEach(func -> collect(entity, func, res));
 		return new RVRegUsageAnalysisResult(res);
 	}

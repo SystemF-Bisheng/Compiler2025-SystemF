@@ -78,7 +78,10 @@ public class RVGenerateHelper {
 	}
 
 	public static void subtract(RVRegister dest, RVRegister src, long size, RVAsmCode out) {
-		if (size == 0) return;
+		if (size == 0) {
+			moveRegister(dest, src, out);
+			return;
+		}
 		if (SaturationArithmetic.isOverflow(-size, RVRegUtil.IMM_WIDTH)) {
 			out.addLine(String.format("li %s, %d", RVRegUtil.INTEGER_SCRATCH_REGISTER, size));
 			out.addLine(String.format("sub %s, %s, %s", dest, src, RVRegUtil.INTEGER_SCRATCH_REGISTER));

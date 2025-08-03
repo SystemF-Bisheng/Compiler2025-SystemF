@@ -159,21 +159,23 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		private final RVCacheManager cacheManager = new RVCacheManager();
 		private final RVLiveRangeAnalysisResult liveRange;
 		private final String epilogueName;
+		private final boolean hasFrame;
 		private long stackSize = 0;
 
 		public RVGenFunctionContext(RVModule rvModule, Function function, RVAsmCode result) {
 			this.rvModule = rvModule;
 
+			this.function = function;
+			this.result = result;
+			this.stackFrame = rvModule.stacks().get(function);
+			this.hasFrame = stackFrame.getSize() > 0;
+
 			var hasCall = function.allInstructions().anyMatch(inst -> inst instanceof AbstractCall);
 			var query = QueryManager.getInstance();
 			this.regSaved = query.getAttribute(rvModule, RVRegUsageAnalysisResult.class).usage(function).stream()
 					.filter(RVRegUtil::isSaved).collect(Collectors.toCollection(ArrayList::new));
-			this.regSaved.add(RVRegUtil.FRAME_POINTER);
+			if (hasFrame) this.regSaved.add(RVRegUtil.FRAME_POINTER);
 			if (hasCall) this.regSaved.add(RVRegUtil.RETURN_ADDRESS);
-
-			this.function = function;
-			this.result = result;
-			this.stackFrame = rvModule.stacks().get(function);
 
 			this.liveRange = query.getAttribute(function, RVLiveRangeAnalysisResult.class);
 
@@ -185,11 +187,13 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 
 			stackSize += stackFrame.getSize();
 			stackSize = MathUtil.roundTo(stackSize, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
-			RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, stackSize, result);
+
+			if (hasFrame) RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, stackSize, result);
 
 			RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), cacheManager, result);
 
-			RVGenerateHelper.moveRegister(RVRegUtil.STACK_POINTER, RVRegUtil.FRAME_POINTER, result);
+			if (hasFrame) RVGenerateHelper.moveRegister(RVRegUtil.STACK_POINTER, RVRegUtil.FRAME_POINTER, result);
+			else RVGenerateHelper.subtractSp(stackSize, result);
 
 			cacheManager.invalidateAll(result);
 		}

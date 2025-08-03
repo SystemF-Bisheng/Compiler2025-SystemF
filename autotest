@@ -309,7 +309,7 @@ def asm_riscv(rv: str, obj: str, exe: str) -> Optional[TestResult]:
   '''
   Converts RISC-V assembly to executable.
   '''
-  cmd = f'riscv64-linux-gnu-gcc {rv} lib/libsysy_riscv.a -o {exe}'
+  cmd = f'riscv64-linux-gnu-gcc -static {rv} lib/libsysy_riscv.a -o {exe}'
   if result := execute(cmd, ASM_TIMEOUT_SEC, TestStatus.ASM_ERROR,
                        TestStatus.ASM_TIME_EXCEEDED):
     return result

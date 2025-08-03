@@ -162,7 +162,7 @@ public class RVGenerateHelper {
 
 	public static void parallelMove(Map<RVTypedPosition, RVTypedPosition> moves, RVCacheManager cacheManager,
 			RVAsmCode out) {
-		var inMap = new HashMap<RVPosition, RVTypedPosition>();
+		var inMap = new LinkedHashMap<RVPosition, RVTypedPosition>();
 		var outMap = new HashMap<RVPosition, Integer>();
 		for (var entry : moves.entrySet()) {
 			var to = entry.getKey();
@@ -191,7 +191,7 @@ public class RVGenerateHelper {
 				    fromPos instanceof RVRegister fromReg) cacheManager.unlock(fromReg);
 				moves.remove(to);
 			} else { // Disconnect a loop: copy one node and redirect all out edges
-				var toDis = inMap.keySet().iterator().next();
+				var toDis = inMap.firstEntry().getKey();
 				var toDisTyped = inMap.get(toDis);
 				var toDisLoad = cacheManager.load(toDisTyped, out);
 				cacheManager.unlock(toDisLoad);

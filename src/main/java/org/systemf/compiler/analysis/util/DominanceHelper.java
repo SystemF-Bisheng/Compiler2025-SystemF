@@ -8,8 +8,8 @@ import org.systemf.compiler.util.Tree;
 import java.util.*;
 
 public class DominanceHelper {
-	public static DominanceResult analyze(BasicBlock entry, Map<BasicBlock, Set<BasicBlock>> successors,
-			Map<BasicBlock, Set<BasicBlock>> predecessors) {
+	public static DominanceResult analyze(BasicBlock entry, Map<BasicBlock, SequencedSet<BasicBlock>> successors,
+			Map<BasicBlock, SequencedSet<BasicBlock>> predecessors) {
 		return new DominanceAnalysisContext(entry, successors, predecessors).analyze();
 	}
 
@@ -22,12 +22,12 @@ public class DominanceHelper {
 		private final Map<BasicBlock, PathUnionFindNode<DominanceInfo>> unionFind = new HashMap<>();
 		private final Map<BasicBlock, BasicBlock> iDomInfo = new HashMap<>();
 		private final BasicBlock entry;
-		private final Map<BasicBlock, Set<BasicBlock>> successors;
-		private final Map<BasicBlock, Set<BasicBlock>> predecessors;
+		private final Map<BasicBlock, SequencedSet<BasicBlock>> successors;
+		private final Map<BasicBlock, SequencedSet<BasicBlock>> predecessors;
 		private int dfnCnt = 0;
 
-		public DominanceAnalysisContext(BasicBlock entry, Map<BasicBlock, Set<BasicBlock>> successors,
-				Map<BasicBlock, Set<BasicBlock>> predecessors) {
+		public DominanceAnalysisContext(BasicBlock entry, Map<BasicBlock, SequencedSet<BasicBlock>> successors,
+				Map<BasicBlock, SequencedSet<BasicBlock>> predecessors) {
 			this.entry = entry;
 			this.successors = successors;
 			this.predecessors = predecessors;
@@ -87,7 +87,7 @@ public class DominanceHelper {
 		}
 
 		private void collectDominanceFrontier(Tree<BasicBlock> dominanceTree, BasicBlock block,
-				Map<BasicBlock, Set<BasicBlock>> out) {
+				Map<BasicBlock, SequencedSet<BasicBlock>> out) {
 			var iDom = dominanceTree.getParent(block);
 			var preds = predecessors.get(block);
 			if (preds.size() < 2) return;
@@ -109,8 +109,8 @@ public class DominanceHelper {
 			for (var dfn = 1; dfn < dfnCnt; ++dfn) calcImmediateDom(dfn, res);
 			var tree = new Tree<>(res);
 
-			var df = new HashMap<BasicBlock, Set<BasicBlock>>();
-			for (var block : dfn.keySet()) df.put(block, new HashSet<>());
+			var df = new HashMap<BasicBlock, SequencedSet<BasicBlock>>();
+			for (var block : dfn.keySet()) df.put(block, new LinkedHashSet<>());
 			for (var block : dfn.keySet()) collectDominanceFrontier(tree, block, df);
 
 			return new DominanceResult(new Tree<>(res), df);
@@ -125,6 +125,7 @@ public class DominanceHelper {
 		}
 	}
 
-	public record DominanceResult(Tree<BasicBlock> dominance, Map<BasicBlock, Set<BasicBlock>> dominanceFrontier) {
+	public record DominanceResult(Tree<BasicBlock> dominance,
+	                              Map<BasicBlock, SequencedSet<BasicBlock>> dominanceFrontier) {
 	}
 }

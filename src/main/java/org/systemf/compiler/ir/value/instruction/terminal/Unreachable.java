@@ -4,7 +4,7 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class Unreachable extends DummyTerminal {
 	public static final Unreachable INSTANCE = new Unreachable();
@@ -17,8 +17,8 @@ public class Unreachable extends DummyTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.emptySet();
+	public SequencedSet<ITracked> getDependency() {
+		return Collections.emptySortedSet();
 	}
 
 	@Override

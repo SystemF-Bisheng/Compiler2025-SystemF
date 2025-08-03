@@ -11,7 +11,7 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.SequencedSet;
 import java.util.stream.Stream;
 
 public class Function extends DummyValue implements IFunction {
@@ -56,8 +56,8 @@ public class Function extends DummyValue implements IFunction {
 		this.entryBlock = entryBlock;
 	}
 
-	public Set<BasicBlock> getBlocks() {
-		return Collections.unmodifiableSet(blocks);
+	public SequencedSet<BasicBlock> getBlocks() {
+		return Collections.unmodifiableSequencedSet(blocks);
 	}
 
 	public Stream<Instruction> allInstructions() {

@@ -8,8 +8,8 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
 
 public abstract class RVStore extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
 	public long offset;
@@ -31,8 +31,8 @@ public abstract class RVStore extends DummyNonTerminal implements PotentialSideE
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(Arrays.asList(src, dest));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(Arrays.asList(src, dest));
 	}
 
 	@Override

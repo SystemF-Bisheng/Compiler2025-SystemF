@@ -5,9 +5,9 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public abstract class DummyTriple extends DummyValueNonTerminal {
 	private Value x;
@@ -60,8 +60,8 @@ public abstract class DummyTriple extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(List.of(x, y, z));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(List.of(x, y, z));
 	}
 
 	@Override

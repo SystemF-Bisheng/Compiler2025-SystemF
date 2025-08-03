@@ -7,9 +7,9 @@ import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class RVLoadAddress extends DummyValueNonTerminal {
 	private GlobalVariable global;
@@ -35,8 +35,8 @@ public class RVLoadAddress extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(global);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(global);
 	}
 
 	@Override

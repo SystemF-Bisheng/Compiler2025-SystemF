@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class RVLoadImm extends DummyValueNonTerminal {
 	public long val;
@@ -23,8 +23,8 @@ public class RVLoadImm extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.emptySet();
+	public SequencedSet<ITracked> getDependency() {
+		return Collections.emptySortedSet();
 	}
 
 	@Override

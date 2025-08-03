@@ -8,7 +8,8 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.stack.RVStackState;
 
 import java.util.Map;
+import java.util.SequencedMap;
 
 public record RVModule(Module module, Map<BasicBlock, Integer> frequency, Map<Function, RVStackState> stacks,
-                       Map<Value, RVPosition> position) {
+                       SequencedMap<Value, RVPosition> position) {
 }

@@ -3,9 +3,9 @@ package org.systemf.compiler.ir.value.instruction.terminal;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class Br extends DummyTerminal {
 	private BasicBlock target;
@@ -20,8 +20,8 @@ public class Br extends DummyTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(target);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(target);
 	}
 
 	@Override

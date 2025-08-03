@@ -18,10 +18,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Depend on: PointerAnalysis, DominanceAnalysis
@@ -121,7 +118,7 @@ public enum MemToReg implements OptPass {
 			this.curProvide = new HashMap<>();
 			this.postProvide = new HashMap<>();
 
-			var iteration = new HashSet<BasicBlock>();
+			var iteration = new LinkedHashSet<BasicBlock>();
 			for (var block : function.getBlocks()) {
 				var store = inlineInBlock(block);
 				if (store != null) {
@@ -129,10 +126,10 @@ public enum MemToReg implements OptPass {
 					iteration.add(block);
 				}
 			}
-			var inserted = new HashMap<BasicBlock, Phi>();
+			var inserted = new LinkedHashMap<BasicBlock, Phi>();
 
 			while (!iteration.isEmpty()) {
-				var frontier = new HashSet<BasicBlock>();
+				var frontier = new LinkedHashSet<BasicBlock>();
 				for (var block : iteration) {
 					var df = dominance.dominanceFrontier(block);
 					for (var toInsert : df) {

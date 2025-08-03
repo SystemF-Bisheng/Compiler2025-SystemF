@@ -9,9 +9,9 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Module {
-	private final HashMap<String, GlobalVariable> declarations = new HashMap<>();
-	private final HashMap<String, Function> functions = new HashMap<>();
-	private final HashMap<String, ExternalFunction> externalFunctions = new HashMap<>();
+	private final SequencedMap<String, GlobalVariable> declarations = new LinkedHashMap<>();
+	private final SequencedMap<String, Function> functions = new LinkedHashMap<>();
+	private final SequencedMap<String, ExternalFunction> externalFunctions = new LinkedHashMap<>();
 	private final Set<String> occupiedNames = new HashSet<>();
 	private boolean irBuilderAttached = false;
 
@@ -60,8 +60,8 @@ public class Module {
 		return declarations.get(name);
 	}
 
-	public Map<String, GlobalVariable> getGlobalDeclarations() {
-		return Collections.unmodifiableMap(declarations);
+	public SequencedMap<String, GlobalVariable> getGlobalDeclarations() {
+		return Collections.unmodifiableSequencedMap(declarations);
 	}
 
 	public void addFunction(Function declaration) {
@@ -74,8 +74,8 @@ public class Module {
 		functions.remove(declaration.getName());
 	}
 
-	public Map<String, Function> getFunctions() {
-		return Collections.unmodifiableMap(functions);
+	public SequencedMap<String, Function> getFunctions() {
+		return Collections.unmodifiableSequencedMap(functions);
 	}
 
 	public Function getFunction(String name) {
@@ -92,8 +92,8 @@ public class Module {
 		externalFunctions.remove(externalFunction.getName());
 	}
 
-	public Map<String, ExternalFunction> getExternalFunctions() {
-		return Collections.unmodifiableMap(externalFunctions);
+	public SequencedMap<String, ExternalFunction> getExternalFunctions() {
+		return Collections.unmodifiableSequencedMap(externalFunctions);
 	}
 
 	public ExternalFunction getExternalFunction(String name) {

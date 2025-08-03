@@ -7,7 +7,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.query.AttributeProvider;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Build control flow graph
@@ -26,8 +26,8 @@ public enum CFGAnalysis implements AttributeProvider<Function, CFGAnalysisResult
 
 	private void analyzeFunction(Function function, CFGAnalysisResult out) {
 		for (var basicBlock : function.getBlocks()) {
-			out.successors().put(basicBlock, new HashSet<>());
-			out.predecessors().put(basicBlock, new HashSet<>());
+			out.successors().put(basicBlock, new LinkedHashSet<>());
+			out.predecessors().put(basicBlock, new LinkedHashSet<>());
 		}
 		for (var basicBlock : function.getBlocks()) {
 			var terminator = basicBlock.getTerminator();

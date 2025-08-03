@@ -13,8 +13,8 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
 
 public class Store extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
 	private Value src;
@@ -31,8 +31,8 @@ public class Store extends DummyNonTerminal implements PotentialSideEffect, Pote
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(Arrays.asList(src, dest));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(Arrays.asList(src, dest));
 	}
 
 	@Override

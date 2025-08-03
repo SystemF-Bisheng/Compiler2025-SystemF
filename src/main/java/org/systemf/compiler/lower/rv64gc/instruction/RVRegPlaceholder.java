@@ -8,7 +8,7 @@ import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 /**
  * Placeholder pseudo-instruction, occupy a virtual register without specifying the content
@@ -26,8 +26,8 @@ public class RVRegPlaceholder extends DummyValueNonTerminal implements Potential
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.emptySet();
+	public SequencedSet<ITracked> getDependency() {
+		return Collections.emptySortedSet();
 	}
 
 	@Override

@@ -8,9 +8,9 @@ import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class CondBr extends DummyTerminal {
 	private Value cond;
@@ -30,8 +30,8 @@ public class CondBr extends DummyTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(List.of(cond, trueTarget, falseTarget));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(List.of(cond, trueTarget, falseTarget));
 	}
 
 	@Override

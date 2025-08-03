@@ -4,9 +4,9 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public abstract class DummyUnary extends DummyValueNonTerminal {
 	private Value x;
@@ -34,8 +34,8 @@ public abstract class DummyUnary extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(x);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(x);
 	}
 
 	@Override

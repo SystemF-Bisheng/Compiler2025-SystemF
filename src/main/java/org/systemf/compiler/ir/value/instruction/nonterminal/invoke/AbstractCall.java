@@ -9,8 +9,8 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
 
 public abstract class AbstractCall extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
 	protected Value func;
@@ -46,8 +46,8 @@ public abstract class AbstractCall extends DummyNonTerminal implements Potential
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		HashSet<ITracked> usages = new HashSet<>(Arrays.asList(args));
+	public SequencedSet<ITracked> getDependency() {
+		var usages = new LinkedHashSet<ITracked>(Arrays.asList(args));
 		usages.add(func);
 		return usages;
 	}

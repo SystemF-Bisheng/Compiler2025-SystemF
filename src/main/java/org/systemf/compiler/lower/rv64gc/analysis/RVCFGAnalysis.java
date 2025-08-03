@@ -7,7 +7,7 @@ import org.systemf.compiler.lower.rv64gc.instruction.RVCompBranch;
 import org.systemf.compiler.query.AttributeProvider;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Build control flow graph
@@ -26,8 +26,8 @@ public enum RVCFGAnalysis implements AttributeProvider<Function, RVCFGAnalysisRe
 
 	private void analyzeFunction(Function function, RVCFGAnalysisResult out) {
 		for (var basicBlock : function.getBlocks()) {
-			out.successors().put(basicBlock, new HashSet<>());
-			out.predecessors().put(basicBlock, new HashSet<>());
+			out.successors().put(basicBlock, new LinkedHashSet<>());
+			out.predecessors().put(basicBlock, new LinkedHashSet<>());
 		}
 		for (var basicBlock : function.getBlocks()) {
 			var terminator = basicBlock.getTerminator();

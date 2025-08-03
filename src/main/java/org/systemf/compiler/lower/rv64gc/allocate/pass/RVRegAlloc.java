@@ -39,7 +39,7 @@ public enum RVRegAlloc {
 		private final Map<BasicBlock, Integer> frequency;
 		private final Module module;
 		private Map<Instruction, BasicBlock> belonging;
-		private Map<Value, Integer> colorMap;
+		private SequencedMap<Value, Integer> colorMap;
 		private Map<Value, Integer> spillCost;
 		private Map<Value, Integer> saveCost;
 		private RVLiveRangeAnalysisResult liveRange;
@@ -78,7 +78,7 @@ public enum RVRegAlloc {
 
 		private void colorFunction(Function function) {
 			this.belonging = CodeMotionHelper.getBelonging(function);
-			this.colorMap = new HashMap<>();
+			this.colorMap = new LinkedHashMap<>();
 			this.spillCost = new HashMap<>();
 			this.saveCost = new HashMap<>();
 			this.liveRange = query.getAttribute(function, RVLiveRangeAnalysisResult.class);
@@ -92,7 +92,7 @@ public enum RVRegAlloc {
 			var stack = stacks.get(function);
 			var spillCostSum = new HashMap<Integer, Integer>();
 			var saveCostSum = new HashMap<Integer, Integer>();
-			var colorVals = new HashMap<Integer, List<Value>>();
+			var colorVals = new TreeMap<Integer, List<Value>>();
 			colorMap.entrySet().stream().filter(entry -> regType == RVRegUtil.regType(entry.getKey()))
 					.forEach(entry -> {
 						var val = entry.getKey();
@@ -106,33 +106,33 @@ public enum RVRegAlloc {
 						colorVals.computeIfAbsent(color, _ -> new ArrayList<>()).add(val);
 					});
 
-			var leftSaved = new HashSet<>(RVRegUtil.AVAILABLE_SAVED.get(regType));
-			var leftNonSaved = new HashSet<>(RVRegUtil.AVAILABLE_NON_SAVED.get(regType));
+			var leftSaved = new TreeSet<>(RVRegUtil.AVAILABLE_SAVED.get(regType));
+			var leftNonSaved = new TreeSet<>(RVRegUtil.AVAILABLE_NON_SAVED.get(regType));
 			while (!colorVals.isEmpty()) {
 				RVPosition pos;
 				int color;
 				if (!leftNonSaved.isEmpty() &&
 				    colorVals.keySet().stream().anyMatch(col -> saveCostSum.get(col) <= NON_SAVED_PRIORITY_THRESHOLD)) {
-					var regIndex = leftNonSaved.iterator().next();
+					var regIndex = leftNonSaved.getFirst();
 					leftNonSaved.remove(regIndex);
 					pos = new RVRegister(regType, regIndex);
 					color = colorVals.keySet().stream()
 							.filter(col -> saveCostSum.get(col) <= NON_SAVED_PRIORITY_THRESHOLD)
 							.max(Comparator.comparingInt(spillCostSum::get)).orElseThrow();
 				} else if (!leftSaved.isEmpty()) {
-					var regIndex = leftSaved.iterator().next();
+					var regIndex = leftSaved.getFirst();
 					leftSaved.remove(regIndex);
 					pos = new RVRegister(regType, regIndex);
 					color = colorVals.keySet().stream().max(Comparator.comparingInt(
 							curColor -> SaturationArithmetic.saturatedAdd(spillCostSum.get(curColor),
 									saveCostSum.get(curColor)))).orElseThrow();
 				} else if (!leftNonSaved.isEmpty()) {
-					var regIndex = leftNonSaved.iterator().next();
+					var regIndex = leftNonSaved.getFirst();
 					leftNonSaved.remove(regIndex);
 					pos = new RVRegister(regType, regIndex);
 					color = colorVals.keySet().stream().max(Comparator.comparingInt(spillCostSum::get)).orElseThrow();
 				} else {
-					var entry = colorVals.entrySet().iterator().next();
+					var entry = colorVals.firstEntry();
 					color = entry.getKey();
 					long size = 0, alignment = 0;
 					for (var val : entry.getValue()) {

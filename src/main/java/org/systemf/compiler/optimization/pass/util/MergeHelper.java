@@ -169,7 +169,7 @@ public class MergeHelper {
 	}
 
 	public static Map<Value, Value> constructLoadMap(BasicBlock block, Module module, PointerAnalysisResult ptrResult) {
-		var loadMap = new HashMap<Value, Value>();
+		var loadMap = new LinkedHashMap<Value, Value>();
 		for (var inst : block.instructions) manipulateLoadMap(inst, loadMap, module, ptrResult);
 		return loadMap;
 	}

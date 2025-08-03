@@ -9,7 +9,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Merge multiple identical loads in one block
@@ -38,7 +38,7 @@ public enum InBlockMergeLoad implements OptPass {
 
 		private boolean processBlock(BasicBlock block) {
 			var res = false;
-			var loadMap = new HashMap<Value, Value>();
+			var loadMap = new LinkedHashMap<Value, Value>();
 			for (var inst : block.instructions) {
 				if (inst instanceof Load load) {
 					var ptr = load.getPointer();

@@ -11,9 +11,9 @@ import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.PotentialSequential;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class Load extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive,
 		PotentialSequential {
@@ -30,8 +30,8 @@ public class Load extends DummyValueNonTerminal implements PotentialNonRepeatabl
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(ptr);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(ptr);
 	}
 
 	@Override

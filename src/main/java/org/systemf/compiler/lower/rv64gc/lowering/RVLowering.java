@@ -47,10 +47,7 @@ import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.TriFunction;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiFunction;
 
 public enum RVLowering implements EntityProvider<RVLoweringResult> {
@@ -199,7 +196,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public RVLoweringResult run() {
 			translateModule();
 			oldModule.destroy();
-			return new RVLoweringResult(new RVModule(newModule, frequency, stacks, new HashMap<>()));
+			return new RVLoweringResult(new RVModule(newModule, frequency, stacks, new LinkedHashMap<>()));
 		}
 
 		private void insertInstruction(Instruction instruction) {

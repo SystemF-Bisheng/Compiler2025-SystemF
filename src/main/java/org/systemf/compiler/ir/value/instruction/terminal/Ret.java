@@ -4,9 +4,9 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class Ret extends DummyTerminal implements IReturn {
 	private Value returnValue;
@@ -21,8 +21,8 @@ public class Ret extends DummyTerminal implements IReturn {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(returnValue);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(returnValue);
 	}
 
 	@Override

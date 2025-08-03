@@ -4,7 +4,7 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class RetVoid extends DummyTerminal implements IReturn {
 	public static final RetVoid INSTANCE = new RetVoid();
@@ -12,8 +12,8 @@ public class RetVoid extends DummyTerminal implements IReturn {
 	private RetVoid() {}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.emptySet();
+	public SequencedSet<ITracked> getDependency() {
+		return Collections.emptySortedSet();
 	}
 
 	@Override

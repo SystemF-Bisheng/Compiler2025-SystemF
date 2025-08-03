@@ -8,9 +8,9 @@ import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.PotentialSequential;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.CollectionUtil;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public abstract class RVLoad extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive,
 		PotentialSequential {
@@ -31,8 +31,8 @@ public abstract class RVLoad extends DummyValueNonTerminal implements PotentialN
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.singleton(ptr);
+	public SequencedSet<ITracked> getDependency() {
+		return CollectionUtil.singletonSequencedSet(ptr);
 	}
 
 	@Override

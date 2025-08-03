@@ -80,7 +80,7 @@ public enum RVInBlockSchedule {
 	private static class InstructionScheduler {
 		private final List<Instruction> instructions;
 		private final Map<Instruction, Integer> dfn = new HashMap<>();
-		private final Map<Instruction, Set<Instruction>> in = new HashMap<>();
+		private final Map<Instruction, SequencedSet<Instruction>> in = new HashMap<>();
 		private final Map<Instruction, Set<Instruction>> out = new HashMap<>();
 		private final Map<Value, Integer> dependants = new HashMap<>();
 		private final Map<RVRegisterType, Integer> pressure;
@@ -97,7 +97,7 @@ public enum RVInBlockSchedule {
 			var canElim = computeCanElim(input, output);
 			for (var val : canElim) dependants.put(val, 0);
 			for (var inst : instructions) {
-				in.put(inst, new HashSet<>());
+				in.put(inst, new LinkedHashSet<>());
 				out.put(inst, new HashSet<>());
 			}
 			init();

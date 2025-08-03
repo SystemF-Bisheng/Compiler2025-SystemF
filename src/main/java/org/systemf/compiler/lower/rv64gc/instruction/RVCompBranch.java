@@ -6,9 +6,9 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.terminal.DummyTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public abstract class RVCompBranch extends DummyTerminal {
 	private Value x;
@@ -32,8 +32,8 @@ public abstract class RVCompBranch extends DummyTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(List.of(x, y, trueTarget, falseTarget));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(List.of(x, y, trueTarget, falseTarget));
 	}
 
 	@Override

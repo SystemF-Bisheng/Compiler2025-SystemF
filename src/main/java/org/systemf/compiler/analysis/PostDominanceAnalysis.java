@@ -8,7 +8,7 @@ import org.systemf.compiler.query.AttributeProvider;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Depend on: CFGAnalysis
@@ -22,18 +22,18 @@ public enum PostDominanceAnalysis implements AttributeProvider<Function, PostDom
 	public PostDominanceAnalysisResult getAttribute(Function entity) {
 		var cfg = QueryManager.getInstance().getAttribute(entity, CFGAnalysisResult.class);
 		var virtualExit = new BasicBlock("_virtualExit");
-		var exitSuccessor = new HashSet<BasicBlock>();
+		var exitSuccessor = new LinkedHashSet<BasicBlock>();
 		var successors = new HashMap<>(cfg.predecessors());
 		var predecessors = new HashMap<>(cfg.successors());
 
 		entity.getBlocks().stream().filter(block -> block.getTerminator() instanceof IReturn).forEach(block -> {
-			var newPred = new HashSet<>(predecessors.get(block));
+			var newPred = new LinkedHashSet<>(predecessors.get(block));
 			newPred.add(virtualExit);
 			predecessors.put(block, newPred);
 			exitSuccessor.add(block);
 		});
 		successors.put(virtualExit, exitSuccessor);
-		predecessors.put(virtualExit, new HashSet<>());
+		predecessors.put(virtualExit, new LinkedHashSet<>());
 
 		var res = DominanceHelper.analyze(virtualExit, successors, predecessors);
 		return new PostDominanceAnalysisResult(res.dominance(), res.dominanceFrontier());

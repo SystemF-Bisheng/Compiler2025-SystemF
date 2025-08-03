@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * Must be placed right before unconditional jump, won't affect the live range of its destinations
  */
 public class RVParallelMove extends DummyNonTerminal implements PotentialSideEffect {
-	private final Map<Value, Value> moves = new HashMap<>();
+	private final SequencedMap<Value, Value> moves = new LinkedHashMap<>();
 
 	public void removeMove(Value to) {
 		if (!moves.containsKey(to)) return;
@@ -41,8 +41,8 @@ public class RVParallelMove extends DummyNonTerminal implements PotentialSideEff
 		from.registerDependant(this);
 	}
 
-	public Map<Value, Value> getMoves() {
-		return Collections.unmodifiableMap(moves);
+	public SequencedMap<Value, Value> getMoves() {
+		return Collections.unmodifiableSequencedMap(moves);
 	}
 
 	@Override
@@ -53,8 +53,8 @@ public class RVParallelMove extends DummyNonTerminal implements PotentialSideEff
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		var result = new HashSet<ITracked>(moves.keySet());
+	public SequencedSet<ITracked> getDependency() {
+		var result = new LinkedHashSet<ITracked>(moves.keySet());
 		result.addAll(moves.values());
 		return result;
 	}

@@ -10,9 +10,9 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class GetPtr extends DummyValueNonTerminal {
 	private Value arrayPtr;
@@ -30,8 +30,8 @@ public class GetPtr extends DummyValueNonTerminal {
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return new HashSet<>(List.of(arrayPtr, index));
+	public SequencedSet<ITracked> getDependency() {
+		return new LinkedHashSet<>(List.of(arrayPtr, index));
 	}
 
 	@Override

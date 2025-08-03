@@ -8,6 +8,7 @@ import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.SequencedSet;
 import java.util.Set;
 
 /**
@@ -20,7 +21,7 @@ import java.util.Set;
 public enum RemoveDeadBlock implements OptPass {
 	INSTANCE;
 
-	private void dfs(BasicBlock cur, Set<BasicBlock> toDel, Map<BasicBlock, Set<BasicBlock>> successor) {
+	private void dfs(BasicBlock cur, Set<BasicBlock> toDel, Map<BasicBlock, SequencedSet<BasicBlock>> successor) {
 		if (!toDel.contains(cur)) return;
 		toDel.remove(cur);
 		for (var succ : successor.get(cur)) dfs(succ, toDel, successor);

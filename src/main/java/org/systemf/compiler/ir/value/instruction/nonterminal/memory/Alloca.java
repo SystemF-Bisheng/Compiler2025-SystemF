@@ -8,7 +8,7 @@ import org.systemf.compiler.ir.value.instruction.PotentialNonRepeatable;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTerminal;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.SequencedSet;
 
 public class Alloca extends DummyValueNonTerminal implements PotentialNonRepeatable {
 	public final Sized valueType;
@@ -24,8 +24,8 @@ public class Alloca extends DummyValueNonTerminal implements PotentialNonRepeata
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		return Collections.emptySet();
+	public SequencedSet<ITracked> getDependency() {
+		return Collections.emptySortedSet();
 	}
 
 	@Override

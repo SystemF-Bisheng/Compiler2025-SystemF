@@ -14,7 +14,7 @@ import org.systemf.compiler.ir.value.util.ValueUtil;
 import java.util.*;
 
 public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable, PotentialBlockSensitive {
-	private Map<BasicBlock, Value> incoming = new HashMap<>();
+	private SequencedMap<BasicBlock, Value> incoming = new LinkedHashMap<>();
 
 	public Phi(Type type, String name) {
 		super(type, name);
@@ -35,8 +35,8 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 	}
 
 	@Override
-	public Set<ITracked> getDependency() {
-		var res = new HashSet<ITracked>();
+	public SequencedSet<ITracked> getDependency() {
+		var res = new LinkedHashSet<ITracked>();
 		res.addAll(incoming.keySet());
 		res.addAll(incoming.values());
 		return res;
@@ -79,8 +79,8 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 		return visitor.visit(this);
 	}
 
-	public Map<BasicBlock, Value> getIncoming() {
-		return Collections.unmodifiableMap(incoming);
+	public SequencedMap<BasicBlock, Value> getIncoming() {
+		return Collections.unmodifiableSequencedMap(incoming);
 	}
 
 	public void setIncoming(Map<BasicBlock, Value> incoming) {
@@ -89,7 +89,7 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 			block.unregisterDependant(this);
 			value.unregisterDependant(this);
 		});
-		this.incoming = new HashMap<>(incoming);
+		this.incoming = new LinkedHashMap<>(incoming);
 		incoming.forEach((block, value) -> {
 			block.registerDependant(this);
 			value.registerDependant(this);

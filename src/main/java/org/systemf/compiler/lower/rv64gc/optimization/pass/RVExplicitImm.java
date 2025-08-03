@@ -25,7 +25,7 @@ import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 import org.systemf.compiler.util.TriFunction;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Optional;
 
@@ -259,7 +259,7 @@ public enum RVExplicitImm implements RVOptPass {
 
 		@Override
 		public Boolean visit(RVParallelMove inst) {
-			var oldMoves = new HashMap<>(inst.getMoves());
+			var oldMoves = new LinkedHashMap<>(inst.getMoves());
 			var res = false;
 			for (var entry : oldMoves.entrySet()) {
 				var to = entry.getKey();

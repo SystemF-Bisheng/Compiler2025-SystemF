@@ -8,22 +8,21 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class RVRegUtil {
 	public static final EnumMap<RVRegisterType, Integer> AVAILABLE_CNT = new EnumMap<>(
 			Map.of(RVRegisterType.INTEGER, 22, RVRegisterType.FLOAT, 29));
-	public static final EnumMap<RVRegisterType, Set<Integer>> AVAILABLE_SAVED = new EnumMap<>(
-			Map.of(RVRegisterType.INTEGER, Set.of(9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27), RVRegisterType.FLOAT,
-					Set.of(8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)));
-	public static final EnumMap<RVRegisterType, Set<Integer>> AVAILABLE_NON_SAVED = new EnumMap<>(
-			Map.of(RVRegisterType.INTEGER, Set.of(10, 11, 12, 13, 14, 15, 16, 17, 29, 30, 31), RVRegisterType.FLOAT,
-					Set.of(3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 28, 29, 30, 31)));
-	public static final EnumMap<RVRegisterType, Set<Integer>> AVAILABLE_TEMPORARY = new EnumMap<>(
-			Map.of(RVRegisterType.INTEGER, Set.of(6, 7, 28), RVRegisterType.FLOAT, Set.of(0, 1, 2)));
+	public static final EnumMap<RVRegisterType, SortedSet<Integer>> AVAILABLE_SAVED = new EnumMap<>(
+			Map.of(RVRegisterType.INTEGER, new TreeSet<>(List.of(9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)),
+					RVRegisterType.FLOAT, new TreeSet<>(List.of(8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27))));
+	public static final EnumMap<RVRegisterType, SortedSet<Integer>> AVAILABLE_NON_SAVED = new EnumMap<>(
+			Map.of(RVRegisterType.INTEGER, new TreeSet<>(List.of(10, 11, 12, 13, 14, 15, 16, 17, 29, 30, 31)),
+					RVRegisterType.FLOAT,
+					new TreeSet<>(List.of(3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 28, 29, 30, 31))));
+	public static final EnumMap<RVRegisterType, SortedSet<Integer>> AVAILABLE_TEMPORARY = new EnumMap<>(
+			Map.of(RVRegisterType.INTEGER, new TreeSet<>(List.of(6, 7, 28)), RVRegisterType.FLOAT,
+					new TreeSet<>(List.of(0, 1, 2))));
 	public static final EnumMap<RVRegisterType, Integer> RETURN_REGISTER = new EnumMap<>(
 			Map.of(RVRegisterType.INTEGER, 10, RVRegisterType.FLOAT, 10));
 	public static final RVRegister INTEGER_SCRATCH_REGISTER = new RVRegister(RVRegisterType.INTEGER, 5);

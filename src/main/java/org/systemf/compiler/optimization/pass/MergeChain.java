@@ -57,7 +57,7 @@ public enum MergeChain implements OptPass {
 			while (true) {
 				var succs = cfg.successors(block);
 				if (succs.size() != 1) break;
-				var succ = succs.iterator().next();
+				var succ = succs.getFirst();
 				if (succ == block) break;
 				if (succ == function.getEntryBlock()) break;
 				var succPreds = cfg.predecessors(succ);

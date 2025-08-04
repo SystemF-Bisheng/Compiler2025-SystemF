@@ -2,6 +2,7 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.InstructionVisitor;
+import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
@@ -20,7 +21,7 @@ public class Call extends AbstractCall implements Value, INamed, PotentialNonRep
 	private final Type type;
 	private final Map<Instruction, Integer> dependant = new WeakHashMap<>();
 
-	public Call(String name, Value func, Value... args) {
+	public Call(String name, IFunction func, Value... args) {
 		super(func, args);
 		this.name = name;
 		this.type = TypeUtil.getReturnType(func.getType());
@@ -29,7 +30,7 @@ public class Call extends AbstractCall implements Value, INamed, PotentialNonRep
 	}
 
 	@Override
-	public void setFunction(Value func) {
+	public void setFunction(IFunction func) {
 		var newRet = TypeUtil.getReturnType(func.getType());
 		if (type != null) TypeUtil.assertConvertible(newRet, type, "Illegal return type");
 		super.setFunction(func);

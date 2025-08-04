@@ -24,12 +24,13 @@ public enum CallGraphAnalysis implements AttributeProvider<Module, CallGraphAnal
 					if (!(callee instanceof IFunction calleeFunc)) return;
 					out.successors(function).add(calleeFunc);
 					out.predecessors(calleeFunc).add(function);
+					out.callSiteCnt().compute(calleeFunc, (_, old) -> old == null ? 1 : old + 1);
 				});
 	}
 
 	@Override
 	public CallGraphAnalysisResult getAttribute(Module entity) {
-		var res = new CallGraphAnalysisResult(new HashMap<>(), new HashMap<>());
+		var res = new CallGraphAnalysisResult(new HashMap<>(), new HashMap<>(), new HashMap<>());
 		for (var func : entity.getFunctions().values()) {
 			res.successors().put(func, new HashSet<>());
 			res.predecessors().put(func, new HashSet<>());

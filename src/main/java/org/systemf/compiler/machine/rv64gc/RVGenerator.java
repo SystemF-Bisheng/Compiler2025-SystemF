@@ -6,7 +6,6 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
-import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.*;
@@ -323,7 +322,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
 			cacheManager.invalidateAll(result);
 
-			result.addLine(String.format("call %s", ((IFunction) inst.getFunction()).getName()));
+			result.addLine(String.format("call %s", inst.getFunction().getName()));
 
 			filterAliveAfter(inst);
 			if (ret != null) RVGenerateHelper.collectReturn(ret, cacheManager, result);

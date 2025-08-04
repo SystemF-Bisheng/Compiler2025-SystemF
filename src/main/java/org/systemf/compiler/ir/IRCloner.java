@@ -1,6 +1,5 @@
 package org.systemf.compiler.ir;
 
-import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
@@ -139,12 +138,12 @@ public class IRCloner extends InstructionVisitorBase<Instruction> {
 
 	@Override
 	public Instruction visit(Call inst) {
-		return builder.buildCall((IFunction) inst.getFunction(), inst.getName(), inst.getArgs());
+		return builder.buildCall(inst.getFunction(), inst.getName(), inst.getArgs());
 	}
 
 	@Override
 	public Instruction visit(CallVoid inst) {
-		return builder.buildCallVoid((IFunction) inst.getFunction(), inst.getArgs());
+		return builder.buildCallVoid(inst.getFunction(), inst.getArgs());
 	}
 
 	@Override

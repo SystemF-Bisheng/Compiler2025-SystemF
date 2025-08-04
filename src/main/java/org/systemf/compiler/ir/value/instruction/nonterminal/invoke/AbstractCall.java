@@ -1,6 +1,7 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.invoke;
 
 import org.systemf.compiler.ir.ITracked;
+import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
@@ -13,10 +14,10 @@ import java.util.LinkedHashSet;
 import java.util.SequencedSet;
 
 public abstract class AbstractCall extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
-	protected Value func;
+	protected IFunction func;
 	protected Value[] args;
 
-	protected AbstractCall(Value func, Value... args) {
+	protected AbstractCall(IFunction func, Value... args) {
 		setFunction(func);
 		setArgs(args);
 	}
@@ -33,11 +34,11 @@ public abstract class AbstractCall extends DummyNonTerminal implements Potential
 		return result.toString();
 	}
 
-	public Value getFunction() {
+	public IFunction getFunction() {
 		return func;
 	}
 
-	public void setFunction(Value func) {
+	public void setFunction(IFunction func) {
 		if (!(func.getType() instanceof FunctionType))
 			throw new IllegalArgumentException("The type of the function must be a function type");
 		if (this.func != null) this.func.unregisterDependant(this);
@@ -54,7 +55,7 @@ public abstract class AbstractCall extends DummyNonTerminal implements Potential
 
 	@Override
 	public void replaceAll(ITracked oldValue, ITracked newValue) {
-		if (func == oldValue) setFunction((Value) newValue);
+		if (func == oldValue) setFunction((IFunction) newValue);
 		for (int i = 0; i < args.length; i++)
 			if (args[i] == oldValue) {
 				oldValue.unregisterDependant(this);

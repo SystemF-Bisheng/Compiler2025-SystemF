@@ -9,6 +9,7 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
+import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.*;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.Void;
@@ -449,7 +450,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			var name = newName(inst.getName());
 			var func = substituted(inst.getFunction());
 			var args = Arrays.stream(inst.getArgs()).map(this::substituted).toArray(Value[]::new);
-			var newInst = new Call(name, func, args);
+			var newInst = new Call(name, (IFunction) func, args);
 			insertInstruction(newInst);
 			substitute.put(inst, newInst);
 			return null;
@@ -459,7 +460,7 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		public Void visit(CallVoid inst) {
 			var func = substituted(inst.getFunction());
 			var args = Arrays.stream(inst.getArgs()).map(this::substituted).toArray(Value[]::new);
-			var newInst = new CallVoid(func, args);
+			var newInst = new CallVoid((IFunction) func, args);
 			insertInstruction(newInst);
 			return null;
 		}

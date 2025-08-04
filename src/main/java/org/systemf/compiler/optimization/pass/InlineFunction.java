@@ -1,6 +1,7 @@
 package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.CFGAnalysisResult;
+import org.systemf.compiler.analysis.CallGraphAnalysisResult;
 import org.systemf.compiler.analysis.FrequencyAnalysisResult;
 import org.systemf.compiler.analysis.FunctionRecursionAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
@@ -10,6 +11,7 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
@@ -18,11 +20,12 @@ import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Depend on: CFGAnalysis, FunctionRecursionAnalysis, FrequencyAnalysis
+ * Depend on: CFGAnalysis, FunctionRecursionAnalysis, FrequencyAnalysis, CallGraphAnalysis
  * <p>
  * Applicable to: IR
  */
@@ -46,6 +49,7 @@ public enum InlineFunction implements OptPass {
 		private Function curFunction;
 		private CFGAnalysisResult cfg;
 		private FrequencyAnalysisResult frequency;
+		private final CallGraphAnalysisResult callGraph;
 
 		private BasicBlock retBlock;
 		private Phi retPhi;
@@ -53,6 +57,7 @@ public enum InlineFunction implements OptPass {
 		public InlineFunctionContext(Module module) {
 			this.module = module;
 			this.recursion = query.getAttribute(module, FunctionRecursionAnalysisResult.class);
+			this.callGraph = query.getAttribute(module, CallGraphAnalysisResult.class);
 		}
 
 		private BasicBlock cloneFunction(Function function) {
@@ -96,7 +101,7 @@ public enum InlineFunction implements OptPass {
 		}
 
 		private boolean processBlock(BasicBlock block) {
-			if (frequency.frequency(block) < FREQ_THRESHOLD) return false;
+			var curFreq = frequency.frequency(block);
 			for (var iter = block.instructions.listIterator(); iter.hasNext(); ) {
 				var inst = iter.next();
 				if (!(inst instanceof AbstractCall call)) continue;
@@ -104,6 +109,9 @@ public enum InlineFunction implements OptPass {
 				if (!(target instanceof Function function)) continue;
 				if (recursion.recursive(function)) continue;
 				if (function.allInstructions().count() > SIZE_THRESHOLD) continue;
+				var allConst = Arrays.stream(call.getArgs()).allMatch(arg -> arg instanceof Constant);
+				var callOnce = callGraph.callSiteCnt(target) == 1;
+				if (curFreq < FREQ_THRESHOLD && !(allConst || callOnce)) continue;
 
 				iter.remove();
 				substitute.clear();

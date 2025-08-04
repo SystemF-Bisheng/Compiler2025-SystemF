@@ -83,7 +83,7 @@ public enum RemoveUnreachable implements OptPass {
 				unreachableFunction.clear();
 
 				this.builder = builder;
-				var res = module.getFunctions().values().stream().map(this::processFunction)
+				boolean res = module.getFunctions().values().stream().map(this::processFunction)
 						.reduce(false, (a, b) -> a || b);
 				if (!unreachableFunction.isEmpty()) {
 					res = true;

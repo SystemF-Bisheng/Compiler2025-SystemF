@@ -7,7 +7,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 public record CallGraphAnalysisResult(Map<IFunction, Set<IFunction>> successors,
-                                      Map<IFunction, Set<IFunction>> predecessors) {
+                                      Map<IFunction, Set<IFunction>> predecessors,
+                                      Map<IFunction, Integer> callSiteCnt) {
 	public Set<IFunction> successors(IFunction function) {
 		var res = successors.get(function);
 		if (res == null) throw new NoSuchElementException("No such function: " + function.getName());
@@ -18,5 +19,9 @@ public record CallGraphAnalysisResult(Map<IFunction, Set<IFunction>> successors,
 		var res = predecessors.get(function);
 		if (res == null) throw new NoSuchElementException("No such function: " + function.getName());
 		return res;
+	}
+
+	public int callSiteCnt(IFunction function) {
+		return callSiteCnt.getOrDefault(function, 0);
 	}
 }

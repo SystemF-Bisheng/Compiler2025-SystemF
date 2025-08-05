@@ -86,7 +86,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			var size = RVTypeHelper.sizeOf(global.valueType);
 			var alignment = RVTypeHelper.alignmentOf(global.valueType);
 			if (initializer instanceof ArrayZeroInitializer) {
-				result.addLine(".data");
+				result.addLine(".bss");
 				result.addLine(String.format(".balign %d", alignment));
 				result.addLine(String.format(".global %s", name));
 				result.addLine(String.format("%s:", name));

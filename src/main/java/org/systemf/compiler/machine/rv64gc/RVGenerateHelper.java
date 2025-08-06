@@ -209,7 +209,8 @@ public class RVGenerateHelper {
 		}
 	}
 
-	public static void loadArgs(RVModule rvModule, Parameter[] params, RVCacheManager cacheManager, RVAsmCode out) {
+	public static void loadArgs(RVModule rvModule, Parameter[] params, long initOffset, RVCacheManager cacheManager,
+			RVAsmCode out) {
 		var typeCnt = new EnumMap<RVRegisterType, Integer>(RVRegisterType.class);
 		for (var type : RVRegisterType.values()) typeCnt.put(type, 0);
 
@@ -231,7 +232,7 @@ public class RVGenerateHelper {
 		}
 		parallelMove(parMove, cacheManager, out);
 
-		long offset = 0;
+		long offset = initOffset;
 		for (var param : inStack) {
 			var pos = typedPositionOf(rvModule, param);
 			if (pos != null) loadFromSp(pos, offset, cacheManager, out);
@@ -239,21 +240,28 @@ public class RVGenerateHelper {
 		}
 	}
 
+	public static long registersSize(List<RVRegister> registers) {
+		return (long) registers.size() * RVRegUtil.REG_SIZE;
+	}
+
 	public static void restoreRegisters(List<RVRegister> registers, RVAsmCode out) {
 		long offset = 0;
 		for (var reg : registers) {
-			offset -= RVRegUtil.REG_SIZE;
 			performOffset(loadInstruction(reg), RVRegUtil.STACK_POINTER, reg, offset, out);
+			offset += RVRegUtil.REG_SIZE;
 		}
+		addSp(registersSize(registers), out);
 	}
 
 	public static long backupRegisters(List<RVRegister> registers, RVAsmCode out) {
+		long size = registersSize(registers);
+		subtractSp(size, out);
 		long offset = 0;
 		for (var reg : registers) {
-			offset -= RVRegUtil.REG_SIZE;
 			performOffset(storeInstruction(reg), RVRegUtil.STACK_POINTER, reg, offset, out);
+			offset += RVRegUtil.REG_SIZE;
 		}
-		return -offset;
+		return size;
 	}
 
 	public static long argStackSize(Value[] args) {

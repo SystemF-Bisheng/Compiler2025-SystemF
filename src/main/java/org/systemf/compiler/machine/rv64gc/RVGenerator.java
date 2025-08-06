@@ -159,7 +159,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		private final RVLiveRangeAnalysisResult liveRange;
 		private final String epilogueName;
 		private final boolean hasFrame;
-		private long stackSize = 0;
+		private long frameSize = 0;
 
 		public RVGenFunctionContext(RVModule rvModule, Function function, RVAsmCode result) {
 			this.rvModule = rvModule;
@@ -182,24 +182,25 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		}
 
 		private void genPrologue() {
-			stackSize += RVGenerateHelper.backupRegisters(regSaved, result);
+			var backupSize = RVGenerateHelper.backupRegisters(regSaved, result);
 
-			stackSize += stackFrame.getSize();
+			var stackSize = backupSize + stackFrame.getSize();
 			stackSize = MathUtil.roundTo(stackSize, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
+			frameSize = stackSize - backupSize;
 
-			if (hasFrame) RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, stackSize, result);
+			if (hasFrame) RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, frameSize, result);
 
-			RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), cacheManager, result);
+			RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), backupSize, cacheManager, result);
 
 			if (hasFrame) RVGenerateHelper.moveRegister(RVRegUtil.STACK_POINTER, RVRegUtil.FRAME_POINTER, result);
-			else RVGenerateHelper.subtractSp(stackSize, result);
+			else RVGenerateHelper.subtractSp(frameSize, result);
 
 			cacheManager.invalidateAll(result);
 		}
 
 		private void genEpilogue() {
 			result.addLine(String.format("%s:", epilogueName));
-			RVGenerateHelper.addSp(stackSize, result);
+			RVGenerateHelper.addSp(frameSize, result);
 
 			RVGenerateHelper.restoreRegisters(regSaved, result);
 
@@ -315,10 +316,14 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 					.map(pos -> (RVRegister) pos).filter(RVRegUtil::isNonSaved).toList();
 
 			var args = inst.getArgs();
-			var size = RVGenerateHelper.backupRegisters(toSave, result);
-			size += RVGenerateHelper.argStackSize(args);
+
+			var backupSize = RVGenerateHelper.backupRegisters(toSave, result);
+
+			var size = backupSize + RVGenerateHelper.argStackSize(args);
 			size = MathUtil.roundTo(size, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
-			RVGenerateHelper.subtractSp(size, result);
+			var argSize = size - backupSize;
+
+			RVGenerateHelper.subtractSp(argSize, result);
 			RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
 			cacheManager.invalidateAll(result);
 
@@ -327,7 +332,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			filterAliveAfter(inst);
 			if (ret != null) RVGenerateHelper.collectReturn(ret, cacheManager, result);
 
-			RVGenerateHelper.addSp(size, result);
+			RVGenerateHelper.addSp(argSize, result);
 			RVGenerateHelper.restoreRegisters(toSave, result);
 			return null;
 		}

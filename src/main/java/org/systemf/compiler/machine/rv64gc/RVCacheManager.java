@@ -41,7 +41,7 @@ public class RVCacheManager {
 	}
 
 	public void unlockAll() {
-		for (var tmp : locked) tmp.locked = false;
+		for (var tmp : locked) tmp.unlock();
 		locked.clear();
 	}
 
@@ -53,7 +53,7 @@ public class RVCacheManager {
 				break;
 			}
 		if (toUnlock == null) return;
-		toUnlock.locked = false;
+		toUnlock.unlock();
 		locked.remove(toUnlock);
 	}
 
@@ -72,20 +72,21 @@ public class RVCacheManager {
 		}
 
 		public RVTempReg alloc(RVAsmCode out) {
-			RVTempReg res = null;
-			var oldClock = clock;
-			do {
-				var candidate = regs.get(clock);
-				clock = (clock + 1) % regs.size();
-				if (!candidate.locked) {
-					res = candidate;
-					break;
-				}
-			} while (clock != oldClock);
-			if (res == null) throw new IllegalStateException("No enough temporary registers");
+			if (regs.stream().allMatch(RVTempReg::isLocked))
+				throw new IllegalStateException("No enough temporary registers");
 
+			RVTempReg res = null;
+			for (; res == null; clock = (clock + 1) % regs.size()) {
+				var candidate = regs.get(clock);
+				if (candidate.isLocked()) continue;
+				if (candidate.used) {
+					candidate.used = false;
+					continue;
+				}
+				res = candidate;
+			}
 			res.invalidate(out);
-			res.locked = true;
+			res.lock();
 			return res;
 		}
 
@@ -128,7 +129,7 @@ public class RVCacheManager {
 				res = alloc(out);
 				pos.load(res.pos, out);
 			}
-			res.locked = true;
+			res.lock();
 			res.cached = pos;
 			return res;
 		}
@@ -139,7 +140,7 @@ public class RVCacheManager {
 				invalidate(pos.position(), out);
 				res = alloc(out);
 			}
-			res.locked = true;
+			res.lock();
 			res.dirty = true;
 			res.cached = pos;
 			return res;

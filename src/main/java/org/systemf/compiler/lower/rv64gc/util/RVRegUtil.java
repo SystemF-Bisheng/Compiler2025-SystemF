@@ -5,8 +5,12 @@ import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.I64;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.lower.rv64gc.module.RVModule;
+import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
+import org.systemf.compiler.lower.rv64gc.module.register.RVBuiltInRegister;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
+import org.systemf.compiler.util.MathUtil;
 
 import java.util.*;
 
@@ -54,5 +58,14 @@ public class RVRegUtil {
 
 	public static boolean isNonSaved(RVRegister register) {
 		return AVAILABLE_NON_SAVED.get(register.type()).contains(register.index());
+	}
+
+	public static RVPosition positionOf(RVModule rvModule, Value value) {
+		if (value instanceof RVBuiltInRegister builtIn) return builtIn.position();
+		return rvModule.position().get(value);
+	}
+
+	public static long roundForStack(long size) {
+		return MathUtil.roundTo(size, DEFAULT_STACK_ALIGNMENT);
 	}
 }

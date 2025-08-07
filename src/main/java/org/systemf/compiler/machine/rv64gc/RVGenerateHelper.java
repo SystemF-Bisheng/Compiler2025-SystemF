@@ -10,7 +10,6 @@ import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
 import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
-import org.systemf.compiler.lower.rv64gc.module.register.RVBuiltInRegister;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
@@ -66,13 +65,8 @@ public class RVGenerateHelper {
 		return loadOffset(RVRegUtil.STACK_POINTER, offset, out);
 	}
 
-	public static RVPosition positionOf(RVModule rvModule, Value value) {
-		if (value instanceof RVBuiltInRegister builtIn) return builtIn.position();
-		return rvModule.position().get(value);
-	}
-
 	public static RVTypedPosition typedPositionOf(RVModule rvModule, Value value) {
-		var pos = positionOf(rvModule, value);
+		var pos = RVRegUtil.positionOf(rvModule, value);
 		if (pos == null) return null;
 		return new RVTypedPosition((Sized) value.getType(), pos);
 	}
@@ -281,7 +275,10 @@ public class RVGenerateHelper {
 		return size;
 	}
 
-	public static void storeArgs(RVModule rvModule, Value[] args, RVCacheManager cacheManager, RVAsmCode out) {
+	public static long storeArgs(RVModule rvModule, Value[] args, RVCacheManager cacheManager, RVAsmCode out) {
+		var argSize = RVRegUtil.roundForStack(RVGenerateHelper.argStackSize(args));
+		RVGenerateHelper.subtractSp(argSize, out);
+
 		var typeCnt = new EnumMap<RVRegisterType, Integer>(RVRegisterType.class);
 		for (var type : RVRegisterType.values()) typeCnt.put(type, 0);
 
@@ -309,17 +306,38 @@ public class RVGenerateHelper {
 		}
 
 		parallelMove(parMove, cacheManager, out);
+
+		return argSize;
 	}
 
-	public static void collectReturn(RVTypedPosition pos, RVCacheManager cacheManager, RVAsmCode out) {
+	public static void collectReturn(RVTypedPosition pos, RVCacheManager cacheManager, RVBackupStorage backupStorage,
+			RVAsmCode out) {
+		backupStorage.discard(pos.position());
 		var regType = RVRegUtil.regType(pos.type());
 		var reg = new RVRegister(regType, RVRegUtil.RETURN_REGISTER.get(regType));
 		move(pos, pos.with(reg), cacheManager, out);
 	}
 
-	public static void putReturn(RVTypedPosition pos, RVCacheManager cacheManager, RVAsmCode out) {
+	public static void putReturn(RVTypedPosition pos, RVCacheManager cacheManager, RVBackupStorage backupStorage,
+			RVAsmCode out) {
+		backupStorage.restore(pos.position(), out);
 		var regType = RVRegUtil.regType(pos.type());
 		var reg = new RVRegister(regType, RVRegUtil.RETURN_REGISTER.get(regType));
+		backupStorage.discard(reg);
 		move(pos.with(reg), pos, cacheManager, out);
+	}
+
+	public static RVRegister prepareForLoad(RVTypedPosition pos, RVCacheManager cacheManager,
+			RVBackupStorage backupStorage, RVAsmCode out) {
+		var reg = cacheManager.load(pos, out);
+		backupStorage.restore(reg, out);
+		return reg;
+	}
+
+	public static RVRegister prepareForStore(RVTypedPosition pos, RVCacheManager cacheManager,
+			RVBackupStorage backupStorage, RVAsmCode out) {
+		var reg = cacheManager.allocForStore(pos, out);
+		backupStorage.discard(reg);
+		return reg;
 	}
 }

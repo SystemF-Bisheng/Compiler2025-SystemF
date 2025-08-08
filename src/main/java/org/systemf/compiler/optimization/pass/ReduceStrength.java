@@ -7,6 +7,7 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.AShr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.LShr;
@@ -14,6 +15,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Shl;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
 import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SDiv;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SRem;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.MathUtil;
@@ -90,7 +92,56 @@ public enum ReduceStrength implements OptPass {
 
 		@Override
 		public Boolean visit(SDiv inst) {
-			return checkIdentity(inst, 1);
+			if (checkIdentity(inst, 1)) return true;
+
+			var y = inst.getY();
+			if (!ValueUtil.isConstantInt(y)) return false;
+
+			var yVal = ValueUtil.getConstantInt(y);
+			var yAbs = Math.abs(yVal);
+			var yPow = MathUtil.checkPowerOfTwo(yAbs);
+			var x = inst.getX();
+			var width = ValueUtil.getWidth(inst);
+			if (yPow != -1) {
+				builder.setPosition(iterator);
+				var xNeg = builder.buildICmp(x, builder.buildConstantZero(width), "sdivSign", CompareOp.LT);
+				var toAdd = builder.buildMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sdivToAdd");
+				var addValue = builder.buildAdd(x, toAdd, "sdivAdd");
+				Value newValue;
+				if (yVal < 0) {
+					var shrValue = builder.buildAShr(addValue, builder.buildConstantInt(yPow, width), "sdivAShr");
+					newValue = builder.buildSub(builder.buildConstantZero(width), shrValue, inst.getName());
+				} else newValue = builder.buildAShr(addValue, builder.buildConstantInt(yPow, width), inst.getName());
+				inst.replaceAllUsage(newValue);
+				return true;
+			} else {
+				// TODO: Any constant sdiv
+				return false;
+			}
+		}
+
+		@Override
+		public Boolean visit(SRem inst) {
+			var y = inst.getY();
+			if (!ValueUtil.isConstantInt(y)) return false;
+
+			var yAbs = Math.abs(ValueUtil.getConstantInt(y));
+			var yPow = MathUtil.checkPowerOfTwo(yAbs);
+			var x = inst.getX();
+			var width = ValueUtil.getWidth(inst);
+			if (yPow != -1) {
+				builder.setPosition(iterator);
+				var xNeg = builder.buildICmp(x, builder.buildConstantZero(width), "sremSign", CompareOp.LT);
+				var toAdd = builder.buildMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sremToAdd");
+				var addValue = builder.buildAdd(x, toAdd, "sremAdd");
+				var andValue = builder.buildAnd(addValue, builder.buildConstantInt(-yAbs, width), "sremAnd");
+				var subValue = builder.buildSub(x, andValue, inst.getName());
+				inst.replaceAllUsage(subValue);
+				return true;
+			} else {
+				// TODO: Any constant srem
+				return false;
+			}
 		}
 
 		@Override
@@ -115,7 +166,7 @@ public enum ReduceStrength implements OptPass {
 			var yVal = ValueUtil.getConstantInt(y);
 			var width = ValueUtil.getWidth(inst);
 			if (yVal == 0) {
-				inst.replaceAllUsage(builder.buildConstantInt(0, width));
+				inst.replaceAllUsage(builder.buildConstantZero(width));
 				return true;
 			}
 
@@ -126,7 +177,7 @@ public enum ReduceStrength implements OptPass {
 			builder.setPosition(iterator);
 			Value newVal = builder.buildShl(inst.getX(), builder.buildConstantInt(power, width),
 					inst.getName() + "Shl");
-			if (yVal < 0) newVal = builder.buildSub(builder.buildConstantInt(0, width), newVal, inst.getName());
+			if (yVal < 0) newVal = builder.buildSub(builder.buildConstantZero(width), newVal, inst.getName());
 			inst.replaceAllUsage(newVal);
 			return true;
 		}

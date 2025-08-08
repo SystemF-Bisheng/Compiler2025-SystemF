@@ -87,6 +87,10 @@ public class IRBuilder implements AutoCloseable {
 		return ConstantInt64.valueOf(value);
 	}
 
+	public Constant buildConstantZero(int width) {
+		return buildConstantInt(0, width);
+	}
+
 	public Constant buildConstantInt(long value, int width) {
 		if (width == 32) return buildConstantInt32(value);
 		else if (width == 64) return buildConstantInt64(value);

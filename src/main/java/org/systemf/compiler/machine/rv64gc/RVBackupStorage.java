@@ -4,6 +4,7 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
@@ -29,6 +30,10 @@ public class RVBackupStorage {
 
 	public void discard(RVRegister reg) {
 		for (int i = 0; i < backup.length; ++i) if (reg.equals(backup[i])) backup[i] = null;
+	}
+
+	public void discardAll() {
+		Arrays.fill(backup, null);
 	}
 
 	private long offsetOf(int i) {

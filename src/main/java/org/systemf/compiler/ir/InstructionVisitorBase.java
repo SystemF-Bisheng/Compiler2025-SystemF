@@ -515,6 +515,11 @@ public class InstructionVisitorBase<T> implements InstructionVisitor<T> {
 	}
 
 	@Override
+	public T visit(RVTailCall inst) {
+		return visit((AbstractCall) inst);
+	}
+
+	@Override
 	public T visit(RVXor inst) {
 		return visit((DummyBinary) inst);
 	}

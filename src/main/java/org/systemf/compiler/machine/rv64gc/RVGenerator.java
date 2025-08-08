@@ -162,6 +162,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		private final String epilogueName;
 		private final boolean hasFrame;
 		private long frameSize = 0;
+		private boolean epilogueUsed = false;
 
 		public RVGenFunctionContext(RVModule rvModule, Function function, RVAsmCode result) {
 			this.rvModule = rvModule;
@@ -171,7 +172,11 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			this.stackFrame = rvModule.stacks().get(function);
 			this.hasFrame = stackFrame.getSize() > 0;
 
-			var hasCall = function.allInstructions().anyMatch(inst -> inst instanceof AbstractCall);
+			var hasCall = function.allInstructions().anyMatch(inst -> {
+				if (!(inst instanceof AbstractCall)) return false;
+				if (inst instanceof RVTailCall tailCall) return RVGenerateHelper.argStackSize(tailCall.getArgs()) > 0;
+				return true;
+			});
 			var query = QueryManager.getInstance();
 			this.regSaved = query.getAttribute(rvModule, RVRegUsageAnalysisResult.class).usage(function).stream()
 					.filter(RVRegUtil::isSaved).collect(Collectors.toCollection(ArrayList::new));
@@ -208,18 +213,25 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			backupStorage.restoreAll(result);
 		}
 
+		private void prepareForReturn() {
+			RVGenerateHelper.addSp(frameSize, result);
+			RVGenerateHelper.restoreRegisters(regSaved, result);
+		}
+
 		private void genEpilogue() {
 			result.addLine(String.format("%s:", epilogueName));
-			RVGenerateHelper.addSp(frameSize, result);
-
-			RVGenerateHelper.restoreRegisters(regSaved, result);
-
+			prepareForReturn();
 			result.addLine("ret");
 		}
 
 		private void onBlockEnd() {
 			cacheManager.invalidateAll(result);
 			backupStorage.restoreAll(result);
+		}
+
+		private void jumpEpilogue() {
+			epilogueUsed = true;
+			result.addLine(String.format("j %s", epilogueName));
 		}
 
 		private void handleBranch(RVCompBranch inst, String trueOperator, String falseOperator) {
@@ -266,6 +278,27 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			}
 		}
 
+		private void handleTailCall(RVTailCall inst) {
+			var args = inst.getArgs();
+			for (var arg : args) {
+				var argPos = RVRegUtil.positionOf(rvModule, arg);
+				backupStorage.restore(argPos, result);
+			}
+			backupStorage.discardAll();
+
+			var argSize = RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
+			onBlockEnd();
+
+			if (argSize == 0) {
+				prepareForReturn();
+				result.addLine(String.format("tail %s", inst.getFunction().getName()));
+			} else {
+				result.addLine(String.format("call %s", inst.getFunction().getName()));
+				RVGenerateHelper.addSp(argSize, result);
+				jumpEpilogue();
+			}
+		}
+
 		private void genBlock(BasicBlock block) {
 			if (!generatedBlock.add(block)) return;
 			result.addLine(String.format("%s:", block.getName()));
@@ -283,16 +316,19 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 					if (generatedBlock.contains(target)) result.addLine(String.format("j %s", target.getName()));
 					else genBlock(target);
 				}
+				case RVTailCall tailCall -> handleTailCall(tailCall);
 				case Ret ret -> {
 					var retPos = Objects.requireNonNull(
 							RVGenerateHelper.typedPositionOf(rvModule, ret.getReturnValue()));
 					RVGenerateHelper.putReturn(retPos, cacheManager, backupStorage, result);
+					backupStorage.discardAll();
 					onBlockEnd();
-					result.addLine(String.format("j %s", epilogueName));
+					jumpEpilogue();
 				}
 				case RetVoid _ -> {
+					backupStorage.discardAll();
 					onBlockEnd();
-					result.addLine(String.format("j %s", epilogueName));
+					jumpEpilogue();
 				}
 				case RVBranchEq branchEq -> handleBranch(branchEq, "beq", "bne");
 				case RVBranchLess branchLess -> handleBranch(branchLess, "blt", "bge");
@@ -303,7 +339,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		public void run() {
 			genPrologue();
 			genBlock(function.getEntryBlock());
-			genEpilogue();
+			if (epilogueUsed) genEpilogue();
 		}
 
 		private void filterAliveBefore(Instruction inst) {

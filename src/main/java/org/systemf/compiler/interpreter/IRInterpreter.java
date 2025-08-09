@@ -304,6 +304,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			return globalVarMap.get(value);
 		}
 		if (value instanceof ConstantInt32 constantInt) return newInt((int) constantInt.value);
+		if (value instanceof ConstantInt64 constantInt64) return newInt64(constantInt64.value);
 		if (value instanceof ConstantFloat constantFloat) return newFloat((float) constantFloat.value);
 		if (value instanceof ConstantArray constantArray) return formExecutionValue(value.getType(), constantArray);
 		return varMap.get(value);
@@ -552,7 +553,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	public static  ExecutionValue newInt64(long value) {
-		System.out.println("Creating Int64Value with value: " + value);
 		return Int64Value.valueOf(value);
 	}
 

@@ -22,6 +22,7 @@ import org.systemf.compiler.util.MathUtil;
 import org.systemf.compiler.util.SaturationArithmetic;
 
 import java.util.ListIterator;
+import java.util.Optional;
 
 /**
  * Depend on: No
@@ -215,6 +216,17 @@ public enum ReduceStrength implements OptPass {
 			return checkIdentity(inst, 0);
 		}
 
+		private Optional<Value> handleMulPowerOf2(int width, Value x, long yVal, String name) {
+			var yAbs = Math.abs(yVal);
+			var power = MathUtil.checkPowerOfTwo(yAbs);
+			if (power != -1) {
+				Value newVal = builder.buildShl(x, builder.buildConstantInt(power, width), name + "Shl");
+				if (yVal < 0) newVal = builder.buildSub(builder.buildConstantZero(width), newVal, name);
+				return Optional.of(newVal);
+			}
+			return Optional.empty();
+		}
+
 		@Override
 		public Boolean visit(Mul inst) {
 			var y = inst.getY();
@@ -226,16 +238,18 @@ public enum ReduceStrength implements OptPass {
 				return true;
 			}
 
-			var yAbs = Math.abs(yVal);
-			var power = MathUtil.checkPowerOfTwo(yAbs);
-			if (power == -1) return false;
-
+			var x = inst.getX();
 			var name = inst.getName();
 			builder.setPosition(iterator);
-			Value newVal = builder.buildShl(inst.getX(), builder.buildConstantInt(power, width), name + "Shl");
-			if (yVal < 0) newVal = builder.buildSub(builder.buildConstantZero(width), newVal, name);
-			inst.replaceAllUsage(newVal);
-			return true;
+			return handleMulPowerOf2(width, x, yVal, name)
+					.or(() -> handleMulPowerOf2(width, x, yVal + 1, "mulWithAdd").map(
+							withAdd -> builder.buildSub(withAdd, x, name)))
+					.or(() -> handleMulPowerOf2(width, x, yVal - 1, "mulWithSub").map(
+							withSub -> builder.buildAdd(withSub, x, name)))
+					.map(newVal -> {
+						inst.replaceAllUsage(newVal);
+						return true;
+					}).orElse(false);
 		}
 	}
 }

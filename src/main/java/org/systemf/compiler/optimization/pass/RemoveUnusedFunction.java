@@ -51,6 +51,7 @@ public enum RemoveUnusedFunction implements OptPass {
 			unreachableFunc.forEach(func -> {
 				query.invalidateAllAttributes(func);
 				module.removeFunction(func);
+				func.destroy();
 			});
 
 			var unreachableExternal = module.getExternalFunctions().values().stream()

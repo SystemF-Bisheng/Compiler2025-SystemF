@@ -4,16 +4,16 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.global.IFunction;
 import org.systemf.compiler.ir.type.FunctionType;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.DummyInstruction;
 import org.systemf.compiler.ir.value.instruction.PotentialBlockSensitive;
 import org.systemf.compiler.ir.value.instruction.PotentialSideEffect;
-import org.systemf.compiler.ir.value.instruction.nonterminal.DummyNonTerminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.SequencedSet;
 
-public abstract class AbstractCall extends DummyNonTerminal implements PotentialSideEffect, PotentialBlockSensitive {
+public abstract class AbstractCall extends DummyInstruction implements PotentialSideEffect, PotentialBlockSensitive {
 	protected IFunction func;
 	protected Value[] args;
 

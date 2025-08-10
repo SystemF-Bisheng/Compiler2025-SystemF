@@ -22,6 +22,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.lower.rv64gc.allocate.RVAllocatedResult;
 import org.systemf.compiler.lower.rv64gc.analysis.RVLiveRangeAnalysisResult;
+import org.systemf.compiler.lower.rv64gc.analysis.RVRegBackupAnalysisResult;
 import org.systemf.compiler.lower.rv64gc.analysis.RVRegUsageAnalysisResult;
 import org.systemf.compiler.lower.rv64gc.instruction.*;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
@@ -31,7 +32,6 @@ import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
-import org.systemf.compiler.util.MathUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -156,10 +156,13 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		private final Set<BasicBlock> generatedBlock = new HashSet<>();
 		private final RVStackState stackFrame;
 		private final RVCacheManager cacheManager = new RVCacheManager();
+		private final RVBackupStorage backupStorage;
 		private final RVLiveRangeAnalysisResult liveRange;
+		private final RVRegBackupAnalysisResult backupInfo;
 		private final String epilogueName;
 		private final boolean hasFrame;
 		private long frameSize = 0;
+		private boolean epilogueUsed = false;
 
 		public RVGenFunctionContext(RVModule rvModule, Function function, RVAsmCode result) {
 			this.rvModule = rvModule;
@@ -169,7 +172,11 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			this.stackFrame = rvModule.stacks().get(function);
 			this.hasFrame = stackFrame.getSize() > 0;
 
-			var hasCall = function.allInstructions().anyMatch(inst -> inst instanceof AbstractCall);
+			var hasCall = function.allInstructions().anyMatch(inst -> {
+				if (!(inst instanceof AbstractCall)) return false;
+				if (inst instanceof RVTailCall tailCall) return RVGenerateHelper.argStackSize(tailCall.getArgs()) > 0;
+				return true;
+			});
 			var query = QueryManager.getInstance();
 			this.regSaved = query.getAttribute(rvModule, RVRegUsageAnalysisResult.class).usage(function).stream()
 					.filter(RVRegUtil::isSaved).collect(Collectors.toCollection(ArrayList::new));
@@ -177,34 +184,54 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			if (hasCall) this.regSaved.add(RVRegUtil.RETURN_ADDRESS);
 
 			this.liveRange = query.getAttribute(function, RVLiveRangeAnalysisResult.class);
+			this.backupInfo = query.getAttribute(rvModule, RVRegBackupAnalysisResult.class);
+			this.backupStorage = new RVBackupStorage(backupInfo.saveSize(function));
 
 			this.epilogueName = rvModule.module().getNonConflictName(function.getName() + "Epilogue");
 		}
 
 		private void genPrologue() {
 			var backupSize = RVGenerateHelper.backupRegisters(regSaved, result);
-
-			var stackSize = backupSize + stackFrame.getSize();
-			stackSize = MathUtil.roundTo(stackSize, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
-			frameSize = stackSize - backupSize;
-
-			if (hasFrame) RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, frameSize, result);
-
-			RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), backupSize, cacheManager, result);
-
-			if (hasFrame) RVGenerateHelper.moveRegister(RVRegUtil.STACK_POINTER, RVRegUtil.FRAME_POINTER, result);
-			else RVGenerateHelper.subtractSp(frameSize, result);
+			if (hasFrame) {
+				var stackSize = RVRegUtil.roundForStack(backupSize + stackFrame.getSize());
+				frameSize = stackSize - backupSize;
+				RVGenerateHelper.subtractSp(RVRegUtil.FRAME_POINTER, frameSize, result);
+				RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), backupSize, cacheManager, result);
+				RVGenerateHelper.moveRegister(RVRegUtil.STACK_POINTER, RVRegUtil.FRAME_POINTER, result);
+				var storageSize = RVRegUtil.roundForStack(backupStorage.size);
+				RVGenerateHelper.subtractSp(storageSize, result);
+				frameSize += storageSize;
+			} else {
+				RVGenerateHelper.loadArgs(rvModule, function.getFormalArgs(), backupSize, cacheManager, result);
+				var stackSize = RVRegUtil.roundForStack(backupSize + backupStorage.size);
+				var storageSize = stackSize - backupSize;
+				RVGenerateHelper.subtractSp(storageSize, result);
+				frameSize = storageSize;
+			}
 
 			cacheManager.invalidateAll(result);
+			backupStorage.restoreAll(result);
+		}
+
+		private void prepareForReturn() {
+			RVGenerateHelper.addSp(frameSize, result);
+			RVGenerateHelper.restoreRegisters(regSaved, result);
 		}
 
 		private void genEpilogue() {
 			result.addLine(String.format("%s:", epilogueName));
-			RVGenerateHelper.addSp(frameSize, result);
-
-			RVGenerateHelper.restoreRegisters(regSaved, result);
-
+			prepareForReturn();
 			result.addLine("ret");
+		}
+
+		private void onBlockEnd() {
+			cacheManager.invalidateAll(result);
+			backupStorage.restoreAll(result);
+		}
+
+		private void jumpEpilogue() {
+			epilogueUsed = true;
+			result.addLine(String.format("j %s", epilogueName));
 		}
 
 		private void handleBranch(RVCompBranch inst, String trueOperator, String falseOperator) {
@@ -218,7 +245,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			var regY = loadRegister(inst.getY());
 			cacheManager.unlock(regX);
 			cacheManager.unlock(regY);
-			cacheManager.invalidateAll(result);
+			onBlockEnd();
 
 			if (leftCount == 0) {
 				var trueFreq = rvModule.frequency().get(trueTarget);
@@ -251,6 +278,27 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			}
 		}
 
+		private void handleTailCall(RVTailCall inst) {
+			var args = inst.getArgs();
+			for (var arg : args) {
+				var argPos = RVRegUtil.positionOf(rvModule, arg);
+				backupStorage.restore(argPos, result);
+			}
+			backupStorage.discardAll();
+
+			var argSize = RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
+			onBlockEnd();
+
+			if (argSize == 0) {
+				prepareForReturn();
+				result.addLine(String.format("tail %s", inst.getFunction().getName()));
+			} else {
+				result.addLine(String.format("call %s", inst.getFunction().getName()));
+				RVGenerateHelper.addSp(argSize, result);
+				jumpEpilogue();
+			}
+		}
+
 		private void genBlock(BasicBlock block) {
 			if (!generatedBlock.add(block)) return;
 			result.addLine(String.format("%s:", block.getName()));
@@ -263,21 +311,24 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			var term = block.getTerminator();
 			switch (term) {
 				case Br br -> {
-					cacheManager.invalidateAll(result);
+					onBlockEnd();
 					var target = br.getTarget();
 					if (generatedBlock.contains(target)) result.addLine(String.format("j %s", target.getName()));
 					else genBlock(target);
 				}
+				case RVTailCall tailCall -> handleTailCall(tailCall);
 				case Ret ret -> {
-					RVGenerateHelper.putReturn(
-							Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, ret.getReturnValue())),
-							cacheManager, result);
-					cacheManager.invalidateAll(result);
-					result.addLine(String.format("j %s", epilogueName));
+					var retPos = Objects.requireNonNull(
+							RVGenerateHelper.typedPositionOf(rvModule, ret.getReturnValue()));
+					RVGenerateHelper.putReturn(retPos, cacheManager, backupStorage, result);
+					backupStorage.discardAll();
+					onBlockEnd();
+					jumpEpilogue();
 				}
 				case RetVoid _ -> {
-					cacheManager.invalidateAll(result);
-					result.addLine(String.format("j %s", epilogueName));
+					backupStorage.discardAll();
+					onBlockEnd();
+					jumpEpilogue();
 				}
 				case RVBranchEq branchEq -> handleBranch(branchEq, "beq", "bne");
 				case RVBranchLess branchLess -> handleBranch(branchLess, "blt", "bge");
@@ -288,19 +339,21 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		public void run() {
 			genPrologue();
 			genBlock(function.getEntryBlock());
-			genEpilogue();
+			if (epilogueUsed) genEpilogue();
 		}
 
 		private void filterAliveBefore(Instruction inst) {
-			cacheManager.filter(
-					liveRange.aliveBefore(inst).stream().map(val -> RVGenerateHelper.typedPositionOf(rvModule, val))
-							.collect(Collectors.toSet()));
+			var beforePos = liveRange.aliveBefore(inst).stream()
+					.map(val -> RVGenerateHelper.typedPositionOf(rvModule, val)).collect(Collectors.toSet());
+			cacheManager.filter(beforePos);
+			backupStorage.filter(beforePos);
 		}
 
 		private void filterAliveAfter(Instruction inst) {
-			cacheManager.filter(
-					liveRange.aliveAfter(inst).stream().map(val -> RVGenerateHelper.typedPositionOf(rvModule, val))
-							.collect(Collectors.toSet()));
+			var afterPos = liveRange.aliveAfter(inst).stream()
+					.map(val -> RVGenerateHelper.typedPositionOf(rvModule, val)).collect(Collectors.toSet());
+			cacheManager.filter(afterPos);
+			backupStorage.filter(afterPos);
 		}
 
 		@Override
@@ -309,31 +362,25 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		}
 
 		private Void handleCall(AbstractCall inst, RVTypedPosition ret) {
-			var aliveBefore = liveRange.aliveBefore(inst);
-			var aliveAfter = liveRange.aliveAfter(inst);
-			var toSave = aliveBefore.stream().filter(aliveAfter::contains)
-					.map(value -> RVGenerateHelper.positionOf(rvModule, value)).filter(pos -> pos instanceof RVRegister)
-					.map(pos -> (RVRegister) pos).filter(RVRegUtil::isNonSaved).toList();
-
+			var toSave = backupInfo.toSave(inst);
 			var args = inst.getArgs();
+			for (var arg : args) {
+				var argPos = RVRegUtil.positionOf(rvModule, arg);
+				if (argPos instanceof RVRegister argReg && toSave.contains(argReg))
+					backupStorage.restoreTemp(argReg, result);
+				else backupStorage.restore(argPos, result);
+			}
+			backupStorage.backup(toSave, result);
 
-			var backupSize = RVGenerateHelper.backupRegisters(toSave, result);
-
-			var size = backupSize + RVGenerateHelper.argStackSize(args);
-			size = MathUtil.roundTo(size, RVRegUtil.DEFAULT_STACK_ALIGNMENT);
-			var argSize = size - backupSize;
-
-			RVGenerateHelper.subtractSp(argSize, result);
-			RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
+			var argSize = RVGenerateHelper.storeArgs(rvModule, args, cacheManager, result);
 			cacheManager.invalidateAll(result);
 
 			result.addLine(String.format("call %s", inst.getFunction().getName()));
 
 			filterAliveAfter(inst);
-			if (ret != null) RVGenerateHelper.collectReturn(ret, cacheManager, result);
+			if (ret != null) RVGenerateHelper.collectReturn(ret, cacheManager, backupStorage, result);
 
 			RVGenerateHelper.addSp(argSize, result);
-			RVGenerateHelper.restoreRegisters(toSave, result);
 			return null;
 		}
 
@@ -349,13 +396,13 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 
 		private RVRegister loadRegister(Value value) {
 			var pos = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, value));
-			return cacheManager.load(pos, result);
+			return RVGenerateHelper.prepareForLoad(pos, cacheManager, backupStorage, result);
 		}
 
 		private RVRegister currentRegister(Instruction inst) {
 			filterAliveAfter(inst);
 			var posCur = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, (Value) inst));
-			return cacheManager.allocForStore(posCur, result);
+			return RVGenerateHelper.prepareForStore(posCur, cacheManager, backupStorage, result);
 		}
 
 		private Void handleBinary(DummyBinary inst, String operator) {
@@ -709,8 +756,10 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			inst.getMoves().forEach((to, from) -> {
 				var posTo = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, to));
 				var posFrom = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, from));
+				backupStorage.restore(posFrom.position(), result);
 				move.put(posTo, posFrom);
 			});
+			move.keySet().stream().map(RVTypedPosition::position).forEach(backupStorage::discard);
 			RVGenerateHelper.parallelMove(move, cacheManager, result);
 			return null;
 		}

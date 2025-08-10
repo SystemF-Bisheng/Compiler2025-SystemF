@@ -149,7 +149,7 @@ public enum MergeArithmetic implements OptPass {
 			checkY.ifPresent(inst::setY);
 			if (checkY.isPresent() && checkX.isPresent()) return true;
 			builder.setPosition(iterator);
-			var newInst = builder.buildSub(builder.buildConstantInt(0, ValueUtil.getWidth(inst)), inst,
+			var newInst = builder.buildSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
 					inst.getName() + "Neg");
 			inst.replaceAllUsage(newInst);
 			return true;
@@ -160,7 +160,7 @@ public enum MergeArithmetic implements OptPass {
 			return checkIntNeg(x).map(negX -> {
 				inst.setX(negX);
 				builder.setPosition(iterator);
-				var newInst = builder.buildSub(builder.buildConstantInt(0, ValueUtil.getWidth(inst)), inst,
+				var newInst = builder.buildSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
 						inst.getName() + "Neg");
 				inst.replaceAllUsage(newInst);
 				return true;

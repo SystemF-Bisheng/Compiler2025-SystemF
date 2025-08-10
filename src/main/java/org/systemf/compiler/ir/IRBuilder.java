@@ -83,6 +83,14 @@ public class IRBuilder implements AutoCloseable {
 		return ConstantInt32.valueOf(value);
 	}
 
+	public ConstantInt32 buildTrue() {
+		return buildConstantInt32(1);
+	}
+
+	public ConstantInt32 buildFalse() {
+		return buildConstantInt32(0);
+	}
+
 	public ConstantInt64 buildConstantInt64(long value) {
 		return ConstantInt64.valueOf(value);
 	}
@@ -375,6 +383,23 @@ public class IRBuilder implements AutoCloseable {
 
 	public Value buildOrFoldSi64ToSi32(Value op, String name) {
 		return folder.tryFoldSi64ToSi32(op).map(c -> (Value) c).orElseGet(() -> buildSi64ToSi32(op, name));
+	}
+
+	public Value buildOrFoldSiCast(Value op, int width, String name) {
+		var type = op.getType();
+		return switch (type) {
+			case I32 _ -> switch (width) {
+				case 32 -> op;
+				case 64 -> buildOrFoldSi32ToSi64(op, name);
+				default -> throw new UnsupportedOperationException();
+			};
+			case I64 _ -> switch (width) {
+				case 32 -> buildOrFoldSi64ToSi32(op, name);
+				case 64 -> op;
+				default -> throw new UnsupportedOperationException();
+			};
+			default -> throw new UnsupportedOperationException();
+		};
 	}
 
 	public Call buildCall(IFunction function, String name, Value... args) {

@@ -497,7 +497,7 @@ public enum IRTranslator implements EntityProvider<IRTranslatedResult> {
 		}
 
 		private void useAsCond(SysYType type, Value value) {
-			builder.buildCondBr(convertToCond(type, value), trueBlock, falseBlock);
+			builder.buildOrFoldCondBr(convertToCond(type, value), trueBlock, falseBlock);
 		}
 
 		@Override

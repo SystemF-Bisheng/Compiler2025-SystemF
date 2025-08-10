@@ -16,8 +16,6 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= RemoveDeadBlock.INSTANCE.run(module); // Dominance analysis doesn't work with dead blocks
 		flag |= MergeArithmetic.INSTANCE.run(module);
 		flag |= RemoveUnusedValue.INSTANCE.run(module);
-		flag |= ReduceStrength.INSTANCE.run(module);
-		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= MergeCommonValue.INSTANCE.run(module);
 		flag |= InBlockMergeLoad.INSTANCE.run(module);
 		flag |= InlineGlobal.INSTANCE.run(module);
@@ -59,12 +57,24 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		}
 	}
 
+	private boolean reduceStrengthOnce(Module module) {
+		boolean flag = RemoveUnusedValue.INSTANCE.run(module);
+		flag |= ReduceStrength.INSTANCE.run(module);
+		return flag;
+	}
+
 	private void valueClean(Module module) {
-		do fastValueFold(module); while (slowValueFoldOnce(module));
+		do
+			do fastValueFold(module);
+			while (reduceStrengthOnce(module));
+		while (slowValueFoldOnce(module));
 	}
 
 	private void valueAndBlockClean(Module module) {
-		do fastValueAndCFGFold(module); while (slowValueFoldOnce(module));
+		do
+			do fastValueAndCFGFold(module);
+			while (reduceStrengthOnce(module));
+		while (slowValueFoldOnce(module));
 	}
 
 	private void codeMotion(Module module) {

@@ -95,12 +95,12 @@ public enum MergeArithmetic implements OptPass {
 			var y = inst.getY();
 			return checkIntNeg(y).map(negY -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildSub(x, negY, inst.getName());
+				var newInst = builder.buildOrFoldSub(x, negY, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			}).or(() -> checkIntNeg(x).map(negX -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildSub(y, negX, inst.getName());
+				var newInst = builder.buildOrFoldSub(y, negX, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			})).orElse(false);
@@ -120,7 +120,7 @@ public enum MergeArithmetic implements OptPass {
 					long yVal = yValOpt.get();
 					if (!SaturationArithmetic.isOverflow(yVal, width)) {
 						builder.setPosition(iterator);
-						var newInst = builder.buildAdd(x, builder.buildConstantInt(yVal, width), inst.getName());
+						var newInst = builder.buildOrFoldAdd(x, builder.buildConstantInt(yVal, width), inst.getName());
 						inst.replaceAllUsage(newInst);
 						return true;
 					}
@@ -129,7 +129,7 @@ public enum MergeArithmetic implements OptPass {
 
 			return checkIntNeg(y).map(negY -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildAdd(x, negY, inst.getName());
+				var newInst = builder.buildOrFoldAdd(x, negY, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			}).orElse(false);
@@ -149,7 +149,7 @@ public enum MergeArithmetic implements OptPass {
 			checkY.ifPresent(inst::setY);
 			if (checkY.isPresent() && checkX.isPresent()) return true;
 			builder.setPosition(iterator);
-			var newInst = builder.buildSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
+			var newInst = builder.buildOrFoldSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
 					inst.getName() + "Neg");
 			inst.replaceAllUsage(newInst);
 			return true;
@@ -160,7 +160,7 @@ public enum MergeArithmetic implements OptPass {
 			return checkIntNeg(x).map(negX -> {
 				inst.setX(negX);
 				builder.setPosition(iterator);
-				var newInst = builder.buildSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
+				var newInst = builder.buildOrFoldSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
 						inst.getName() + "Neg");
 				inst.replaceAllUsage(newInst);
 				return true;
@@ -218,12 +218,12 @@ public enum MergeArithmetic implements OptPass {
 			var y = inst.getY();
 			return checkFloatNeg(y).map(negY -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildFSub(x, negY, inst.getName());
+				var newInst = builder.buildOrFoldFSub(x, negY, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			}).or(() -> checkFloatNeg(x).map(negX -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildFSub(y, negX, inst.getName());
+				var newInst = builder.buildOrFoldFSub(y, negX, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			})).orElse(false);
@@ -235,7 +235,7 @@ public enum MergeArithmetic implements OptPass {
 			var y = inst.getY();
 			return checkFloatNeg(y).map(negY -> {
 				builder.setPosition(iterator);
-				var newInst = builder.buildFAdd(x, negY, inst.getName());
+				var newInst = builder.buildOrFoldFAdd(x, negY, inst.getName());
 				inst.replaceAllUsage(newInst);
 				return true;
 			}).orElse(false);

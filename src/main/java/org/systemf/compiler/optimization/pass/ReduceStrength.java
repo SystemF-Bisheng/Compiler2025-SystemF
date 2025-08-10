@@ -1,5 +1,7 @@
 package org.systemf.compiler.optimization.pass;
 
+import org.systemf.compiler.analysis.IntegerSignAnalysisResult;
+import org.systemf.compiler.analysis.IntegerSignAnalysisResult.IntegerSign;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
@@ -12,10 +14,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.AShr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.LShr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Shl;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SDiv;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SRem;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.MathUtil;
@@ -25,7 +24,7 @@ import java.util.ListIterator;
 import java.util.Optional;
 
 /**
- * Depend on: No
+ * Depend on: IntegerSignAnalysis
  * <p>
  * Applicable to: IR
  */
@@ -39,25 +38,35 @@ public enum ReduceStrength implements OptPass {
 
 	private static class ReduceStrengthContext extends InstructionVisitorBase<Boolean> {
 		private final QueryManager query = QueryManager.getInstance();
+		private final IntegerSignAnalysisResult signResult;
 		private final Module module;
 		private IRBuilder builder;
 		private ListIterator<Instruction> iterator;
 
 		public ReduceStrengthContext(Module module) {
 			this.module = module;
+			this.signResult = query.getAttribute(module, IntegerSignAnalysisResult.class);
 		}
 
 		private boolean processBlock(BasicBlock block) {
 			var res = false;
 			for (iterator = block.instructions.listIterator(); iterator.hasNext(); ) {
 				var instruction = iterator.next();
-				res |= instruction.accept(this);
+				if (instruction.accept(this)) {
+					res = true;
+					break;
+				}
 			}
 			return res;
 		}
 
 		private boolean processFunction(Function function) {
-			var res = function.getBlocks().stream().map(this::processBlock).reduce(false, (a, b) -> a || b);
+			var res = false;
+			for (var block : function.getBlocks())
+				if (processBlock(block)) {
+					res = true;
+					break;
+				}
 			if (res) query.invalidateAllAttributes(function);
 			return res;
 		}
@@ -65,8 +74,12 @@ public enum ReduceStrength implements OptPass {
 		public boolean run() {
 			try (var builder = new IRBuilder(module)) {
 				this.builder = builder;
-				var res = module.getFunctions().values().stream().map(this::processFunction)
-						.reduce(false, (a, b) -> a || b);
+				var res = false;
+				for (var func : module.getFunctions().values())
+					if (processFunction(func)) {
+						res = true;
+						break;
+					}
 				if (res) query.invalidateAllAttributes(module);
 				return res;
 			}
@@ -92,15 +105,29 @@ public enum ReduceStrength implements OptPass {
 			return checkIdentity(inst, 0);
 		}
 
+		private Value calcSign(Value x, int width, boolean neg, String name) {
+			var xSign = signResult.sign(x);
+			Value res;
+			if (neg) {
+				if (xSign.subsetEq(IntegerSign.NON_NEGATIVE)) res = builder.buildFalse();
+				else if (xSign.subsetEq(IntegerSign.NEGATIVE)) res = builder.buildTrue();
+				else res = builder.buildOrFoldICmp(x, builder.buildConstantZero(width), name, CompareOp.LT);
+			} else {
+				if (xSign.subsetEq(IntegerSign.NON_POSITIVE)) res = builder.buildFalse();
+				else if (xSign.subsetEq(IntegerSign.POSITIVE)) res = builder.buildTrue();
+				else res = builder.buildOrFoldICmp(x, builder.buildConstantZero(width), name, CompareOp.GT);
+			}
+			return builder.buildOrFoldSiCast(res, width, name);
+		}
+
 		/**
 		 * @param y Shall not be zero or a power of 2, no matter positive or negative
 		 */
 		private Value handleSDiv32Constant(Value x, long y, String name) {
 			final int N = 32;
 			var ySign = y < 0;
-			var x64 = builder.buildSi32ToSi64(x, "sdivTo64");
-			var resSign = builder.buildICmp(x, builder.buildConstantZero(N), "sdivResSign",
-					ySign ? CompareOp.GT : CompareOp.LT);
+			var x64 = builder.buildOrFoldSi32ToSi64(x, "sdivTo64");
+			var resSign = calcSign(x, N, !ySign, "sdivResSign");
 			var yAbs = Math.abs(y);
 
 			int l = 0;
@@ -117,22 +144,22 @@ public enum ReduceStrength implements OptPass {
 				if (m > 0) m -= 1L << N;
 				else m += 1L << N;
 
-				var mulValue = builder.buildMul(x64, builder.buildConstantInt64(m), "sdivMul");
-				var shrValue = builder.buildAShr(mulValue, builder.buildConstantInt64(N), "sdivIAShr");
-				var shrValue32 = builder.buildSi64ToSi32(shrValue, "sdivI32AShr");
+				var mulValue = builder.buildOrFoldMul(x64, builder.buildConstantInt64(m), "sdivMul");
+				var shrValue = builder.buildOrFoldAShr(mulValue, builder.buildConstantInt64(N), "sdivIAShr");
+				var shrValue32 = builder.buildOrFoldSi64ToSi32(shrValue, "sdivI32AShr");
 
 				Value midValue;
-				if (m > 0) midValue = builder.buildAdd(x, shrValue32, "sdivAdd");
-				else midValue = builder.buildAdd(shrValue32, x, "sdivSub");
+				if (m > 0) midValue = builder.buildOrFoldAdd(x, shrValue32, "sdivAdd");
+				else midValue = builder.buildOrFoldAdd(shrValue32, x, "sdivSub");
 
-				divValue = builder.buildAShr(midValue, builder.buildConstantInt32(l - 1), "sdivDiv");
+				divValue = builder.buildOrFoldAShr(midValue, builder.buildConstantInt32(l - 1), "sdivDiv");
 			} else {
-				var mulValue = builder.buildMul(x64, builder.buildConstantInt64(m), "sdivMul");
-				var shrValue = builder.buildAShr(mulValue, builder.buildConstantInt64(N - 1 + l), "sdivAShr");
-				divValue = builder.buildSi64ToSi32(shrValue, "sdivDiv");
+				var mulValue = builder.buildOrFoldMul(x64, builder.buildConstantInt64(m), "sdivMul");
+				var shrValue = builder.buildOrFoldAShr(mulValue, builder.buildConstantInt64(N - 1 + l), "sdivAShr");
+				divValue = builder.buildOrFoldSi64ToSi32(shrValue, "sdivDiv");
 			}
 
-			return builder.buildAdd(divValue, resSign, name);
+			return builder.buildOrFoldAdd(divValue, resSign, name);
 		}
 
 		@Override
@@ -152,14 +179,14 @@ public enum ReduceStrength implements OptPass {
 
 			if (yPow != -1) {
 				builder.setPosition(iterator);
-				var xNeg = builder.buildICmp(x, builder.buildConstantZero(width), "sdivSign", CompareOp.LT);
-				var toAdd = builder.buildMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sdivToAdd");
-				var addValue = builder.buildAdd(x, toAdd, "sdivAdd");
+				var xNeg = calcSign(x, width, true, "sdivSign");
+				var toAdd = builder.buildOrFoldMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sdivToAdd");
+				var addValue = builder.buildOrFoldAdd(x, toAdd, "sdivAdd");
 				Value newValue;
 				if (yVal < 0) {
-					var shrValue = builder.buildAShr(addValue, builder.buildConstantInt(yPow, width), "sdivAShr");
-					newValue = builder.buildSub(builder.buildConstantZero(width), shrValue, name);
-				} else newValue = builder.buildAShr(addValue, builder.buildConstantInt(yPow, width), name);
+					var shrValue = builder.buildOrFoldAShr(addValue, builder.buildConstantInt(yPow, width), "sdivAShr");
+					newValue = builder.buildOrFoldSub(builder.buildConstantZero(width), shrValue, name);
+				} else newValue = builder.buildOrFoldAShr(addValue, builder.buildConstantInt(yPow, width), name);
 				inst.replaceAllUsage(newValue);
 			} else {
 				if (width != 32) return false;
@@ -184,18 +211,23 @@ public enum ReduceStrength implements OptPass {
 
 			if (yPow != -1) {
 				builder.setPosition(iterator);
-				var xNeg = builder.buildICmp(x, builder.buildConstantZero(width), "sremSign", CompareOp.LT);
-				var toAdd = builder.buildMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sremToAdd");
-				var addValue = builder.buildAdd(x, toAdd, "sremAdd");
-				var andValue = builder.buildAnd(addValue, builder.buildConstantInt(-yAbs, width), "sremAnd");
-				var subValue = builder.buildSub(x, andValue, name);
-				inst.replaceAllUsage(subValue);
+				Value newValue;
+				if (signResult.sign(x).subsetEq(IntegerSign.NON_NEGATIVE))
+					newValue = builder.buildOrFoldAnd(x, builder.buildConstantInt(yAbs - 1, width), name);
+				else {
+					var xNeg = calcSign(x, width, true, "sremSign");
+					var toAdd = builder.buildOrFoldMul(xNeg, builder.buildConstantInt(yAbs - 1, width), "sremToAdd");
+					var addValue = builder.buildOrFoldAdd(x, toAdd, "sremAdd");
+					var andValue = builder.buildOrFoldAnd(addValue, builder.buildConstantInt(-yAbs, width), "sremAnd");
+					newValue = builder.buildOrFoldSub(x, andValue, name);
+				}
+				inst.replaceAllUsage(newValue);
 			} else {
 				if (width != 32) return false;
 				builder.setPosition(iterator);
 				var divValue = handleSDiv32Constant(x, yVal, "sremDiv");
-				var toSub = builder.buildMul(divValue, y, "sremToSub");
-				var subValue = builder.buildSub(x, toSub, name);
+				var toSub = builder.buildOrFoldMul(divValue, y, "sremToSub");
+				var subValue = builder.buildOrFoldSub(x, toSub, name);
 				inst.replaceAllUsage(subValue);
 			}
 			return true;
@@ -220,8 +252,8 @@ public enum ReduceStrength implements OptPass {
 			var yAbs = Math.abs(yVal);
 			var power = MathUtil.checkPowerOfTwo(yAbs);
 			if (power != -1) {
-				Value newVal = builder.buildShl(x, builder.buildConstantInt(power, width), name + "Shl");
-				if (yVal < 0) newVal = builder.buildSub(builder.buildConstantZero(width), newVal, name);
+				Value newVal = builder.buildOrFoldShl(x, builder.buildConstantInt(power, width), name + "Shl");
+				if (yVal < 0) newVal = builder.buildOrFoldSub(builder.buildConstantZero(width), newVal, name);
 				return Optional.of(newVal);
 			}
 			return Optional.empty();
@@ -243,13 +275,49 @@ public enum ReduceStrength implements OptPass {
 			builder.setPosition(iterator);
 			return handleMulPowerOf2(width, x, yVal, name)
 					.or(() -> handleMulPowerOf2(width, x, yVal + 1, "mulWithAdd").map(
-							withAdd -> builder.buildSub(withAdd, x, name)))
+							withAdd -> builder.buildOrFoldSub(withAdd, x, name)))
 					.or(() -> handleMulPowerOf2(width, x, yVal - 1, "mulWithSub").map(
-							withSub -> builder.buildAdd(withSub, x, name)))
+							withSub -> builder.buildOrFoldAdd(withSub, x, name)))
 					.map(newVal -> {
 						inst.replaceAllUsage(newVal);
 						return true;
 					}).orElse(false);
+		}
+
+		@Override
+		public Boolean visit(ICmp inst) {
+			var x = inst.getX();
+			var y = inst.getY();
+			var xSign = signResult.sign(x);
+			var ySign = signResult.sign(y);
+			Value newValue = switch (inst.method) {
+				case LT -> {
+					if (xSign == IntegerSign.ZERO) {
+						if (ySign.subsetEq(IntegerSign.POSITIVE)) yield builder.buildTrue();
+						if (ySign.subsetEq(IntegerSign.NON_POSITIVE)) yield builder.buildFalse();
+					}
+					if (ySign == IntegerSign.ZERO) {
+						if (xSign.subsetEq(IntegerSign.NEGATIVE)) yield builder.buildTrue();
+						if (xSign.subsetEq(IntegerSign.NON_NEGATIVE)) yield builder.buildFalse();
+					}
+					yield null;
+				}
+				case GE -> {
+					if (xSign == IntegerSign.ZERO) {
+						if (ySign.subsetEq(IntegerSign.NON_POSITIVE)) yield builder.buildTrue();
+						if (ySign.subsetEq(IntegerSign.POSITIVE)) yield builder.buildFalse();
+					}
+					if (ySign == IntegerSign.ZERO) {
+						if (xSign.subsetEq(IntegerSign.NON_NEGATIVE)) yield builder.buildTrue();
+						if (xSign.subsetEq(IntegerSign.NEGATIVE)) yield builder.buildFalse();
+					}
+					yield null;
+				}
+				default -> null;
+			};
+			if (newValue == null) return false;
+			inst.replaceAllUsage(newValue);
+			return true;
 		}
 	}
 }

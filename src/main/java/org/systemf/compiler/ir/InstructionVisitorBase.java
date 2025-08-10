@@ -108,6 +108,7 @@ import org.systemf.compiler.lower.rv64gc.instruction.RVStoreFloat;
 import org.systemf.compiler.lower.rv64gc.instruction.RVStoreWord;
 import org.systemf.compiler.lower.rv64gc.instruction.RVSub;
 import org.systemf.compiler.lower.rv64gc.instruction.RVSubWord;
+import org.systemf.compiler.lower.rv64gc.instruction.RVTailCall;
 import org.systemf.compiler.lower.rv64gc.instruction.RVXor;
 import org.systemf.compiler.lower.rv64gc.instruction.RVXorImm;
 

@@ -4,7 +4,6 @@ import java.util.SequencedSet;
 
 import org.systemf.compiler.hir.region.Region;
 import org.systemf.compiler.hir.value.instruction.IRegionHolder;
-import org.systemf.compiler.hir.value.loop.IndexValue;
 import org.systemf.compiler.hir.value.loop.LoopCarrier;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
@@ -20,7 +19,7 @@ public class While extends DummyNonTerminal implements IRegionHolder, PotentialS
   final private LoopCarrier[] loopCarriers;
   final Region condRegion = new Region(), bodyRegion = new Region();
 
-  public While(IndexValue index, LoopCarrier... loopCarriers) {
+  public While(LoopCarrier... loopCarriers) {
     this.loopCarriers = loopCarriers;
   }
 

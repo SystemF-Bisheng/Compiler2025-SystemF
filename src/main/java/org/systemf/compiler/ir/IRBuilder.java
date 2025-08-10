@@ -1,24 +1,63 @@
 package org.systemf.compiler.ir;
 
+import java.util.ListIterator;
+
+import org.systemf.compiler.hir.value.instruction.nonterminal.scf.Break;
+import org.systemf.compiler.hir.value.instruction.nonterminal.scf.For;
+import org.systemf.compiler.hir.value.instruction.nonterminal.scf.If;
+import org.systemf.compiler.hir.value.instruction.nonterminal.scf.While;
+import org.systemf.compiler.hir.value.instruction.nonterminal.scf.Yield;
+import org.systemf.compiler.hir.value.loop.IndexValue;
+import org.systemf.compiler.hir.value.loop.LoopCarrier;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.ExternalFunction;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
 import org.systemf.compiler.ir.global.IFunction;
-import org.systemf.compiler.ir.type.*;
+import org.systemf.compiler.ir.type.Array;
 import org.systemf.compiler.ir.type.Float;
+import org.systemf.compiler.ir.type.FunctionType;
+import org.systemf.compiler.ir.type.I32;
+import org.systemf.compiler.ir.type.Pointer;
+import org.systemf.compiler.ir.type.UnsizedArray;
 import org.systemf.compiler.ir.type.Void;
 import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Parameter;
 import org.systemf.compiler.ir.value.Value;
-import org.systemf.compiler.ir.value.constant.*;
+import org.systemf.compiler.ir.value.constant.ArrayZeroInitializer;
+import org.systemf.compiler.ir.value.constant.ConcreteArray;
+import org.systemf.compiler.ir.value.constant.Constant;
+import org.systemf.compiler.ir.value.constant.ConstantArray;
+import org.systemf.compiler.ir.value.constant.ConstantFloat;
+import org.systemf.compiler.ir.value.constant.ConstantInt32;
+import org.systemf.compiler.ir.value.constant.ConstantInt64;
+import org.systemf.compiler.ir.value.constant.Undefined;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
-import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
-import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.AShr;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.LShr;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Or;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Shl;
+import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Xor;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.FpToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.PtrCast;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToFp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si32ToSi64;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.Si64ToSi32;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FAdd;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FCmp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FDiv;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FMul;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FNeg;
+import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FSub;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Add;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.ICmp;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Mul;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SDiv;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.SRem;
+import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.Sub;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.CallVoid;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Alloca;
@@ -26,9 +65,12 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.GetPtr;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
-import org.systemf.compiler.ir.value.instruction.terminal.*;
-
-import java.util.ListIterator;
+import org.systemf.compiler.ir.value.instruction.terminal.Br;
+import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
+import org.systemf.compiler.ir.value.instruction.terminal.Ret;
+import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.instruction.terminal.Unreachable;
 
 /**
  * external interface. all write operations are available with only Module and IRBuilder
@@ -460,6 +502,36 @@ public class IRBuilder implements AutoCloseable {
 		CondBr condBrInst = new CondBr(condition, trueTarget, falseTarget);
 		insertInstruction(condBrInst);
 		return condBrInst;
+	}
+
+	public Break buildBreak() {
+		Break _break = new Break();
+		insertInstruction(_break);
+		return _break;
+	}
+
+	public For buildFor(IndexValue index, LoopCarrier... loopCarriers) {
+		For _for = new For(index, loopCarriers);
+		insertInstruction(_for);
+		return _for;
+	}
+
+	public If buildIf(boolean hasElse) {
+		If _if = new If(hasElse);
+		insertInstruction(_if);
+		return _if;
+	}
+
+	public While buildWhile(LoopCarrier... loopCarriers) {
+		While _while = new While(loopCarriers);
+		insertInstruction(_while);
+		return _while;
+	}
+
+	public Yield buildYield(Value... yieldValues) {
+		Yield yield = new Yield(yieldValues);
+		insertInstruction(yield);
+		return yield;
 	}
 
 	public Terminal buildOrFoldCondBr(Value condition, BasicBlock trueTarget, BasicBlock falseTarget) {

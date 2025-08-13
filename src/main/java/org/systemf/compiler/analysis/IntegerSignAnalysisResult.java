@@ -2,6 +2,7 @@ package org.systemf.compiler.analysis;
 
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.constant.ArrayZeroInitializer;
 import org.systemf.compiler.ir.value.constant.ConstantArray;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 
@@ -15,9 +16,11 @@ public record IntegerSignAnalysisResult(Map<Value, IntegerSign> sign, Map<Value,
 			var val = ValueUtil.getConstantInt(value);
 			return IntegerSign.signOf(val);
 		}
-		if (value instanceof ConstantArray arr)
+		if (value instanceof ConstantArray arr) {
+			if (arr instanceof ArrayZeroInitializer) return IntegerSign.ZERO;
 			return IntStream.range(0, arr.getSize()).mapToObj(arr::getContent).map(this::sign)
 					.reduce(IntegerSign.UNDEFINED, IntegerSign::meet);
+		}
 		return sign.getOrDefault(value, IntegerSign.UNDEFINED);
 	}
 

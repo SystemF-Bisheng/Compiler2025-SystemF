@@ -22,6 +22,7 @@ public enum RVInBlockSchedule {
 
 	public void run(RVModule rvModule) {
 		new RVInBlockScheduleContext(rvModule.module()).run();
+		QueryManager.getInstance().invalidateAllAttributes(rvModule);
 	}
 
 	private static class RVInBlockScheduleContext {

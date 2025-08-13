@@ -12,7 +12,6 @@ import org.systemf.compiler.lower.rv64gc.module.position.RVPosition;
 import org.systemf.compiler.lower.rv64gc.module.position.RVRegister;
 import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
-import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
 import org.systemf.compiler.util.SaturationArithmetic;
 
 import java.util.*;
@@ -164,9 +163,8 @@ public class RVGenerateHelper {
 			var toPos = to.position();
 			var fromPos = from.position();
 			if (toPos.equals(fromPos)) { // Self-loop
-				if (toPos instanceof RVRegister) continue;
-				if (RVTypeHelper.sizeOf(from.type()) >= RVTypeHelper.sizeOf(to.type())) continue;
-				move(to, from, cacheManager, out); // Move for bit-expansion if size(from) < size(to)
+				if (!RVRegUtil.needToMove(toPos, to.type(), fromPos, from.type())) continue;
+				move(to, from, cacheManager, out);
 				continue;
 			}
 			inMap.put(toPos, to);

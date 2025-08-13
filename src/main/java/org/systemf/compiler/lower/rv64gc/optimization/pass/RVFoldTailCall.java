@@ -19,7 +19,11 @@ public enum RVFoldTailCall implements RVOptPass {
 
 	@Override
 	public boolean run(RVModule rvModule) {
-		return new RVFoldTailCallContext(rvModule).run();
+		if (new RVFoldTailCallContext(rvModule).run()) {
+			QueryManager.getInstance().invalidateAllAttributes(rvModule);
+			return true;
+		}
+		return false;
 	}
 
 	private static class RVFoldTailCallContext {

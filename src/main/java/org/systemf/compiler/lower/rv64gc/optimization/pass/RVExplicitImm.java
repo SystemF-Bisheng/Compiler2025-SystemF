@@ -34,7 +34,11 @@ public enum RVExplicitImm implements RVOptPass {
 
 	@Override
 	public boolean run(RVModule rvModule) {
-		return new RVExplicitImmContext(rvModule.module()).run();
+		if (new RVExplicitImmContext(rvModule.module()).run()) {
+			QueryManager.getInstance().invalidateAllAttributes(rvModule);
+			return true;
+		}
+		return false;
 	}
 
 	private static class RVExplicitImmContext extends InstructionVisitorBase<Boolean> {

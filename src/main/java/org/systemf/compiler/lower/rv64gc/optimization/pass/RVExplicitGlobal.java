@@ -14,7 +14,11 @@ public enum RVExplicitGlobal implements RVOptPass {
 
 	@Override
 	public boolean run(RVModule rvModule) {
-		return new RVExplicitGlobalContext(rvModule.module()).run();
+		if (new RVExplicitGlobalContext(rvModule.module()).run()) {
+			QueryManager.getInstance().invalidateAllAttributes(rvModule);
+			return true;
+		}
+		return false;
 	}
 
 	private static class RVExplicitGlobalContext {

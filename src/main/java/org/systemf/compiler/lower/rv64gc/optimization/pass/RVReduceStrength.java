@@ -23,8 +23,11 @@ public enum RVReduceStrength implements RVOptPass {
 
 	@Override
 	public boolean run(RVModule rvModule) {
-		var module = rvModule.module();
-		return new RVReduceStrengthContext(module).run();
+		if (new RVReduceStrengthContext(rvModule.module()).run()) {
+			QueryManager.getInstance().invalidateAllAttributes(rvModule);
+			return true;
+		}
+		return false;
 	}
 
 	private static class RVReduceStrengthContext extends InstructionVisitorBase<Optional<Value>> {

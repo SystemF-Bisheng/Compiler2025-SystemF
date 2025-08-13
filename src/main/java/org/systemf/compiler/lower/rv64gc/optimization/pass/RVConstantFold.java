@@ -35,7 +35,11 @@ public enum RVConstantFold implements RVOptPass {
 	public boolean run(RVModule rvModule) {
 		var module = rvModule.module();
 		var res = module.getFunctions().values().stream().map(this::processFunction).reduce(false, (a, b) -> a || b);
-		if (res) QueryManager.getInstance().invalidateAllAttributes(module);
+		if (res) {
+			var query = QueryManager.getInstance();
+			query.invalidateAllAttributes(module);
+			query.invalidateAllAttributes(rvModule);
+		}
 		return res;
 	}
 

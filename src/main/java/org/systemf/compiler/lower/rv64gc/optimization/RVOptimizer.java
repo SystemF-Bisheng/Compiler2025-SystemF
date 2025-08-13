@@ -18,6 +18,8 @@ public enum RVOptimizer implements EntityProvider<RVOptimizedResult> {
 			flag |= RVReduceStrength.INSTANCE.run(module);
 			flag |= RVMergeArithmetic.INSTANCE.run(module);
 			flag |= RVFoldTailCall.INSTANCE.run(module);
+			flag |= RVRemoveSingleBr.INSTANCE.run(module);
+			flag |= RVMergeChain.INSTANCE.run(module);
 		}
 	}
 

@@ -3,6 +3,7 @@ package org.systemf.compiler.lower.rv64gc.util;
 import org.systemf.compiler.ir.type.Float;
 import org.systemf.compiler.ir.type.I32;
 import org.systemf.compiler.ir.type.I64;
+import org.systemf.compiler.ir.type.interfaces.Sized;
 import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.lower.rv64gc.module.RVModule;
@@ -63,6 +64,15 @@ public class RVRegUtil {
 	public static RVPosition positionOf(RVModule rvModule, Value value) {
 		if (value instanceof RVBuiltInRegister builtIn) return builtIn.position();
 		return rvModule.position().get(value);
+	}
+
+	public static boolean needToMove(RVPosition toPos, Type toType, RVPosition fromPos, Type fromType) {
+		if (!Objects.equals(toPos, fromPos)) return true;
+		if (toPos instanceof RVRegister) return false;
+		if (toType instanceof Sized toSized && fromType instanceof Sized fromSized)
+			return RVTypeHelper.sizeOf(toSized) >
+			       RVTypeHelper.sizeOf(fromSized); // Move for bit-expansion if size(from) < size(to)
+		return false;
 	}
 
 	public static long roundForStack(long size) {

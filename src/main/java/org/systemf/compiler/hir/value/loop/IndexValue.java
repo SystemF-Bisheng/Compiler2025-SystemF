@@ -5,43 +5,43 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 
 public class IndexValue extends DummyLoopValue implements INamed {
-  public IndexValue(Type type, String name, Value start, Value end, Value step) {
-    super(type);
-    this.name = name;
-    this.start = start;
-    this.end = end;
-    this.step = step;
-  }
+	final private String name;
+	private Value start, end, step;
 
-  public Value getStart() {
-    return start;
-  }
+	public IndexValue(Type type, String name, Value start, Value end, Value step) {
+		super(type);
+		this.name = name;
+		this.start = start;
+		this.end = end;
+		this.step = step;
+	}
 
-  public Value getEnd() {
-    return end;
-  }
+	public Value getStart() {
+		return start;
+	}
 
-  public Value getStep() {
-    return step;
-  }
+	public void setStart(Value start) {
+		this.start = start;
+	}
 
-  public void setStart(Value start) {
-    this.start = start;
-  }
+	public Value getEnd() {
+		return end;
+	}
 
-  public void setEnd(Value end) {
-    this.end = end;
-  }
+	public void setEnd(Value end) {
+		this.end = end;
+	}
 
-  public void setStep(Value step) {
-    this.step = step;
-  }
+	public Value getStep() {
+		return step;
+	}
 
-  final private String name;
-  private Value start, end, step;
+	public void setStep(Value step) {
+		this.step = step;
+	}
 
-  @Override
-  public String getName() {
-    return name;
-  }
+	@Override
+	public String getName() {
+		return name;
+	}
 }

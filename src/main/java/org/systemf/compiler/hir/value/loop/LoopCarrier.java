@@ -5,25 +5,25 @@ import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.value.Value;
 
 public class LoopCarrier extends DummyLoopValue implements INamed {
-  public LoopCarrier(Type type, String name, Value initializer) {
-    super(type);
-    this.name = name;
-    this.initializer = initializer;
-  }
+	final private String name;
+	private Value initializer;
 
-  public Value getInitializer() {
-    return initializer;
-  }
+	public LoopCarrier(Type type, String name, Value initializer) {
+		super(type);
+		this.name = name;
+		this.initializer = initializer;
+	}
 
-  public void setInitializer(Value initializer) {
-    this.initializer = initializer;
-  }
+	public Value getInitializer() {
+		return initializer;
+	}
 
-  final private String name;
-  private Value initializer;
+	public void setInitializer(Value initializer) {
+		this.initializer = initializer;
+	}
 
-  @Override
-  public String getName() {
-    return name;
-  }
+	@Override
+	public String getName() {
+		return name;
+	}
 }

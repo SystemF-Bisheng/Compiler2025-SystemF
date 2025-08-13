@@ -1,12 +1,12 @@
 package org.systemf.compiler.hir.region;
 
+import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.value.instruction.Instruction;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.SequencedSet;
 import java.util.stream.Stream;
-
-import org.systemf.compiler.ir.block.BasicBlock;
-import org.systemf.compiler.ir.value.instruction.Instruction;
 
 public class Region {
 	public final LinkedHashSet<BasicBlock> blocks = new LinkedHashSet<>();

@@ -19,4 +19,16 @@ public record CFGAnalysisResult(Map<BasicBlock, SequencedSet<BasicBlock>> succes
 		if (res == null) throw new NoSuchElementException("No such block: " + block.getName());
 		return res;
 	}
+
+	public String dumpGraph() {
+		var res = new StringBuilder();
+		res.append("digraph {\n");
+		successors.forEach((from, tos) -> {
+			res.append(String.format("\"%s\" -> {", from.getName()));
+			tos.forEach(to -> res.append(String.format("\"%s\" ", to.getName())));
+			res.append("}\n");
+		});
+		res.append('}');
+		return res.toString();
+	}
 }

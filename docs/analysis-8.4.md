@@ -39,3 +39,7 @@ PointerAnalysis：基于图闭包的跨过程指针分析，使用allocation sit
 ## 可达性分析
 
 ReachabilityAnalysis：从CFG分析任意两个基本块间的可达关系
+
+## 整数符号分析
+
+IntegerSignAnalysis：分析整数变量可能的符号

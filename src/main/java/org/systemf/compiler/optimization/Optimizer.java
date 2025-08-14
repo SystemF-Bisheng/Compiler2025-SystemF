@@ -18,7 +18,6 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= MergeCommonValue.INSTANCE.run(module);
 		flag |= InBlockMergeLoad.INSTANCE.run(module);
-		flag |= InlineGlobal.INSTANCE.run(module);
 		flag |= RemoveUnusedValue.INSTANCE.run(module);
 		flag |= RemoveUnusedAllocation.INSTANCE.run(module);
 		flag |= RemoveUndefined.INSTANCE.run(module);
@@ -35,6 +34,9 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		flag |= RemoveDeadBlock.INSTANCE.run(module);
 		flag |= GlobalMergeLoad.INSTANCE.run(module);
 		flag |= GlobalRemoveStore.INSTANCE.run(module);
+		flag |= InlineGlobal.INSTANCE.run(module);
+		flag |= RemoveDeadBlock.INSTANCE.run(module);
+		flag |= MemToReg.INSTANCE.run(module);
 		return flag;
 	}
 

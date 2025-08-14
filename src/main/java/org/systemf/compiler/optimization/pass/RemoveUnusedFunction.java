@@ -42,8 +42,7 @@ public enum RemoveUnusedFunction implements OptPass {
 		public boolean run() {
 			var res = false;
 
-			var main = module.getFunction("main");
-			markReachable(main);
+			markReachable(module.getMainFunction());
 
 			var unreachableFunc = module.getFunctions().values().stream().filter(func -> !reachable.contains(func))
 					.toList();

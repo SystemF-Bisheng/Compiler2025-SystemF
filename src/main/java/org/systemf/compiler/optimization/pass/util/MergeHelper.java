@@ -24,16 +24,11 @@ public class MergeHelper {
 	public static boolean mergeValues(Tree<BasicBlock> domTree, List<Pair<PositionInfo, Value>> values) {
 		BasicBlock lastBlock = null;
 		Value lastValue = null;
-		values.sort((a, b) -> {
-			var aPos = a.left();
-			var bPos = b.left();
-			if (aPos.block == bPos.block) return Integer.compare(aPos.index, bPos.index);
-			return Integer.compare(domTree.getDfn(aPos.block), domTree.getDfn(bPos.block));
-		});
+		values.sort((a, b) -> a.left().compare(b.left(), domTree));
 		var res = false;
 		for (var valInfo : values) {
 			var pos = valInfo.left();
-			var block = pos.block;
+			var block = pos.block();
 			var val = valInfo.right();
 			if (lastBlock == null || !domTree.subtree(lastBlock, block)) {
 				lastBlock = block;
@@ -130,7 +125,7 @@ public class MergeHelper {
 				if (!(inst instanceof Value val)) continue;
 				if (!valueFilter.test(val)) continue;
 				valueMap.computeIfAbsent(val.getClass(), _ -> new LinkedList<>())
-						.add(Pair.of(new MergeHelper.PositionInfo(block, index), val));
+						.add(Pair.of(new PositionInfo(block, index), val));
 				++index;
 			}
 		}
@@ -213,6 +208,4 @@ public class MergeHelper {
 		return true;
 	}
 
-	public record PositionInfo(BasicBlock block, int index) {
-	}
 }

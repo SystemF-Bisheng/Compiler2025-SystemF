@@ -82,6 +82,10 @@ public class Module {
 		return functions.get(name);
 	}
 
+	public Function getMainFunction() {
+		return getFunction("main");
+	}
+
 	public void addExternalFunction(ExternalFunction externalFunction) {
 		var name = externalFunction.getName();
 		checkGlobalName(name);

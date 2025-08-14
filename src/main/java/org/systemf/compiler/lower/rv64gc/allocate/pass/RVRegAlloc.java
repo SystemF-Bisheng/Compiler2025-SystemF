@@ -1,6 +1,7 @@
 package org.systemf.compiler.lower.rv64gc.allocate.pass;
 
 import org.systemf.compiler.analysis.FrequencyAnalysis;
+import org.systemf.compiler.analysis.util.BelongingHelper;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -18,7 +19,6 @@ import org.systemf.compiler.lower.rv64gc.module.register.RVRegisterType;
 import org.systemf.compiler.lower.rv64gc.module.stack.RVStackState;
 import org.systemf.compiler.lower.rv64gc.util.RVRegUtil;
 import org.systemf.compiler.lower.rv64gc.util.RVTypeHelper;
-import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 
@@ -77,7 +77,7 @@ public enum RVRegAlloc {
 		}
 
 		private void colorFunction(Function function) {
-			this.belonging = CodeMotionHelper.getBelonging(function);
+			this.belonging = BelongingHelper.getBelonging(function);
 			this.colorMap = new LinkedHashMap<>();
 			this.spillCost = new HashMap<>();
 			this.saveCost = new HashMap<>();

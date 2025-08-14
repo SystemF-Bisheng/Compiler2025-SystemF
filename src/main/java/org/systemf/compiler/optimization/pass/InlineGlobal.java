@@ -2,6 +2,7 @@ package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
 import org.systemf.compiler.analysis.PointerAnalysisResult;
+import org.systemf.compiler.analysis.util.BelongingHelper;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
@@ -10,7 +11,6 @@ import org.systemf.compiler.ir.type.interfaces.Atom;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public enum InlineGlobal implements OptPass {
 		public InlineGlobalContext(Module module) {
 			this.module = module;
 			this.ptrResult = query.getAttribute(module, PointerAnalysisResult.class);
-			this.belonging = CodeMotionHelper.getBelonging(module);
+			this.belonging = BelongingHelper.getBelonging(module);
 		}
 
 		private boolean processGlobalVar(GlobalVariable global) {
@@ -64,7 +64,7 @@ public enum InlineGlobal implements OptPass {
 				if (func !=
 				    module.getMainFunction()) { // Need no further check, if it's main function (called only once)
 					// Check whether this global is always overwritten
-					var positions = CodeMotionHelper.getPositions(func);
+					var positions = BelongingHelper.getPositions(func);
 					var domTree = query.getAttribute(func, DominanceAnalysisResult.class).dominance();
 					var dependants = new ArrayList<>(global.getDependant());
 					dependants.sort((a, b) -> positions.get(a).compare(positions.get(b), domTree));

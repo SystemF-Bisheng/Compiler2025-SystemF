@@ -1,4 +1,6 @@
 package org.systemf.compiler.ir.value.constant;
 
-public interface ConstantInt {
+import org.systemf.compiler.ir.value.Value;
+
+public interface ConstantInt extends Value, Constant {
 }

@@ -1,6 +1,7 @@
 package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.*;
+import org.systemf.compiler.analysis.util.BelongingHelper;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -10,7 +11,6 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
-import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
@@ -110,7 +110,7 @@ public enum GlobalRemoveStore implements OptPass {
 
 		private boolean processFunction(Function function) {
 			cfg = query.getAttribute(function, CFGAnalysisResult.class);
-			belonging = CodeMotionHelper.getBelonging(function);
+			belonging = BelongingHelper.getBelonging(function);
 			var postDom = query.getAttribute(function, PostDominanceAnalysisResult.class);
 			postDomTree = postDom.dominance();
 			postDomRoot = postDomTree.getRoot();

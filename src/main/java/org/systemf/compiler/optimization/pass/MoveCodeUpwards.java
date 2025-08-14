@@ -1,6 +1,7 @@
 package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.DominanceAnalysisResult;
+import org.systemf.compiler.analysis.util.BelongingHelper;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
@@ -57,7 +58,7 @@ public enum MoveCodeUpwards implements OptPass {
 
 		private boolean processFunction(Function function) {
 			domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
-			belonging = CodeMotionHelper.getBelonging(function);
+			belonging = BelongingHelper.getBelonging(function);
 			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn))
 					.map(this::processBlock).reduce(false, (a, b) -> a || b);
 			if (res) query.invalidateAllAttributes(function);

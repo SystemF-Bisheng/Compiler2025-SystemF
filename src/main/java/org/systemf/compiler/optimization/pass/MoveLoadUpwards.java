@@ -16,7 +16,7 @@ import org.systemf.compiler.util.Tree;
 import java.util.*;
 
 /**
- * Depend on: DominanceAnalysis, FunctionSideEffectAnalysis
+ * Depend on: DominanceAnalysis, PointerAnalysis, CFGAnalysis, ReachabilityAnalysis, PostDominanceAnalysis
  * <p>
  * Applicable to: IR
  */

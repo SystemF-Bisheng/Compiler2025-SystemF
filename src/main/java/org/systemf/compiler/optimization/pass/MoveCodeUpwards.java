@@ -6,8 +6,6 @@ import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
-import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
@@ -42,9 +40,7 @@ public enum MoveCodeUpwards implements OptPass {
 			var res = false;
 			for (var iter = block.instructions.iterator(); iter.hasNext(); ) {
 				var inst = iter.next();
-				if (inst instanceof Terminal) continue;
-				if (ValueUtil.sideEffect(module, inst)) continue;
-				if (ValueUtil.blockSensitive(module, inst)) continue;
+				if (CodeMotionHelper.checkNonMobile(module, inst)) continue;
 				var upperBound = CodeMotionHelper.getUpperBound(inst, domTree, belonging);
 				if (upperBound == block) continue;
 				res = true;

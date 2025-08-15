@@ -1,17 +1,27 @@
 package org.systemf.compiler.optimization.pass.util;
 
+import org.systemf.compiler.analysis.FrequencyAnalysisResult;
+import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
+import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
+import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.util.Tree;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class CodeMotionHelper {
+	public static boolean checkNonMobile(Module module, Instruction inst) {
+		return inst instanceof Terminal || ValueUtil.sideEffect(module, inst) || ValueUtil.blockSensitive(module, inst);
+	}
+
 	public static BasicBlock getUpperBound(Instruction instruction, Tree<BasicBlock> domTree,
 			Map<Instruction, BasicBlock> belonging) {
 		return instruction.getDependency().stream().filter(dep -> dep instanceof Value && dep instanceof Instruction)
@@ -29,6 +39,26 @@ public class CodeMotionHelper {
 			else return Stream.of(belonging.get(inst));
 		}).reduce(domTree::lca);
 		return lower.orElse(null);
+	}
+
+	public static BasicBlock findBestLower(BasicBlock block, BasicBlock lowerBound, Predicate<BasicBlock> lowerFilter,
+			Tree<BasicBlock> domTree,
+			FrequencyAnalysisResult frequency) {
+		var possibleLower = new ArrayList<BasicBlock>();
+		while (true) {
+			if (lowerBound == null) break;
+			if (lowerFilter.test(lowerBound)) possibleLower.add(lowerBound);
+			if (lowerBound == block) break;
+			lowerBound = domTree.getParent(lowerBound);
+		}
+		if (possibleLower.isEmpty()) return block;
+		return possibleLower.stream().min(Comparator.comparingInt(frequency::frequency))
+				.orElseThrow();
+	}
+
+	public static BasicBlock findBestLower(BasicBlock block, BasicBlock lowerBound, Tree<BasicBlock> domTree,
+			FrequencyAnalysisResult frequency) {
+		return findBestLower(block, lowerBound, _ -> true, domTree, frequency);
 	}
 
 	public static void insertHead(BasicBlock target, Instruction inst) {

@@ -2,6 +2,7 @@ package org.systemf.compiler.optimization.pass.util;
 
 import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.PointerAnalysisResult;
+import org.systemf.compiler.analysis.ReachabilityAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
@@ -11,6 +12,7 @@ import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
+import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.util.Pair;
 import org.systemf.compiler.util.SaturationArithmetic;
@@ -19,6 +21,7 @@ import org.systemf.compiler.util.Tree;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MergeHelper {
 	public static boolean mergeValues(Tree<BasicBlock> domTree, List<Pair<PositionInfo, Value>> values) {
@@ -208,4 +211,44 @@ public class MergeHelper {
 		return true;
 	}
 
+	public static boolean manipulateAffected(Module module, Instruction inst, Set<Value> affected,
+			PointerAnalysisResult ptrResult) {
+		return switch (inst) {
+			case Load _, Terminal _ -> false;
+			case Store store -> {
+				affected.addAll(ptrResult.pointTo(store.getDest()));
+				yield false;
+			}
+			default -> ValueUtil.sideEffect(module, inst);
+		};
+	}
+
+	public static Map<BasicBlock, Optional<Set<Value>>> constructAffecting(Module module, Function function,
+			PointerAnalysisResult ptrResult) {
+		var affecting = new HashMap<BasicBlock, Optional<Set<Value>>>();
+		for (var block : function.getBlocks()) {
+			Set<Value> affected = new HashSet<>();
+			for (var inst : block.instructions)
+				if (manipulateAffected(module, inst, affected, ptrResult)) {
+					affected = null;
+					break;
+				}
+			affecting.put(block, Optional.ofNullable(affected));
+		}
+		return affecting;
+	}
+
+	public static boolean affectingFree(BasicBlock upper, BasicBlock block, Set<Value> loadFrom,
+			Map<BasicBlock, Optional<Set<Value>>> affecting, CFGAnalysisResult cfg,
+			ReachabilityAnalysisResult reachability) {
+		var possibleAffect = reachability.reachable().get(upper).stream()
+				.filter(succ -> {
+					var succAffect = affecting.get(succ);
+					if (succAffect.isEmpty()) return true;
+					var affectSet = succAffect.get();
+					return loadFrom.stream().anyMatch(affectSet::contains);
+				}).collect(Collectors.toSet());
+		return !blockingReachability(cfg, possibleAffect, Collections.singleton(block),
+				Collections.singleton(upper));
+	}
 }

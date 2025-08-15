@@ -27,7 +27,7 @@ public enum GlobalRemoveStore implements OptPass {
 	INSTANCE;
 
 	@Override
-	public boolean run(org.systemf.compiler.ir.Module module) {
+	public boolean run(Module module) {
 		return new GlobalRemoveStoreContext(module).run();
 	}
 

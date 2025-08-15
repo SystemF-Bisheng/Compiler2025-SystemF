@@ -79,9 +79,21 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		while (slowValueFoldOnce(module));
 	}
 
+	private boolean codeUpwardMotionOnce(Module module) {
+		boolean flag = MoveCodeUpwards.INSTANCE.run(module);
+		flag |= MoveLoadUpwards.INSTANCE.run(module);
+		return flag;
+	}
+
+	private boolean codeDownwardMotionOnce(Module module) {
+		boolean flag = MoveCodeDownwards.INSTANCE.run(module);
+		flag |= MoveLoadDownwards.INSTANCE.run(module);
+		return flag;
+	}
+
 	private void codeMotion(Module module) {
-		while (MoveCodeUpwards.INSTANCE.run(module)) valueClean(module);
-		while (MoveCodeDownwards.INSTANCE.run(module)) valueAndBlockClean(module);
+		while (codeUpwardMotionOnce(module)) valueClean(module);
+		while (codeDownwardMotionOnce(module)) valueAndBlockClean(module);
 		valueAndBlockClean(module);
 	}
 

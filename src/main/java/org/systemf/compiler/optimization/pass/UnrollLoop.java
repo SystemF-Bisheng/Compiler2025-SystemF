@@ -28,7 +28,7 @@ public enum UnrollLoop implements OptPass {
 	}
 
 	private static class UnrollLoopContext {
-		private static final int UNROLL_THRESHOLD = 32;
+		private static final int UNROLL_THRESHOLD = 48;
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private IRBuilder builder;
@@ -130,10 +130,10 @@ public enum UnrollLoop implements OptPass {
 		}
 
 		private boolean processLoop(SimpleLoop loop) {
-			var body = loop.body();
-			if (body.instructions.size() >= UNROLL_THRESHOLD) return false;
-			var multiplier = 2;
-			while (body.instructions.size() * multiplier < UNROLL_THRESHOLD) multiplier *= 2;
+			var loopSize = loop.head().instructions.size() + loop.body().instructions.size();
+			if (loopSize >= UNROLL_THRESHOLD) return false;
+			var multiplier = 4;
+			while (loopSize * multiplier < UNROLL_THRESHOLD) multiplier *= 2;
 
 			unroll(loop, multiplier);
 			return true;

@@ -75,7 +75,7 @@ public enum InlineGlobal implements OptPass {
 						return false;
 				}
 
-				builder.setPosition(func.getEntryBlock().instructions.listIterator());
+				builder.attachToBlockHead(func.getEntryBlock());
 				var newAlloc = builder.buildAlloca(global.valueType, global.getName());
 				builder.buildStore(global.getInitializer(), newAlloc);
 				global.replaceAllUsage(newAlloc);

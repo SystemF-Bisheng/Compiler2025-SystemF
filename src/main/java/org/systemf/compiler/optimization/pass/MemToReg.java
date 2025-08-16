@@ -138,7 +138,7 @@ public enum MemToReg implements OptPass {
 					}
 				}
 				for (var block : frontier) {
-					builder.setPosition(block.instructions.listIterator());
+					builder.attachToBlockHead(block);
 					var phi = builder.buildPhi(alloc.valueType, alloc.getName());
 					inserted.put(block, phi);
 					curProvide.put(block, phi);

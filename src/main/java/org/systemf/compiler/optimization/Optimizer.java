@@ -113,6 +113,10 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			codeMotion(module);
 		} while (InlineFunction.INSTANCE.run(module));
 
+		UnrollLoop.INSTANCE.run(module);
+		valueAndBlockClean(module);
+		codeMotion(module);
+
 		query.invalidate(translated);
 		return new OptimizedResult(module);
 	}

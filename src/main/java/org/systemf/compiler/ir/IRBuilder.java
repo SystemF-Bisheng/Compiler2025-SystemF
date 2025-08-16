@@ -500,6 +500,10 @@ public class IRBuilder implements AutoCloseable {
 				.orElseGet(() -> buildCondBr(condition, trueTarget, falseTarget));
 	}
 
+	public void attachToBlockHead(BasicBlock block) {
+		position = block.instructions.listIterator();
+	}
+
 	public void attachToBlockTail(BasicBlock block) {
 		position = block.instructions.listIterator(block.instructions.size());
 	}

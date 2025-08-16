@@ -120,16 +120,15 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			var oldPreds = oldCFG.predecessors(oldBlock);
 
 			var parallels = new HashMap<BasicBlock, RVParallelMove>();
-			oldBlock.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
-					.forEach(oldPhi -> {
-						var newHolder = substituted(oldPhi);
-						for (var oldPred : oldPreds) {
-							var newValue = substituted(oldPhi.getIncoming().get(oldPred));
-							if (newValue instanceof Undefined) continue;
-							parallels.computeIfAbsent(oldPred, _ -> genParallelMove(oldPred, oldBlock, newBlock))
-									.addMove(newHolder, newValue);
-						}
-					});
+			oldBlock.allPhis().forEach(oldPhi -> {
+				var newHolder = substituted(oldPhi);
+				for (var oldPred : oldPreds) {
+					var newValue = substituted(oldPhi.getIncoming(oldPred));
+					if (newValue instanceof Undefined) continue;
+					parallels.computeIfAbsent(oldPred, _ -> genParallelMove(oldPred, oldBlock, newBlock))
+							.addMove(newHolder, newValue);
+				}
+			});
 		}
 
 		private void translateFunction(Function oldFunction, Function newFunction) {

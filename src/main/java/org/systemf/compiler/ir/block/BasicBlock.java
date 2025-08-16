@@ -3,9 +3,11 @@ package org.systemf.compiler.ir.block;
 import org.systemf.compiler.ir.INamed;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class BasicBlock implements INamed, ITracked {
 	public final LinkedList<Instruction> instructions = new LinkedList<>();
@@ -33,6 +35,10 @@ public class BasicBlock implements INamed, ITracked {
 	public Terminal getTerminator() {
 		if (!(getLastInstruction() instanceof Terminal term)) return null;
 		return term;
+	}
+
+	public Stream<Phi> allPhis() {
+		return instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst);
 	}
 
 	public boolean isTerminated() {

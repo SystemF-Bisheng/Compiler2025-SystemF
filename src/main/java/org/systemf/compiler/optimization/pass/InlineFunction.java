@@ -5,18 +5,17 @@ import org.systemf.compiler.analysis.CallGraphAnalysisResult;
 import org.systemf.compiler.analysis.FrequencyAnalysisResult;
 import org.systemf.compiler.analysis.FunctionRecursionAnalysisResult;
 import org.systemf.compiler.ir.IRBuilder;
-import org.systemf.compiler.ir.IRCloner;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.optimization.pass.util.CodeGenHelper;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.ArrayList;
@@ -45,12 +44,11 @@ public enum InlineFunction implements OptPass {
 		private final Module module;
 		private final FunctionRecursionAnalysisResult recursion;
 		private final Map<ITracked, ITracked> substitute = new HashMap<>();
+		private final CallGraphAnalysisResult callGraph;
 		private IRBuilder builder;
 		private Function curFunction;
 		private CFGAnalysisResult cfg;
 		private FrequencyAnalysisResult frequency;
-		private final CallGraphAnalysisResult callGraph;
-
 		private BasicBlock retBlock;
 		private Phi retPhi;
 
@@ -62,24 +60,13 @@ public enum InlineFunction implements OptPass {
 
 		private BasicBlock cloneFunction(Function function) {
 			var newBlocks = new ArrayList<BasicBlock>();
-			var cloner = new IRCloner(builder);
 			for (var block : function.getBlocks()) {
 				var newBlock = builder.buildBasicBlock(curFunction, block.getName());
-				substitute.put(block, newBlock);
 				newBlocks.add(newBlock);
-				builder.attachToBlockTail(newBlock);
-				for (var inst : block.instructions) {
-					var newInst = inst.accept(cloner);
-					if (inst instanceof Value) substitute.put((Value) inst, (Value) newInst);
-				}
+				CodeGenHelper.cloneBlock(builder, block, newBlock, substitute);
 			}
 
-			for (var block : newBlocks)
-				for (var inst : block.instructions)
-					inst.getDependency().stream().filter(substitute::containsKey).forEach(oldDep -> {
-						var newDep = substitute.get(oldDep);
-						inst.replaceAll(oldDep, newDep);
-					});
+			for (var block : newBlocks) CodeGenHelper.replaceAll(block, substitute);
 
 			for (var block : newBlocks) {
 				var term = block.getTerminator();

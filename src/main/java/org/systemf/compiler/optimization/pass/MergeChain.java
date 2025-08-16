@@ -39,8 +39,7 @@ public enum MergeChain implements OptPass {
 	}
 
 	private void handlePhi(BasicBlock cur, BasicBlock succ) {
-		succ.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
-				.forEach(phi -> phi.replaceAllUsage(phi.getIncoming().get(cur)));
+		succ.allPhis().forEach(phi -> phi.replaceAllUsage(phi.getIncoming(cur)));
 		while (succ.getFirstInstruction() instanceof Phi phi) {
 			phi.unregister();
 			succ.instructions.removeFirst();

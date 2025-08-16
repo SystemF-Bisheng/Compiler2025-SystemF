@@ -6,7 +6,6 @@ import org.systemf.compiler.ir.IRFolder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.query.QueryManager;
 
 import java.util.HashSet;
@@ -43,11 +42,10 @@ public enum CondBrFold implements OptPass {
 			var cfg = query.getAttribute(function, CFGAnalysisResult.class);
 			for (var block : function.getBlocks()) {
 				var preds = cfg.predecessors(block);
-				block.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
-						.forEach(phi -> {
-							var tmp = new HashSet<>(phi.getIncoming().keySet());
-							for (var income : tmp) if (!preds.contains(income)) phi.removeIncoming(income);
-						});
+				block.allPhis().forEach(phi -> {
+					var tmp = new HashSet<>(phi.getIncoming().keySet());
+					for (var income : tmp) if (!preds.contains(income)) phi.removeIncoming(income);
+				});
 			}
 		}
 

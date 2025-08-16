@@ -83,6 +83,11 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 		return Collections.unmodifiableSequencedMap(incoming);
 	}
 
+	public Value getIncoming(BasicBlock block) {
+		if (!incoming.containsKey(block)) throw new IllegalArgumentException("Absent incoming block");
+		return incoming.get(block);
+	}
+
 	public void setIncoming(Map<BasicBlock, Value> incoming) {
 		incoming.values().forEach(this::checkIncoming);
 		this.incoming.forEach((block, value) -> {
@@ -113,6 +118,14 @@ public class Phi extends DummyValueNonTerminal implements PotentialNonRepeatable
 		incoming.put(block, value);
 		block.registerDependant(this);
 		value.registerDependant(this);
+	}
+
+	public void replaceIncoming(BasicBlock block, Value newValue) {
+		checkIncoming(newValue);
+		if (!incoming.containsKey(block)) throw new IllegalArgumentException("Absent incoming block");
+		incoming.get(block).unregisterDependant(this);
+		incoming.put(block, newValue);
+		newValue.registerDependant(this);
 	}
 
 	@Override

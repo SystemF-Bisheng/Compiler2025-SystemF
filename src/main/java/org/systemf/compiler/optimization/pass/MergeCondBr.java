@@ -6,7 +6,6 @@ import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
-import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
@@ -66,8 +65,7 @@ public enum MergeCondBr implements OptPass {
 
 				cfg.successors(block).remove(fakeTarget);
 				cfg.predecessors(fakeTarget).remove(block);
-				fakeTarget.instructions.stream().takeWhile(inst -> inst instanceof Phi).map(inst -> (Phi) inst)
-						.forEach(phi -> phi.removeIncoming(block));
+				fakeTarget.allPhis().forEach(phi -> phi.removeIncoming(block));
 				return true;
 			}
 			return false;

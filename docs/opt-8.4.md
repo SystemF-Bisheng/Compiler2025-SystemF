@@ -44,6 +44,10 @@ MoveCodeUpwards：将指令上移到可能的最早位置
 
 MoveCodeDownwards：将指令下移到所有可能的位置中，预计频率最小且最晚的位置
 
+MoveLoadUpwards：将Load指令上移到可能的最早位置
+
+MoveLoadDownwards：将Load指令下移到合适的位置
+
 ## 强度削减
 
 ReduceStrength：用更优的片段替代若干算术指令，如将乘二的次幂改为左移
@@ -62,7 +66,7 @@ RemoveUnusedValue：移除值从未被使用的没有副作用的指令
 
 ## 全局常量内联
 
-InlineGlobal：内联值从未被改变的全局变量
+InlineGlobal：内联值从未被改变或只在局部使用的全局变量
 
 ## 函数内联
 
@@ -77,3 +81,7 @@ MergeCondBr：根据跳转的后条件去除多余的条件判断
 RemoveUndefined：移除对于Undefined的使用
 
 RemoveUnreachable：移除对以Unreachable结尾的基本块的使用
+
+## 循环展开
+
+UnrollLoop：展开简单循环

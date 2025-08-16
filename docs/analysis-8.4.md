@@ -43,3 +43,7 @@ ReachabilityAnalysis：从CFG分析任意两个基本块间的可达关系
 ## 整数符号分析
 
 IntegerSignAnalysis：分析整数变量可能的符号
+
+## 简单循环分析
+
+SimpleLoopAnalysis：寻找函数中的简单循环

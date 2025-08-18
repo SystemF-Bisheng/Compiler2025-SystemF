@@ -85,3 +85,9 @@ RemoveUnreachable：移除对以Unreachable结尾的基本块的使用
 ## 循环展开
 
 UnrollLoop：展开简单循环
+
+## 浮点表达式收缩
+
+MergeFMA：在Mem2Reg前执行，在遵循C语言标准的情况下将浮点表达式收缩为FMA等融合指令
+
+目前由于毕昇杯评测方式问题，默认禁用

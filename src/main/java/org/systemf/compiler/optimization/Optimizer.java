@@ -46,7 +46,8 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 	}
 
 	private boolean cfgSimplifyOnce(Module module) {
-		boolean flag = RemoveSingleBr.INSTANCE.run(module);
+		boolean flag = RemoveDeadBlock.INSTANCE.run(module);
+		flag |= RemoveSingleBr.INSTANCE.run(module);
 		flag |= MergeChain.INSTANCE.run(module);
 		return flag;
 	}
@@ -97,15 +98,25 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		valueAndBlockClean(module);
 	}
 
+	private void mergeFloatArithmetic(Module module) {
+		boolean flag = true;
+		while (flag) {
+			flag = MergeArithmetic.INSTANCE.run(module);
+			flag |= MergeFMA.INSTANCE.run(module);
+			flag |= RemoveUnusedValue.INSTANCE.run(module);
+		}
+	}
+
 	@Override
 	public OptimizedResult produce() {
 		var query = QueryManager.getInstance();
 		var translated = query.get(IRTranslatedResult.class);
 		var module = translated.module();
 
-		RemoveDeadBlock.INSTANCE.run(module);
-		RemoveSingleBr.INSTANCE.run(module);
-		MergeChain.INSTANCE.run(module);
+		cfgSimplifyOnce(module);
+		mergeFloatArithmetic(module);
+
+		cfgSimplifyOnce(module);
 		MemToReg.INSTANCE.run(module);
 
 		do {

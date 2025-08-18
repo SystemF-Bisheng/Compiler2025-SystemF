@@ -25,4 +25,9 @@ public interface ITracked {
 		var tmp = new HashSet<>(getDependant());
 		tmp.forEach(inst -> inst.replaceAll(this, newValue));
 	}
+
+	default void replaceAllUsageExcept(ITracked newValue, Set<Instruction> except) {
+		var tmp = new HashSet<>(getDependant());
+		tmp.stream().filter(inst -> !except.contains(inst)).forEach(inst -> inst.replaceAll(this, newValue));
+	}
 }

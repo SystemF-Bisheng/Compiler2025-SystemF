@@ -21,6 +21,7 @@ import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyIntBinary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyTriple;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
@@ -46,6 +47,7 @@ import org.systemf.compiler.optimization.OptimizedResult;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.EntityProvider;
 import org.systemf.compiler.query.QueryManager;
+import org.systemf.compiler.util.QuadFunction;
 import org.systemf.compiler.util.TriFunction;
 
 import java.util.Arrays;
@@ -247,6 +249,17 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 			return handleBinary(inst, getInst);
 		}
 
+		private Void handleTriple(DummyTriple inst, QuadFunction<String, Value, Value, Value, Instruction> getInst) {
+			var name = newName(inst.getName());
+			var x = substituted(inst.getX());
+			var y = substituted(inst.getY());
+			var z = substituted(inst.getZ());
+			var newInst = getInst.apply(name, x, y, z);
+			insertInstruction(newInst);
+			substitute.put(inst, (Value) newInst);
+			return null;
+		}
+
 		@Override
 		public Void visit(Add inst) {
 			return handleIntBinary(inst, RVAddWord::new, RVAdd::new);
@@ -340,6 +353,26 @@ public enum RVLowering implements EntityProvider<RVLoweringResult> {
 		@Override
 		public Void visit(FNeg inst) {
 			return handleUnary(inst, RVFloatNeg::new);
+		}
+
+		@Override
+		public Void visit(FMulAdd inst) {
+			return handleTriple(inst, RVFloatMulAdd::new);
+		}
+
+		@Override
+		public Void visit(FMulSub inst) {
+			return handleTriple(inst, RVFloatMulSub::new);
+		}
+
+		@Override
+		public Void visit(FNegMulAdd inst) {
+			return handleTriple(inst, RVFloatNegMulAdd::new);
+		}
+
+		@Override
+		public Void visit(FNegMulSub inst) {
+			return handleTriple(inst, RVFloatNegMulSub::new);
 		}
 
 		@Override

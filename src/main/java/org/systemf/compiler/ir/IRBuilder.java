@@ -302,6 +302,46 @@ public class IRBuilder implements AutoCloseable {
 		return folder.tryFoldFMul(lhs, rhs).map(c -> (Value) c).orElseGet(() -> buildFMul(lhs, rhs, name));
 	}
 
+	public FMulAdd buildFMulAdd(Value x, Value y, Value z, String name) {
+		var inst = new FMulAdd(module.getNonConflictName(name), x, y, z);
+		insertInstruction(inst);
+		return inst;
+	}
+
+	public Value buildOrFoldFMulAdd(Value x, Value y, Value z, String name) {
+		return folder.tryFoldFMulAdd(x, y, z).map(c -> (Value) c).orElseGet(() -> buildFMulAdd(x, y, z, name));
+	}
+
+	public FMulSub buildFMulSub(Value x, Value y, Value z, String name) {
+		var inst = new FMulSub(module.getNonConflictName(name), x, y, z);
+		insertInstruction(inst);
+		return inst;
+	}
+
+	public Value buildOrFoldFMulSub(Value x, Value y, Value z, String name) {
+		return folder.tryFoldFMulSub(x, y, z).map(c -> (Value) c).orElseGet(() -> buildFMulSub(x, y, z, name));
+	}
+
+	public FNegMulAdd buildFNegMulAdd(Value x, Value y, Value z, String name) {
+		var inst = new FNegMulAdd(module.getNonConflictName(name), x, y, z);
+		insertInstruction(inst);
+		return inst;
+	}
+
+	public Value buildOrFoldFNegMulAdd(Value x, Value y, Value z, String name) {
+		return folder.tryFoldFNegMulAdd(x, y, z).map(c -> (Value) c).orElseGet(() -> buildFNegMulAdd(x, y, z, name));
+	}
+
+	public FNegMulSub buildFNegMulSub(Value x, Value y, Value z, String name) {
+		var inst = new FNegMulSub(module.getNonConflictName(name), x, y, z);
+		insertInstruction(inst);
+		return inst;
+	}
+
+	public Value buildOrFoldFNegMulSub(Value x, Value y, Value z, String name) {
+		return folder.tryFoldFNegMulSub(x, y, z).map(c -> (Value) c).orElseGet(() -> buildFNegMulSub(x, y, z, name));
+	}
+
 	public FSub buildFSub(Value lhs, Value rhs, String name) {
 		FSub fSubInst = new FSub(module.getNonConflictName(name), lhs, rhs);
 		insertInstruction(fSubInst);

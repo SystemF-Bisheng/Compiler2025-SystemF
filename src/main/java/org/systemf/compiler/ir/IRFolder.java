@@ -17,6 +17,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.iarithmetic.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.util.ValueUtil;
+import org.systemf.compiler.util.TriFunction;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -168,6 +169,14 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 		return Optional.empty();
 	}
 
+	public Optional<Constant> tryFoldFloatTriple(Value x, Value y, Value z,
+			TriFunction<Float, Float, Float, Float> fold) {
+		if (x instanceof ConstantFloat xC && y instanceof ConstantFloat yC && z instanceof ConstantFloat zC)
+			return Optional.of(
+					builder.buildConstantFloat(fold.apply((float) xC.value, (float) yC.value, (float) zC.value)));
+		return Optional.empty();
+	}
+
 	public Optional<Constant> tryFoldFAdd(Value lhs, Value rhs) {
 		return tryFoldFloatBinary(lhs, rhs, Float::sum);
 	}
@@ -184,6 +193,42 @@ public class IRFolder extends InstructionVisitorBase<Optional<?>> {
 	@Override
 	public Optional<Constant> visit(FMul inst) {
 		return tryFoldFMul(inst.getX(), inst.getY());
+	}
+
+	public Optional<Constant> tryFoldFMulAdd(Value x, Value y, Value z) {
+		return tryFoldFloatTriple(x, y, z, Math::fma);
+	}
+
+	public Optional<Constant> tryFoldFMulSub(Value x, Value y, Value z) {
+		return tryFoldFloatTriple(x, y, z, (a, b, c) -> Math.fma(a, b, -c));
+	}
+
+	public Optional<Constant> tryFoldFNegMulAdd(Value x, Value y, Value z) {
+		return tryFoldFloatTriple(x, y, z, (a, b, c) -> -Math.fma(a, b, c));
+	}
+
+	public Optional<Constant> tryFoldFNegMulSub(Value x, Value y, Value z) {
+		return tryFoldFloatTriple(x, y, z, (a, b, c) -> -Math.fma(a, b, -c));
+	}
+
+	@Override
+	public Optional<?> visit(FMulAdd inst) {
+		return tryFoldFMulAdd(inst.getX(), inst.getY(), inst.getZ());
+	}
+
+	@Override
+	public Optional<?> visit(FMulSub inst) {
+		return tryFoldFMulSub(inst.getX(), inst.getY(), inst.getZ());
+	}
+
+	@Override
+	public Optional<?> visit(FNegMulAdd inst) {
+		return tryFoldFNegMulAdd(inst.getX(), inst.getY(), inst.getZ());
+	}
+
+	@Override
+	public Optional<?> visit(FNegMulSub inst) {
+		return tryFoldFNegMulSub(inst.getX(), inst.getY(), inst.getZ());
 	}
 
 	public Optional<Constant> tryFoldFSub(Value lhs, Value rhs) {

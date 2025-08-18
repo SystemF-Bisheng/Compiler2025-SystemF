@@ -22,6 +22,11 @@ public class IRCloner extends InstructionVisitorBase<Instruction> {
 	}
 
 	@Override
+	protected Instruction defaultValue() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public Instruction visit(Add inst) {
 		return builder.buildAdd(inst.getX(), inst.getY(), inst.getName());
 	}
@@ -79,6 +84,26 @@ public class IRCloner extends InstructionVisitorBase<Instruction> {
 	@Override
 	public Instruction visit(FCmp inst) {
 		return builder.buildFCmp(inst.getX(), inst.getY(), inst.getName(), inst.method);
+	}
+
+	@Override
+	public Instruction visit(FMulAdd inst) {
+		return builder.buildFMulAdd(inst.getX(), inst.getY(), inst.getZ(), inst.getName());
+	}
+
+	@Override
+	public Instruction visit(FMulSub inst) {
+		return builder.buildFMulSub(inst.getX(), inst.getY(), inst.getZ(), inst.getName());
+	}
+
+	@Override
+	public Instruction visit(FNegMulAdd inst) {
+		return builder.buildFNegMulAdd(inst.getX(), inst.getY(), inst.getZ(), inst.getName());
+	}
+
+	@Override
+	public Instruction visit(FNegMulSub inst) {
+		return builder.buildFNegMulSub(inst.getX(), inst.getY(), inst.getZ(), inst.getName());
 	}
 
 	@Override

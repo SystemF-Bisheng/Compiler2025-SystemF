@@ -17,6 +17,7 @@ import org.systemf.compiler.ir.value.constant.*;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyBinary;
+import org.systemf.compiler.ir.value.instruction.nonterminal.DummyFloatTriple;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.*;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.*;
@@ -32,6 +33,7 @@ import org.systemf.compiler.ir.value.instruction.terminal.Br;
 import org.systemf.compiler.ir.value.instruction.terminal.CondBr;
 import org.systemf.compiler.ir.value.instruction.terminal.Ret;
 import org.systemf.compiler.ir.value.instruction.terminal.RetVoid;
+import org.systemf.compiler.util.TriFunction;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -43,6 +45,19 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	private ExecutionValue mainReturnValue = null;
 	private Scanner input;
 	private PrintStream output;
+	private BasicBlock lastBlock;
+
+	public static ExecutionValue newInt(int value) {
+		return IntValue.valueOf(value);
+	}
+
+	public static ExecutionValue newFloat(float value) {
+		return FloatValue.valueOf(value);
+	}
+
+	public static ExecutionValue newInt64(long value) {
+		return Int64Value.valueOf(value);
+	}
 
 	public void execute(Module module, Scanner input, PrintStream output) {
 		mainReturnValue = null;
@@ -110,7 +125,8 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 			case ConstantInt32 intValue -> newInt((int) intValue.value);
 			case ConstantFloat constantFloat -> newFloat((float) constantFloat.value);
 			case ConstantInt64 int64Value -> newInt64(int64Value.value);
-			default -> throw new IllegalArgumentException("Unsupported constant type: " + constant.getClass().getName());
+			default ->
+					throw new IllegalArgumentException("Unsupported constant type: " + constant.getClass().getName());
 		};
 	}
 
@@ -154,8 +170,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return instruction.accept(this);
 	}
 
-	private BasicBlock lastBlock;
-
 	@Override
 	public ExecutionValue visit(DummyBinary dummyBinary) {
 		ExecutionContext context = executionContextsStack.getLast();
@@ -172,31 +186,31 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	private ExecutionValue executeBinaryOperation(ExecutionValue x, ExecutionValue y, DummyBinary dummyBinary) {
 
 		if ((x instanceof IntValue && y instanceof IntValue) || (x instanceof Int64Value && y instanceof Int64Value)) {
-        long left = x instanceof IntValue i ? i.getValue() : ((Int64Value) x).getValue();
-        long right = y instanceof IntValue i ? i.getValue() : ((Int64Value) y).getValue();
-        boolean isInt = x instanceof IntValue;
-        switch (dummyBinary) {
-            case Add ignored -> { return isInt ? newInt((int)(left + right)) : newInt64(left + right); }
-            case Sub ignored -> { return isInt ? newInt((int)(left - right)) : newInt64(left - right); }
-            case Mul ignored -> { return isInt ? newInt((int)(left * right)) : newInt64(left * right); }
-            case SDiv ignored -> {
-                if (right == 0) throw new ArithmeticException("Division by zero in SDiv operation.");
-                return isInt ? newInt((int)(left / right)) : newInt64(left / right);
-            }
-            case SRem ignored -> {
-                if (right == 0) throw new ArithmeticException("Division by zero in SRem operation.");
-                return isInt ? newInt((int)(left % right)) : newInt64(left % right);
-            }
-            case And ignored -> { return isInt ? newInt((int)(left & right)) : newInt64(left & right); }
-            case Or ignored -> { return isInt ? newInt((int)(left | right)) : newInt64(left | right); }
-            case Xor ignored -> { return isInt ? newInt((int)(left ^ right)) : newInt64(left ^ right); }
-            case Shl ignored -> { return isInt ? newInt((int)(left << right)) : newInt64(left << right); }
-            case AShr ignored -> { return isInt ? newInt((int)(left >> right)) : newInt64(left >> right); }
-            case LShr ignored -> { return isInt ? newInt((int)(left >>> right)) : newInt64(left >>> right); }
-            case ICmp iCmp -> { return executeCmp(iCmp.method, left, right); }
-            default -> throw new IllegalStateException("Unexpected left: " + dummyBinary);
-        }
-    } else {
+			long left = x instanceof IntValue i ? i.getValue() : ((Int64Value) x).getValue();
+			long right = y instanceof IntValue i ? i.getValue() : ((Int64Value) y).getValue();
+			boolean isInt = x instanceof IntValue;
+			switch (dummyBinary) {
+				case Add ignored -> {return isInt ? newInt((int) (left + right)) : newInt64(left + right);}
+				case Sub ignored -> {return isInt ? newInt((int) (left - right)) : newInt64(left - right);}
+				case Mul ignored -> {return isInt ? newInt((int) (left * right)) : newInt64(left * right);}
+				case SDiv ignored -> {
+					if (right == 0) throw new ArithmeticException("Division by zero in SDiv operation.");
+					return isInt ? newInt((int) (left / right)) : newInt64(left / right);
+				}
+				case SRem ignored -> {
+					if (right == 0) throw new ArithmeticException("Division by zero in SRem operation.");
+					return isInt ? newInt((int) (left % right)) : newInt64(left % right);
+				}
+				case And ignored -> {return isInt ? newInt((int) (left & right)) : newInt64(left & right);}
+				case Or ignored -> {return isInt ? newInt((int) (left | right)) : newInt64(left | right);}
+				case Xor ignored -> {return isInt ? newInt((int) (left ^ right)) : newInt64(left ^ right);}
+				case Shl ignored -> {return isInt ? newInt((int) (left << right)) : newInt64(left << right);}
+				case AShr ignored -> {return isInt ? newInt((int) (left >> right)) : newInt64(left >> right);}
+				case LShr ignored -> {return isInt ? newInt((int) (left >>> right)) : newInt64(left >>> right);}
+				case ICmp iCmp -> {return executeCmp(iCmp.method, left, right);}
+				default -> throw new IllegalStateException("Unexpected left: " + dummyBinary);
+			}
+		} else {
 			float left = toFloat(x);
 			float right = toFloat(y);
 			switch (dummyBinary) {
@@ -250,6 +264,39 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		return null;
 	}
 
+	private void executeFloatTriple(DummyFloatTriple inst,
+			TriFunction<java.lang.Float, java.lang.Float, java.lang.Float, java.lang.Float> f) {
+		var context = executionContextsStack.getLast();
+		var x = toFloat(findValue(inst.getX(), context));
+		var y = toFloat(findValue(inst.getY(), context));
+		var z = toFloat(findValue(inst.getZ(), context));
+		context.insertValue(inst, newFloat(f.apply(x, y, z)));
+	}
+
+	@Override
+	public ExecutionValue visit(FMulAdd inst) {
+		executeFloatTriple(inst, Math::fma);
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(FMulSub inst) {
+		executeFloatTriple(inst, (x, y, z) -> Math.fma(x, y, -z));
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(FNegMulAdd inst) {
+		executeFloatTriple(inst, (x, y, z) -> -Math.fma(x, y, z));
+		return null;
+	}
+
+	@Override
+	public ExecutionValue visit(FNegMulSub inst) {
+		executeFloatTriple(inst, (x, y, z) -> -Math.fma(x, y, -z));
+		return null;
+	}
+
 	@Override
 	public ExecutionValue visit(FpToSi32 fpToSi) {
 		ExecutionContext context = executionContextsStack.getLast();
@@ -281,7 +328,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		context.insertValue(si64ToSi32, new IntValue(toInt(x)));
 		return null;
 	}
-
 
 	@Override
 	public ExecutionValue visit(Alloca alloca) {
@@ -431,7 +477,7 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 				output.print(": ");
 				for (int i = startIndex; i < length + startIndex; i++) {
 					if (i > startIndex) output.print(" ");
-					if ( arrayValue.getValue(i) instanceof IntValue intValue) {
+					if (arrayValue.getValue(i) instanceof IntValue intValue) {
 						output.print(intValue.getValue());
 					} else if (arrayValue.getValue(i) instanceof FloatValue floatValue) {
 						output.print(formatFloat(floatValue.getValue()));
@@ -544,18 +590,6 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 		throw new IllegalArgumentException("Unsupported value type: " + value.getClass().getName());
 	}
 
-	public static ExecutionValue newInt(int value) {
-		return IntValue.valueOf(value);
-	}
-
-	public static ExecutionValue newFloat(float value) {
-		return FloatValue.valueOf(value);
-	}
-
-	public static  ExecutionValue newInt64(long value) {
-		return Int64Value.valueOf(value);
-	}
-
 	public void dumpExecutionContext() {
 		if (executionContextsStack.isEmpty()) {
 			System.out.println("No execution context available.");
@@ -593,30 +627,30 @@ public class IRInterpreter extends InstructionVisitorBase<ExecutionValue> {
 	}
 
 	public void dumpGlobalVarMap() {
-    System.out.println("Global Variables:");
-    for (Map.Entry<Value, ExecutionValue> entry : globalVarMap.entrySet()) {
-        System.out.print("  " + entry.getKey() + " = ");
-        ExecutionValue value = entry.getValue();
-        if (value == null) {
-            System.out.println("null");
-            continue;
-        }
-        switch (value) {
-            case IntValue intValue -> System.out.println("IntValue: " + intValue.getValue());
-            case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.getValue());
-            case ArrayValue arrayValue -> System.out.println("ArrayValue: " + Arrays.toString(arrayValue.values()));
-            case PointerValue pointerValue -> {
-                if (pointerValue.value instanceof ArrayValue) {
-                    System.out.println("PointerValue: " + Arrays.toString(pointerValue.getValues()) +
-                            pointerValue.getStartIndex() + " to " + pointerValue.getEndIndex());
-                } else if (pointerValue.value instanceof IntValue intValue) {
-                    System.out.println("PointerValue: " + intValue.getValue());
-                } else if (pointerValue.value instanceof FloatValue floatValue) {
-                    System.out.println("PointerValue: " + floatValue.getValue());
-                }
-            }
-            default -> System.out.println("Unknown Value Type: " + value.getClass().getName());
-        }
-    }
-}
+		System.out.println("Global Variables:");
+		for (Map.Entry<Value, ExecutionValue> entry : globalVarMap.entrySet()) {
+			System.out.print("  " + entry.getKey() + " = ");
+			ExecutionValue value = entry.getValue();
+			if (value == null) {
+				System.out.println("null");
+				continue;
+			}
+			switch (value) {
+				case IntValue intValue -> System.out.println("IntValue: " + intValue.getValue());
+				case FloatValue floatValue -> System.out.println("FloatValue: " + floatValue.getValue());
+				case ArrayValue arrayValue -> System.out.println("ArrayValue: " + Arrays.toString(arrayValue.values()));
+				case PointerValue pointerValue -> {
+					if (pointerValue.value instanceof ArrayValue) {
+						System.out.println("PointerValue: " + Arrays.toString(pointerValue.getValues()) +
+						                   pointerValue.getStartIndex() + " to " + pointerValue.getEndIndex());
+					} else if (pointerValue.value instanceof IntValue intValue) {
+						System.out.println("PointerValue: " + intValue.getValue());
+					} else if (pointerValue.value instanceof FloatValue floatValue) {
+						System.out.println("PointerValue: " + floatValue.getValue());
+					}
+				}
+				default -> System.out.println("Unknown Value Type: " + value.getClass().getName());
+			}
+		}
+	}
 }

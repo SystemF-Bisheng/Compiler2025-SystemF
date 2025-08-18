@@ -9,6 +9,8 @@ import org.systemf.compiler.translator.IRTranslatedResult;
 public enum Optimizer implements EntityProvider<OptimizedResult> {
 	INSTANCE;
 
+	private static final boolean FP_CONTRACT = false;
+
 	private boolean fastValueFoldOnce(Module module) {
 		boolean flag = ConstantFold.INSTANCE.run(module);
 		flag |= CondBrFold.INSTANCE.run(module);
@@ -113,8 +115,10 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 		var translated = query.get(IRTranslatedResult.class);
 		var module = translated.module();
 
-		cfgSimplifyOnce(module);
-		mergeFloatArithmetic(module);
+		if (FP_CONTRACT) {
+			cfgSimplifyOnce(module);
+			mergeFloatArithmetic(module);
+		}
 
 		cfgSimplifyOnce(module);
 		MemToReg.INSTANCE.run(module);

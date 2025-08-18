@@ -6,6 +6,7 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
+import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 
@@ -39,11 +40,21 @@ public enum InBlockMergeLoad implements OptPass {
 		private boolean processBlock(BasicBlock block) {
 			var res = false;
 			var loadMap = new LinkedHashMap<Value, Value>();
-			for (var inst : block.instructions) {
+			for (var iter = block.instructions.iterator(); iter.hasNext(); ) {
+				var inst = iter.next();
 				if (inst instanceof Load load) {
 					var ptr = load.getPointer();
 					if (loadMap.containsKey(ptr)) {
 						load.replaceAllUsage(loadMap.get(ptr));
+						res = true;
+						continue;
+					}
+				} else if (inst instanceof Store store) {
+					var dest = store.getDest();
+					var src = store.getSrc();
+					if (loadMap.containsKey(dest) && loadMap.get(dest) == src) {
+						store.unregister();
+						iter.remove();
 						res = true;
 						continue;
 					}

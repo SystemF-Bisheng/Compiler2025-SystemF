@@ -26,7 +26,7 @@ MergeChain：合并两个在一条链上的基本块
 
 ## 重复Load/Store合并
 
-InBlockMergeLoad：尽量合并同一基本块内对同一指针进行的不同Load指令
+InBlockMergeLoad：尽量合并同一基本块内对同一指针进行的不同Load指令，同时发现并消除无效的Store指令
 
 InBlockRemoveStore：尽量合并同一基本块内对同一指针进行的Store指令，并将结果尽量内联至块内对应的Load指令
 

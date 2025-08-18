@@ -18,6 +18,7 @@ import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.ListIterator;
 import java.util.Optional;
@@ -160,9 +161,9 @@ public enum MergeArithmetic implements OptPass {
 			return checkIntNeg(x).map(negX -> {
 				inst.setX(negX);
 				builder.setPosition(iterator);
-				var newInst = builder.buildOrFoldSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
+				var newInst = builder.buildSub(builder.buildConstantZero(ValueUtil.getWidth(inst)), inst,
 						inst.getName() + "Neg");
-				inst.replaceAllUsage(newInst);
+				inst.replaceAllUsageExcept(newInst, Collections.singleton(newInst));
 				return true;
 			}).orElse(false);
 		}

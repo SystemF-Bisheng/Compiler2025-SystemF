@@ -5,7 +5,10 @@ import org.systemf.compiler.ir.IRCloner;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.value.Value;
+import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
 
+import java.util.ListIterator;
 import java.util.Map;
 
 public class CodeGenHelper {
@@ -30,5 +33,17 @@ public class CodeGenHelper {
 
 	public static void replaceAll(BasicBlock block, ITracked oldOne, ITracked newOne) {
 		replaceAll(block, Map.of(oldOne, newOne));
+	}
+
+	public static ListIterator<Instruction> skipAllPhis(BasicBlock block) {
+		var res = block.instructions.listIterator();
+		while (res.hasNext()) {
+			var inst = res.next();
+			if (!(inst instanceof Phi)) {
+				res.previous();
+				break;
+			}
+		}
+		return res;
 	}
 }

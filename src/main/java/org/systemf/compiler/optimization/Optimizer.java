@@ -130,6 +130,10 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 			codeMotion(module);
 		} while (InlineFunction.INSTANCE.run(module));
 
+		AdjustArrayLayout.INSTANCE.run(module);
+		valueAndBlockClean(module);
+		codeMotion(module);
+
 		UnrollLoop.INSTANCE.run(module);
 		valueAndBlockClean(module);
 		codeMotion(module);

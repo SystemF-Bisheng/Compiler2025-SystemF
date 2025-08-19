@@ -65,8 +65,9 @@ public enum IndexVarianceAnalysis implements AttributeProvider<Module, IndexVari
 			var thisVariance = new ArrayList<>(Collections.nCopies(dim, 0));
 			var pointedBy = ptrResult.pointedBy(allocSite);
 			if (!pointedBy.stream().allMatch(ptr -> ptrResult.pointTo(ptr).size() == 1)) return;
-			if (!pointedBy.stream().flatMap(ptr -> ptr.getDependant().stream()).allMatch(inst ->
-					inst instanceof GetPtr || inst instanceof Load || inst instanceof Store))
+			if (!pointedBy.stream().allMatch(ptr -> ptr.getDependant().stream().allMatch(inst ->
+					inst instanceof GetPtr || inst instanceof Load ||
+					(inst instanceof Store store && store.getDest() == ptr))))
 				return;
 			pointedBy.stream().flatMap(ptr -> ptr.getDependant().stream()).filter(inst -> inst instanceof GetPtr)
 					.map(inst -> (GetPtr) inst).distinct().forEach(getPtr -> {

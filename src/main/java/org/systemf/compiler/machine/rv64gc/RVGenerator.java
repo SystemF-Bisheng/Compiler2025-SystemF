@@ -153,6 +153,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		private final List<RVRegister> regSaved;
 		private final Function function;
 		private final RVAsmCode result;
+		private final Map<BasicBlock, BasicBlock> pureJumpBlock = new HashMap<>();
 		private final Set<BasicBlock> generatedBlock = new HashSet<>();
 		private final RVStackState stackFrame;
 		private final RVCacheManager cacheManager = new RVCacheManager();
@@ -188,6 +189,21 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			this.backupStorage = new RVBackupStorage(backupInfo.saveSize(function));
 
 			this.epilogueName = rvModule.module().getNonConflictName(function.getName() + "Epilogue");
+		}
+
+		private void collectPureJump() {
+			for (var block : function.getBlocks()) {
+				var ins = block.instructions;
+				if (ins.size() != 2) continue;
+				if (!(ins.getFirst() instanceof RVParallelMove parMove)) continue;
+				if (!(ins.get(1) instanceof Br br)) continue;
+				if (parMove.getMoves().entrySet().stream().anyMatch(entry -> {
+					var to = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, entry.getKey()));
+					var from = Objects.requireNonNull(RVGenerateHelper.typedPositionOf(rvModule, entry.getValue()));
+					return RVRegUtil.needToMove(to.position(), to.type(), from.position(), from.type());
+				})) continue;
+				pureJumpBlock.put(block, br.getTarget());
+			}
 		}
 
 		private void genPrologue() {
@@ -234,9 +250,18 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			result.addLine(String.format("j %s", epilogueName));
 		}
 
+		private BasicBlock substitutePureJump(BasicBlock block) {
+			if (pureJumpBlock.containsKey(block)) return pureJumpBlock.get(block);
+			return block;
+		}
+
 		private void handleBranch(RVCompBranch inst, String trueOperator, String falseOperator) {
 			var trueTarget = inst.getTrueTarget();
 			var falseTarget = inst.getFalseTarget();
+			var trueFreq = rvModule.frequency().get(trueTarget);
+			var falseFreq = rvModule.frequency().get(falseTarget);
+			trueTarget = substitutePureJump(trueTarget);
+			falseTarget = substitutePureJump(falseTarget);
 			int leftCount = 2;
 			if (generatedBlock.contains(trueTarget)) --leftCount;
 			if (generatedBlock.contains(falseTarget)) --leftCount;
@@ -247,9 +272,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			cacheManager.unlock(regY);
 			onBlockEnd();
 
-			if (leftCount == 0) {
-				var trueFreq = rvModule.frequency().get(trueTarget);
-				var falseFreq = rvModule.frequency().get(falseTarget);
+			if (leftCount == 0)
 				if (trueFreq < falseFreq) {
 					result.addLine(String.format("%s %s, %s, %s", falseOperator, regX, regY, falseTarget.getName()));
 					result.addLine(String.format("j %s", trueTarget.getName()));
@@ -257,9 +280,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 					result.addLine(String.format("%s %s, %s, %s", trueOperator, regX, regY, trueTarget.getName()));
 					result.addLine(String.format("j %s", falseTarget.getName()));
 				}
-			} else if (leftCount == 2) {
-				var trueFreq = rvModule.frequency().get(trueTarget);
-				var falseFreq = rvModule.frequency().get(falseTarget);
+			else if (leftCount == 2)
 				if (trueFreq < falseFreq) {
 					result.addLine(String.format("%s %s, %s, %s", trueOperator, regX, regY, trueTarget.getName()));
 					genBlock(falseTarget);
@@ -269,7 +290,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 					genBlock(trueTarget);
 					genBlock(falseTarget);
 				}
-			} else if (generatedBlock.contains(trueTarget)) {
+			else if (generatedBlock.contains(trueTarget)) {
 				result.addLine(String.format("%s %s, %s, %s", trueOperator, regX, regY, trueTarget.getName()));
 				genBlock(falseTarget);
 			} else {
@@ -300,6 +321,10 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		}
 
 		private void genBlock(BasicBlock block) {
+			if (pureJumpBlock.containsKey(block)) {
+				genBlock(pureJumpBlock.get(block));
+				return;
+			}
 			if (!generatedBlock.add(block)) return;
 			result.addLine(String.format("%s:", block.getName()));
 			for (var inst : block.instructions)
@@ -312,7 +337,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 			switch (term) {
 				case Br br -> {
 					onBlockEnd();
-					var target = br.getTarget();
+					var target = substitutePureJump(br.getTarget());
 					if (generatedBlock.contains(target)) result.addLine(String.format("j %s", target.getName()));
 					else genBlock(target);
 				}
@@ -337,6 +362,7 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 		}
 
 		public void run() {
+			collectPureJump();
 			genPrologue();
 			genBlock(function.getEntryBlock());
 			if (epilogueUsed) genEpilogue();

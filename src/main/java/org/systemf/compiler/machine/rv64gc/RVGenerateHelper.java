@@ -162,8 +162,8 @@ public class RVGenerateHelper {
 			var from = entry.getValue();
 			var toPos = to.position();
 			var fromPos = from.position();
+			if (!RVRegUtil.needToMove(toPos, to.type(), fromPos, from.type())) continue;
 			if (toPos.equals(fromPos)) { // Self-loop
-				if (!RVRegUtil.needToMove(toPos, to.type(), fromPos, from.type())) continue;
 				move(to, from, cacheManager, out);
 				continue;
 			}

@@ -83,4 +83,9 @@ public class GetPtr extends DummyValueNonTerminal {
 		return ValueUtil.trivialInterchangeable(arrayPtr, otherGet.arrayPtr) &&
 		       ValueUtil.trivialInterchangeable(index, otherGet.index);
 	}
+
+	@Override
+	public Pointer getType() {
+		return (Pointer) super.getType();
+	}
 }

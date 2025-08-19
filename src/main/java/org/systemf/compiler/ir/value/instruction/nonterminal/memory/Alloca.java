@@ -1,5 +1,6 @@
 package org.systemf.compiler.ir.value.instruction.nonterminal.memory;
 
+import org.systemf.compiler.ir.AllocationSite;
 import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Pointer;
@@ -10,7 +11,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyValueNonTermin
 import java.util.Collections;
 import java.util.SequencedSet;
 
-public class Alloca extends DummyValueNonTerminal implements PotentialNonRepeatable {
+public class Alloca extends DummyValueNonTerminal implements PotentialNonRepeatable, AllocationSite {
 	public final Sized valueType;
 
 	public Alloca(String name, Sized type) {
@@ -39,5 +40,10 @@ public class Alloca extends DummyValueNonTerminal implements PotentialNonRepeata
 
 	@Override
 	public void unregister() {
+	}
+
+	@Override
+	public Sized valueType() {
+		return valueType;
 	}
 }

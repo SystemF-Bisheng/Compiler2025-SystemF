@@ -3,6 +3,7 @@ package org.systemf.compiler.optimization.pass.util;
 import org.systemf.compiler.analysis.CFGAnalysisResult;
 import org.systemf.compiler.analysis.PointerAnalysisResult;
 import org.systemf.compiler.analysis.ReachabilityAnalysisResult;
+import org.systemf.compiler.ir.AllocationSite;
 import org.systemf.compiler.ir.IRBuilder;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
@@ -238,7 +239,7 @@ public class MergeHelper {
 		return affecting;
 	}
 
-	public static boolean affectingFree(BasicBlock upper, BasicBlock block, Set<Value> loadFrom,
+	public static boolean affectingFree(BasicBlock upper, BasicBlock block, Set<AllocationSite> loadFrom,
 			Map<BasicBlock, Optional<Set<Value>>> affecting, CFGAnalysisResult cfg,
 			ReachabilityAnalysisResult reachability) {
 		var possibleAffect = reachability.reachable().get(upper).stream()
@@ -281,7 +282,7 @@ public class MergeHelper {
 		return requiring;
 	}
 
-	public static boolean requiringFree(BasicBlock block, BasicBlock lower, Set<Value> storeTo,
+	public static boolean requiringFree(BasicBlock block, BasicBlock lower, Set<AllocationSite> storeTo,
 			Map<BasicBlock, Optional<Set<Value>>> requiring, CFGAnalysisResult cfg,
 			ReachabilityAnalysisResult reachability) {
 		var possibleRequire = reachability.reachable().get(block).stream()

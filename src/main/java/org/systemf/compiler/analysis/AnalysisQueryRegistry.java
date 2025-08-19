@@ -18,5 +18,6 @@ public class AnalysisQueryRegistry {
 		query.registerProvider(FrequencyAnalysis.INSTANCE);
 		query.registerProvider(IntegerSignAnalysis.INSTANCE);
 		query.registerProvider(SimpleLoopAnalysis.INSTANCE);
+		query.registerProvider(IndexVarianceAnalysis.INSTANCE);
 	}
 }

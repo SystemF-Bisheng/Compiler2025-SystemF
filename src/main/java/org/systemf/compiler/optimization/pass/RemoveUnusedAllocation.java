@@ -1,6 +1,7 @@
 package org.systemf.compiler.optimization.pass;
 
 import org.systemf.compiler.analysis.PointerAnalysisResult;
+import org.systemf.compiler.ir.AllocationSite;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.global.GlobalVariable;
@@ -40,7 +41,7 @@ public enum RemoveUnusedAllocation implements OptPass {
 			this.ptrResult = query.getAttribute(module, PointerAnalysisResult.class);
 		}
 
-		private boolean actuallyUsed(Value allocation) {
+		private boolean actuallyUsed(AllocationSite allocation) {
 			var pointed = ptrResult.pointedBy(allocation);
 			return pointed.stream().flatMap(ptr -> ptr.getDependant().stream()).anyMatch(used -> {
 				if (used instanceof Load) return true;

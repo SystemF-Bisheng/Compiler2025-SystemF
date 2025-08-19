@@ -9,6 +9,7 @@ import org.systemf.compiler.ir.ITracked;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.type.Pointer;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.AbstractCall;
 import org.systemf.compiler.ir.value.instruction.nonterminal.invoke.Call;
@@ -110,7 +111,9 @@ public enum InlineFunction implements OptPass {
 					var paramType = param.getType();
 					var arg = actual[i];
 					if (paramType.equals(arg.getType())) substitute.put(param, arg);
-					else substitute.put(param, builder.buildPtrCast(arg, paramType, "inlineCast"));
+					else if (paramType instanceof Pointer paramPtrType)
+						substitute.put(param, builder.buildPtrCast(arg, paramPtrType, "inlineCast"));
+					else throw new UnsupportedOperationException();
 				}
 
 				retBlock = builder.buildBasicBlock(curFunction, "inlineMerge");

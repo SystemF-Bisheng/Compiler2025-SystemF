@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BelongingHelper {
+	public static Map<Instruction, BasicBlock> getBlockBelonging(Module module) {
+		var res = new HashMap<Instruction, BasicBlock>();
+		module.getFunctions().values().stream().map(BelongingHelper::getBelonging).forEach(res::putAll);
+		return res;
+	}
+
 	public static Map<Instruction, Function> getBelonging(Module module) {
 		var res = new HashMap<Instruction, Function>();
 		module.getFunctions().values().forEach(func -> func.allInstructions().forEach(inst -> res.put(inst, func)));

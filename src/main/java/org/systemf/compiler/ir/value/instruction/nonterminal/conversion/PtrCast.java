@@ -2,13 +2,12 @@ package org.systemf.compiler.ir.value.instruction.nonterminal.conversion;
 
 import org.systemf.compiler.ir.InstructionVisitor;
 import org.systemf.compiler.ir.type.Pointer;
-import org.systemf.compiler.ir.type.interfaces.Type;
 import org.systemf.compiler.ir.type.util.TypeUtil;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.nonterminal.DummyUnary;
 
 public class PtrCast extends DummyUnary {
-	public PtrCast(String name, Value x, Type resultType) {
+	public PtrCast(String name, Value x, Pointer resultType) {
 		super(name, x, resultType);
 	}
 
@@ -33,5 +32,10 @@ public class PtrCast extends DummyUnary {
 	@Override
 	public <T> T accept(InstructionVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+
+	@Override
+	public Pointer getType() {
+		return (Pointer) super.getType();
 	}
 }

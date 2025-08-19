@@ -4,6 +4,9 @@ import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
+import org.systemf.compiler.ir.type.Array;
+import org.systemf.compiler.ir.type.Pointer;
+import org.systemf.compiler.ir.type.UnsizedArray;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.constant.Constant;
 import org.systemf.compiler.ir.value.instruction.nonterminal.CompareOp;
@@ -12,6 +15,7 @@ import org.systemf.compiler.ir.value.instruction.nonterminal.DummyCompare;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.And;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Or;
 import org.systemf.compiler.ir.value.instruction.nonterminal.bitwise.Xor;
+import org.systemf.compiler.ir.value.instruction.nonterminal.conversion.PtrCast;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FAdd;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FCmp;
 import org.systemf.compiler.ir.value.instruction.nonterminal.farithmetic.FMul;
@@ -126,6 +130,15 @@ public enum CanonicalizeValue implements OptPass {
 				}
 				default -> false;
 			};
+		}
+
+		@Override
+		public Boolean visit(PtrCast inst) {
+			if (!(inst.getType().getElementType() instanceof UnsizedArray unsized)) return false;
+			if (!(((Pointer) inst.getX().getType()).getElementType() instanceof Array sized)) return false;
+			if (!unsized.getElementType().equals(sized.getElementType())) return false;
+			inst.replaceAllUsage(inst.getX()); // Remove simply forgetful PtrCast
+			return true;
 		}
 
 		@Override

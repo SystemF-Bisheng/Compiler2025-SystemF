@@ -1,5 +1,6 @@
 package org.systemf.compiler.analysis;
 
+import org.systemf.compiler.ir.AllocationSite;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.type.Pointer;
@@ -43,7 +44,7 @@ public enum PointerAnalysis implements AttributeProvider<Module, PointerAnalysis
 	}
 
 	private static class PointerAnalysisContext {
-		private final GraphClosure<Node, Value> closure = new GraphClosure<>();
+		private final GraphClosure<Node, AllocationSite> closure = new GraphClosure<>();
 		private final HashMap<Value, Node> allocSiteInner = new HashMap<>();
 		private final HashMap<Value, Node> valuePoint = new HashMap<>();
 		private final HashMap<Function, Node> functionReturn = new HashMap<>();

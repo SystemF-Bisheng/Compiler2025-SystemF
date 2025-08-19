@@ -382,7 +382,7 @@ public class IRBuilder implements AutoCloseable {
 		return folder.tryFoldFCmp(lhs, rhs, code).map(c -> (Value) c).orElseGet(() -> buildFCmp(lhs, rhs, name, code));
 	}
 
-	public PtrCast buildPtrCast(Value x, Type type, String name) {
+	public PtrCast buildPtrCast(Value x, Pointer type, String name) {
 		var inst = new PtrCast(module.getNonConflictName(name), x, type);
 		insertInstruction(inst);
 		return inst;

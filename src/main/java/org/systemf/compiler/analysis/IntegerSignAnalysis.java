@@ -1,6 +1,7 @@
 package org.systemf.compiler.analysis;
 
 import org.systemf.compiler.analysis.IntegerSignAnalysisResult.IntegerSign;
+import org.systemf.compiler.ir.AllocationSite;
 import org.systemf.compiler.ir.InstructionVisitorBase;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.global.ExternalFunction;
@@ -99,7 +100,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 			worklist.addAll(value.getDependant());
 		}
 
-		private void addAllocSign(Value alloc, IntegerSign sign) {
+		private void addAllocSign(AllocationSite alloc, IntegerSign sign) {
 			var oldSign = result.allocSign(alloc);
 			var newSign = oldSign.meet(sign);
 			if (oldSign == newSign) return;

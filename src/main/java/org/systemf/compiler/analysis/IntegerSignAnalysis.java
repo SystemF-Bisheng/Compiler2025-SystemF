@@ -42,6 +42,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 	}
 
 	private static class IntegerSignAnalysisContext extends InstructionVisitorBase<Void> {
+		private final boolean WELL_DEFINED_OVERFLOW = true;
 		private final Module module;
 		private final PointerAnalysisResult ptrResult;
 		private final HashMap<Ret, Function> retBelong = new HashMap<>();
@@ -164,7 +165,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 		public Void visit(Add inst) {
 			var xSign = result.sign(inst.getX());
 			var ySign = result.sign(inst.getY());
-			var sign = signOfPlus(xSign, ySign);
+			var sign = WELL_DEFINED_OVERFLOW ? ALL : signOfPlus(xSign, ySign);
 			putSign(inst, sign);
 			return null;
 		}
@@ -173,7 +174,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 		public Void visit(Sub inst) {
 			var xSign = result.sign(inst.getX());
 			var ySign = result.sign(inst.getY());
-			var sign = signOfPlus(xSign, ySign.neg());
+			var sign = WELL_DEFINED_OVERFLOW ? ALL : signOfPlus(xSign, ySign.neg());
 			putSign(inst, sign);
 			return null;
 		}
@@ -182,7 +183,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 		public Void visit(Mul inst) {
 			var xSign = result.sign(inst.getX());
 			var ySign = result.sign(inst.getY());
-			var sign = signOfMul(xSign, ySign);
+			var sign = WELL_DEFINED_OVERFLOW ? ALL : signOfMul(xSign, ySign);
 			putSign(inst, sign);
 			return null;
 		}
@@ -304,7 +305,8 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 
 		@Override
 		public Void visit(Shl inst) {
-			putSign(inst, result.sign(inst.getX())); // Assume: Overflowing doesn't matter
+			putSign(inst, WELL_DEFINED_OVERFLOW ? ALL :
+					result.sign(inst.getX()) /* Assume: Overflowing doesn't matter */);
 			return null;
 		}
 
@@ -351,7 +353,7 @@ public enum IntegerSignAnalysis implements AttributeProvider<Module, IntegerSign
 
 		@Override
 		public Void visit(Si64ToSi32 inst) {
-			putSign(inst, result.sign(inst.getX()));
+			putSign(inst, WELL_DEFINED_OVERFLOW ? ALL : result.sign(inst.getX()));
 			return null;
 		}
 

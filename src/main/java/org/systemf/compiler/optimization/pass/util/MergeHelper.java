@@ -242,6 +242,7 @@ public class MergeHelper {
 			Map<BasicBlock, Optional<Set<Value>>> affecting, CFGAnalysisResult cfg,
 			ReachabilityAnalysisResult reachability) {
 		var possibleAffect = reachability.reachable().get(upper).stream()
+				.filter(succ -> succ != block)
 				.filter(succ -> {
 					var succAffect = affecting.get(succ);
 					if (succAffect.isEmpty()) return true;
@@ -250,5 +251,47 @@ public class MergeHelper {
 				}).collect(Collectors.toSet());
 		return !blockingReachability(cfg, possibleAffect, Collections.singleton(block),
 				Collections.singleton(upper));
+	}
+
+	public static boolean manipulateRequired(Module module, Instruction inst, Set<Value> required,
+			PointerAnalysisResult ptrResult) {
+		return switch (inst) {
+			case Store _, Terminal _ -> false;
+			case Load load -> {
+				required.addAll(ptrResult.pointTo(load.getPointer()));
+				yield false;
+			}
+			default -> !ValueUtil.repeatable(module, inst);
+		};
+	}
+
+	public static Map<BasicBlock, Optional<Set<Value>>> constructRequiring(Module module, Function function,
+			PointerAnalysisResult ptrResult) {
+		var requiring = new HashMap<BasicBlock, Optional<Set<Value>>>();
+		for (var block : function.getBlocks()) {
+			var required = new HashSet<Value>();
+			for (var inst : block.instructions) {
+				if (manipulateRequired(module, inst, required, ptrResult)) {
+					required = null;
+					break;
+				}
+			}
+			requiring.put(block, Optional.ofNullable(required));
+		}
+		return requiring;
+	}
+
+	public static boolean requiringFree(BasicBlock block, BasicBlock lower, Set<Value> storeTo,
+			Map<BasicBlock, Optional<Set<Value>>> requiring, CFGAnalysisResult cfg,
+			ReachabilityAnalysisResult reachability) {
+		var possibleRequire = reachability.reachable().get(block).stream()
+				.filter(succ -> succ != block)
+				.filter(succ -> {
+					var succRequire = requiring.get(succ);
+					if (succRequire.isEmpty()) return true;
+					var requireSet = succRequire.get();
+					return storeTo.stream().anyMatch(requireSet::contains);
+				}).collect(Collectors.toSet());
+		return !blockingReachability(cfg, Collections.singleton(block), possibleRequire, Collections.singleton(lower));
 	}
 }

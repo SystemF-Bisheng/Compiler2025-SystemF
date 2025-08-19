@@ -7,16 +7,12 @@ import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
-import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Load;
 import org.systemf.compiler.ir.value.instruction.nonterminal.memory.Store;
-import org.systemf.compiler.ir.value.instruction.terminal.Terminal;
-import org.systemf.compiler.ir.value.util.ValueUtil;
 import org.systemf.compiler.optimization.pass.util.MergeHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Depend on: CFGAnalysis, PointerAnalysis, ReachabilityAnalysis
@@ -49,18 +45,6 @@ public enum GlobalRemoveStore implements OptPass {
 			this.ptrResult = query.getAttribute(module, PointerAnalysisResult.class);
 		}
 
-		private void collectRequiring(BasicBlock block) {
-			var affected = new HashSet<Value>();
-			for (var inst : block.instructions) {
-				if (inst instanceof Load load) affected.addAll(ptrResult.pointTo(load.getPointer()));
-				else if (ValueUtil.sideEffect(module, inst)) {
-					affected = null;
-					break;
-				}
-			}
-			requiring.put(block, Optional.ofNullable(affected));
-		}
-
 		private void collectStoring(BasicBlock block) {
 			storing.put(block, MergeHelper.constructStoreSet(block, module, ptrResult));
 		}
@@ -70,12 +54,8 @@ public enum GlobalRemoveStore implements OptPass {
 			var required = new HashSet<Value>();
 			for (var iter = block.instructions.descendingIterator(); iter.hasNext(); ) {
 				var inst = iter.next();
-				if (inst instanceof Terminal) continue;
-				if (!(inst instanceof Store store)) {
-					if (inst instanceof Load load) required.addAll(ptrResult.pointTo(load.getPointer()));
-					else if (ValueUtil.sideEffect(module, inst)) break;
-					continue;
-				}
+				if (MergeHelper.manipulateRequired(module, inst, required, ptrResult)) break;
+				if (!(inst instanceof Store store)) continue;
 				var storePtr = store.getDest();
 				var storeTo = ptrResult.pointTo(storePtr);
 				if (storeTo.stream().anyMatch(required::contains)) continue;
@@ -90,16 +70,9 @@ public enum GlobalRemoveStore implements OptPass {
 				var blockReachable = reachability.reachable().get(block);
 				if (storePtr instanceof Instruction storePtrInst) {
 					var ptrDef = belonging.get(storePtrInst);
-					if (blockReachable.contains(ptrDef) && !domTree.subtree(block, lower)) continue;
+					if (blockReachable.contains(ptrDef)) continue;
 				}
-				var possibleRequire = blockReachable.stream().filter(succ -> succ != block).filter(succ -> {
-					var succRequire = requiring.get(succ);
-					if (succRequire.isEmpty()) return true;
-					var requireSet = succRequire.get();
-					return storeTo.stream().anyMatch(requireSet::contains);
-				}).collect(Collectors.toSet());
-				if (MergeHelper.blockingReachability(cfg, Collections.singleton(block), possibleRequire,
-						Collections.singleton(lower))) continue;
+				if (!MergeHelper.requiringFree(block, lower, storeTo, requiring, cfg, reachability)) continue;
 
 				res = true;
 				inst.unregister();
@@ -116,8 +89,7 @@ public enum GlobalRemoveStore implements OptPass {
 			postDomRoot = postDomTree.getRoot();
 			domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
 			reachability = query.getAttribute(function, ReachabilityAnalysisResult.class);
-			requiring = new HashMap<>();
-			function.getBlocks().forEach(this::collectRequiring);
+			requiring = MergeHelper.constructRequiring(module, function, ptrResult);
 			storing = new HashMap<>();
 			function.getBlocks().forEach(this::collectStoring);
 

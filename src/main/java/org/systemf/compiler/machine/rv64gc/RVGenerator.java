@@ -247,7 +247,8 @@ public enum RVGenerator implements EntityProvider<RVMachineCodeResult> {
 
 		private void jumpEpilogue() {
 			epilogueUsed = true;
-			result.addLine(String.format("j %s", epilogueName));
+			if (pureJumpBlock.size() + generatedBlock.size() < function.getBlocks().size())
+				result.addLine(String.format("j %s", epilogueName));
 		}
 
 		private BasicBlock substitutePureJump(BasicBlock block) {

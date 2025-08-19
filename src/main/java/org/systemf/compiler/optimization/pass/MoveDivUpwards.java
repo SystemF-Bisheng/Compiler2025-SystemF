@@ -27,7 +27,7 @@ public enum MoveDivUpwards implements OptPass {
 
 	@Override
 	public boolean run(Module module) {
-		return false;
+		return new MoveDivUpwardsContext(module).run();
 	}
 
 	private static class MoveDivUpwardsContext {

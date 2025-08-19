@@ -84,12 +84,14 @@ public enum Optimizer implements EntityProvider<OptimizedResult> {
 
 	private boolean codeUpwardMotionOnce(Module module) {
 		boolean flag = MoveCodeUpwards.INSTANCE.run(module);
+		flag |= MoveDivUpwards.INSTANCE.run(module);
 		flag |= MoveLoadUpwards.INSTANCE.run(module);
 		return flag;
 	}
 
 	private boolean codeDownwardMotionOnce(Module module) {
 		boolean flag = MoveCodeDownwards.INSTANCE.run(module);
+		flag |= MoveDivDownwards.INSTANCE.run(module);
 		flag |= MoveLoadDownwards.INSTANCE.run(module);
 		return flag;
 	}

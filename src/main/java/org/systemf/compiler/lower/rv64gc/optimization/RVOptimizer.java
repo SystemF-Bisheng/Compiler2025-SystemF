@@ -50,9 +50,9 @@ public enum RVOptimizer implements EntityProvider<RVOptimizedResult> {
 
 		cleanUp(module);
 		explicitImm(module);
-		inBlockMerge(module);
+		cleanUp(module);
 		explicitGlobal(module);
-		inBlockMerge(module);
+		cleanUp(module);
 
 		return new RVOptimizedResult(module);
 	}

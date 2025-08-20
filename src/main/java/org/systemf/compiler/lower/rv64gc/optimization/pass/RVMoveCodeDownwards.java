@@ -1,12 +1,13 @@
-package org.systemf.compiler.optimization.pass;
+package org.systemf.compiler.lower.rv64gc.optimization.pass;
 
-import org.systemf.compiler.analysis.DominanceAnalysisResult;
-import org.systemf.compiler.analysis.FrequencyAnalysisResult;
 import org.systemf.compiler.analysis.util.BelongingHelper;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
 import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.instruction.Instruction;
+import org.systemf.compiler.lower.rv64gc.analysis.RVDominanceAnalysisResult;
+import org.systemf.compiler.lower.rv64gc.module.RVModule;
+import org.systemf.compiler.lower.rv64gc.optimization.util.RVCodeMotionHelper;
 import org.systemf.compiler.optimization.pass.util.CodeMotionHelper;
 import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.Tree;
@@ -14,38 +15,34 @@ import org.systemf.compiler.util.Tree;
 import java.util.Comparator;
 import java.util.Map;
 
-/**
- * Depend on: FrequencyAnalysis, DominanceAnalysis, FunctionSideEffectAnalysis
- * <p>
- * Applicable to: IR
- */
-public enum MoveCodeDownwards implements OptPass {
+public enum RVMoveCodeDownwards implements RVOptPass {
 	INSTANCE;
 
 	@Override
-	public boolean run(Module module) {
-		return new MoveCodeDownwardsContext(module).run();
+	public boolean run(RVModule rvModule) {
+		return new RVMoveCodeDownwardsContext(rvModule).run();
 	}
 
-	private static class MoveCodeDownwardsContext {
+	private static class RVMoveCodeDownwardsContext {
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
-		private FrequencyAnalysisResult frequency;
+		private final Map<BasicBlock, Integer> frequency;
 		private Map<Instruction, BasicBlock> belonging;
 		private Tree<BasicBlock> domTree;
 
-		public MoveCodeDownwardsContext(Module module) {
-			this.module = module;
+		public RVMoveCodeDownwardsContext(RVModule rvModule) {
+			this.module = rvModule.module();
+			this.frequency = rvModule.frequency();
 		}
 
 		private boolean processBlock(BasicBlock block) {
 			var res = false;
 			for (var iter = block.instructions.listIterator(block.instructions.size()); iter.hasPrevious(); ) {
 				var inst = iter.previous();
-				if (CodeMotionHelper.checkNonMobile(module, inst)) continue;
+				if (RVCodeMotionHelper.checkNonMobile(inst)) continue;
 
 				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
-				var bestLower = CodeMotionHelper.findBestLower(block, lowerBound, domTree, frequency.frequency());
+				var bestLower = CodeMotionHelper.findBestLower(block, lowerBound, domTree, frequency);
 				if (bestLower == block) continue;
 
 				res = true;
@@ -57,8 +54,7 @@ public enum MoveCodeDownwards implements OptPass {
 		}
 
 		private boolean processFunction(Function function) {
-			frequency = query.getAttribute(function, FrequencyAnalysisResult.class);
-			domTree = query.getAttribute(function, DominanceAnalysisResult.class).dominance();
+			domTree = query.getAttribute(function, RVDominanceAnalysisResult.class).dominance();
 			belonging = BelongingHelper.getBelonging(function);
 			var res = function.getBlocks().stream().sorted(Comparator.comparingInt(domTree::getDfn).reversed())
 					.map(this::processBlock).reduce(false, (a, b) -> a || b);

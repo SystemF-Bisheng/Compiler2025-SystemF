@@ -52,7 +52,8 @@ public enum RVOptimizer implements EntityProvider<RVOptimizedResult> {
 		explicitImm(module);
 		cleanUp(module);
 		explicitGlobal(module);
-		cleanUp(module);
+		do cleanUp(module);
+		while (RVMoveCodeDownwards.INSTANCE.run(module));
 
 		return new RVOptimizedResult(module);
 	}

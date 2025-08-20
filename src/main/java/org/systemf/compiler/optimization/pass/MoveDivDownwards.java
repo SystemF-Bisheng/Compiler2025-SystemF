@@ -48,7 +48,7 @@ public enum MoveDivDownwards implements OptPass {
 				if (!(inst instanceof SDiv || inst instanceof SRem || inst instanceof FDiv)) continue;
 
 				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
-				var bestLower = CodeMotionHelper.findBestLower(block, lowerBound, domTree, frequency);
+				var bestLower = CodeMotionHelper.findBestLower(block, lowerBound, domTree, frequency.frequency());
 				if (bestLower == block) continue;
 
 				res = true;

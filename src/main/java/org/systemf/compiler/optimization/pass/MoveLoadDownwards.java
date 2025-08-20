@@ -58,7 +58,7 @@ public enum MoveLoadDownwards implements OptPass {
 				var lowerBound = CodeMotionHelper.getLowerBound(inst, domTree, belonging);
 				var bestLower = CodeMotionHelper.findBestLower(block, lowerBound,
 						lower -> MergeHelper.affectingFree(block, lower, loadFrom, affecting, cfg, reachability
-						), domTree, frequency);
+						), domTree, frequency.frequency());
 				if (bestLower == block) continue;
 
 				res = true;

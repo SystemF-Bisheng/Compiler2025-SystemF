@@ -1,8 +1,8 @@
 package org.systemf.compiler.optimization.pass.util;
 
-import org.systemf.compiler.analysis.FrequencyAnalysisResult;
 import org.systemf.compiler.ir.Module;
 import org.systemf.compiler.ir.block.BasicBlock;
+import org.systemf.compiler.ir.global.Function;
 import org.systemf.compiler.ir.value.Value;
 import org.systemf.compiler.ir.value.instruction.Instruction;
 import org.systemf.compiler.ir.value.instruction.nonterminal.miscellaneous.Phi;
@@ -43,7 +43,7 @@ public class CodeMotionHelper {
 
 	public static BasicBlock findBestLower(BasicBlock block, BasicBlock lowerBound, Predicate<BasicBlock> lowerFilter,
 			Tree<BasicBlock> domTree,
-			FrequencyAnalysisResult frequency) {
+			Map<BasicBlock, Integer> frequency) {
 		var possibleLower = new ArrayList<BasicBlock>();
 		while (true) {
 			if (lowerBound == null) break;
@@ -52,22 +52,26 @@ public class CodeMotionHelper {
 			lowerBound = domTree.getParent(lowerBound);
 		}
 		if (possibleLower.isEmpty()) return block;
-		return possibleLower.stream().min(Comparator.comparingInt(frequency::frequency))
+		return possibleLower.stream().min(Comparator.comparingInt(frequency::get))
 				.orElseThrow();
 	}
 
 	public static BasicBlock findBestLower(BasicBlock block, BasicBlock lowerBound, Tree<BasicBlock> domTree,
-			FrequencyAnalysisResult frequency) {
+			Map<BasicBlock, Integer> frequency) {
 		return findBestLower(block, lowerBound, _ -> true, domTree, frequency);
 	}
 
-	public static void insertHead(BasicBlock target, Instruction inst) {
+	public static void insertHead(BasicBlock target, Instruction... inst) {
 		for (var iterLower = target.instructions.listIterator(); iterLower.hasNext(); ) {
 			if (iterLower.next() instanceof Phi) continue;
 			iterLower.previous();
-			iterLower.add(inst);
+			for (var in : inst) iterLower.add(in);
 			break;
 		}
+	}
+
+	public static void insertEntry(Function func, Instruction... newInst) {
+		CodeMotionHelper.insertHead(func.getEntryBlock(), newInst);
 	}
 
 	public static void insertTail(BasicBlock target, Instruction inst) {

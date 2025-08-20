@@ -25,9 +25,7 @@ import org.systemf.compiler.query.QueryManager;
 import org.systemf.compiler.util.SaturationArithmetic;
 import org.systemf.compiler.util.TriFunction;
 
-import java.util.LinkedHashMap;
-import java.util.ListIterator;
-import java.util.Optional;
+import java.util.*;
 
 public enum RVExplicitImm implements RVOptPass {
 	INSTANCE;
@@ -44,6 +42,7 @@ public enum RVExplicitImm implements RVOptPass {
 	private static class RVExplicitImmContext extends InstructionVisitorBase<Boolean> {
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
+		private final List<Instruction> toEntry = new ArrayList<>();
 		private ListIterator<Instruction> iterator;
 
 		public RVExplicitImmContext(Module module) {
@@ -60,8 +59,12 @@ public enum RVExplicitImm implements RVOptPass {
 		}
 
 		private boolean processFunction(Function function) {
+			toEntry.clear();
 			var res = function.getBlocks().stream().map(this::processBlock).reduce(false, (a, b) -> a || b);
-			if (res) query.invalidateAllAttributes(function);
+			if (res) {
+				CodeMotionHelper.insertEntry(function, toEntry.toArray(Instruction[]::new));
+				query.invalidateAllAttributes(function);
+			}
 			return res;
 		}
 
@@ -81,6 +84,11 @@ public enum RVExplicitImm implements RVOptPass {
 			return CodeMotionHelper.insertBefore(iterator, newInst);
 		}
 
+		private Instruction insertEntry(Instruction... newInst) {
+			toEntry.addAll(Arrays.asList(newInst));
+			return newInst[newInst.length - 1];
+		}
+
 		private String newName(String name) {
 			return module.getNonConflictName(name);
 		}
@@ -90,16 +98,16 @@ public enum RVExplicitImm implements RVOptPass {
 				case ConstantInt32 constI32 -> {
 					var value = (int) constI32.value;
 					if (value == 0) yield RVZero.INSTANCE;
-					yield (Value) insertBefore(new RVLoadImm(value, newName("imm")));
+					yield (Value) insertEntry(new RVLoadImm(value, newName("imm")));
 				}
 				case ConstantInt64 constantI64 -> {
 					var value = constantI64.value;
 					if (value == 0) yield RVZero.INSTANCE;
-					yield (Value) insertBefore(new RVLoadImm(constantI64.value, newName("imm")));
+					yield (Value) insertEntry(new RVLoadImm(constantI64.value, newName("imm")));
 				}
 				case ConstantFloat constantFloat -> {
 					var intRep = new RVLoadImm(Float.floatToIntBits((float) constantFloat.value), newName("fImmInt"));
-					yield (Value) insertBefore(intRep, new RVMoveWord2Float(newName("fImm"), intRep));
+					yield (Value) insertEntry(intRep, new RVMoveWord2Float(newName("fImm"), intRep));
 				}
 				case null, default -> throw new UnsupportedOperationException();
 			};

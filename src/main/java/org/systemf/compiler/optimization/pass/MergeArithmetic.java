@@ -195,17 +195,17 @@ public enum MergeArithmetic implements OptPass {
 
 		@Override
 		public Boolean visit(Shl inst) {
-			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+			return MergeHelper.mergeIntShift(builder, inst);
 		}
 
 		@Override
 		public Boolean visit(LShr inst) {
-			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+			return MergeHelper.mergeIntShift(builder, inst);
 		}
 
 		@Override
 		public Boolean visit(AShr inst) {
-			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+			return MergeHelper.mergeIntShift(builder, inst);
 		}
 
 		private Optional<Value> checkFloatNeg(Value value) {

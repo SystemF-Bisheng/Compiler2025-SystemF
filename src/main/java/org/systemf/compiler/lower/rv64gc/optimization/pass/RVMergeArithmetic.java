@@ -84,12 +84,12 @@ public enum RVMergeArithmetic implements RVOptPass {
 
 		@Override
 		public Boolean visit(RVShiftLeft inst) {
-			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+			return MergeHelper.mergeIntShift(builder, inst);
 		}
 
 		@Override
 		public Boolean visit(RVShiftLeftWord inst) {
-			return MergeHelper.mergeIntBinary(builder, inst, SaturationArithmetic::checkedAdd);
+			return MergeHelper.mergeIntShift(builder, inst);
 		}
 
 		private Optional<Pair<Value, Long>> extractOffset(Value ptr) {

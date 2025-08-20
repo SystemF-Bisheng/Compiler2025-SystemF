@@ -212,6 +212,15 @@ public class MergeHelper {
 		return true;
 	}
 
+	public static boolean mergeIntShift(IRBuilder builder, DummyBinary inst) {
+		var width = ValueUtil.getWidth(inst);
+		return mergeIntBinary(builder, inst, (a, b) -> {
+			var n = a + b;
+			if (n >= width) return Optional.empty();
+			return Optional.of(n);
+		});
+	}
+
 	public static boolean manipulateAffected(Module module, Instruction inst, Set<Value> affected,
 			PointerAnalysisResult ptrResult) {
 		return switch (inst) {

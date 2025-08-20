@@ -28,7 +28,7 @@ public enum UnrollLoop implements OptPass {
 	}
 
 	private static class UnrollLoopContext {
-		private static final int UNROLL_THRESHOLD = 48;
+		private static final int UNROLL_THRESHOLD = 128;
 		private final QueryManager query = QueryManager.getInstance();
 		private final Module module;
 		private IRBuilder builder;
